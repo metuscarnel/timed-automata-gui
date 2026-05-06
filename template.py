@@ -36,18 +36,6 @@ class EditorInterface(QMainWindow):
         self.save_act = QAction("Enregistrer", self)
         self.save_act.setShortcut(QKeySequence.Save)
 
-        # --- ÉDITION ---
-        self.undo_act = QAction("Annuler", self)
-        self.undo_act.setShortcut(QKeySequence.Undo)
-        
-        self.redo_act = QAction("Rétablir", self)
-        self.redo_act.setShortcut(QKeySequence.Redo)
-
-        # --- ZOOM ---
-        self.zoom_fit_act = QAction("Zoom Adapté", self)
-        self.zoom_in_act = QAction("Zoom +", self)
-        self.zoom_out_act = QAction("Zoom -", self)
-
         # --- AIDE ---
         self.about_act = QAction("À propos", self)
         self.about_act.triggered.connect(self.show_about)
@@ -59,34 +47,17 @@ class EditorInterface(QMainWindow):
         file_menu.addAction(self.open_act)
         file_menu.addAction(self.save_act)
 
-        # Menu Édition
-        edit_menu = self.menuBar().addMenu("&Édition")
-        edit_menu.addAction(self.undo_act)
-        edit_menu.addAction(self.redo_act)
-
-        # Menu Zoom
-        zoom_menu = self.menuBar().addMenu("&Zoom")
-        zoom_menu.addAction(self.zoom_fit_act)
-        zoom_menu.addAction(self.zoom_in_act)
-        zoom_menu.addAction(self.zoom_out_act)
-
         # Menu Aide
         help_menu = self.menuBar().addMenu("&?")
         help_menu.addAction(self.about_act)
 
     def create_toolbar(self):
         # Barre d'outils avec les actions principales[cite: 1]
-        toolbar = self.addToolBar("Actions")
-        toolbar.addAction(self.new_act)
-        toolbar.addAction(self.open_act)
+        toolbar = self.addToolBar("toolbar")
+        toolbar.addAction("Nouvelle Localité")
+        toolbar.addAction("Nouvelle Transition")        
         toolbar.addSeparator()
-        toolbar.addAction(self.undo_act)
-        toolbar.addAction(self.redo_act)
-        toolbar.addSeparator()
-        
-        # Outils de dessin spécifiques[cite: 1]
-        toolbar.addAction("État")
-        toolbar.addAction("Transition")
+        toolbar.addAction(
 
     def create_properties_panel(self):
         # Panneau latéral droit[cite: 1]
@@ -94,10 +65,7 @@ class EditorInterface(QMainWindow):
         dock.setAllowedAreas(Qt.RightDockWidgetArea)
         
         container = QWidget()
-        layout = QFormLayout(container)
-        layout.addRow("Nom :", QLineEdit())
-        layout.addRow("Invariant :", QLineEdit())
-        layout.addRow("Garde :", QLineEdit())
+       
         
         dock.setWidget(container)
         self.addDockWidget(Qt.RightDockWidgetArea, dock)
