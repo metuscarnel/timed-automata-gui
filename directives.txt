@@ -1,0 +1,33 @@
+Palettes de couleurs : noir (pas très foncé) sur blanc un peu terne 
+bordures très fines, 
+Font : Tahoma (léger, agréable à l'oeil)
+
+Pour que ta "pieuvre" fonctionne sans s'emmêler les tentacules, voici le protocole exact à suivre dès qu'une nouvelle localité est créée. On sépare l'existence logique (le Buffer) de l'apparence visuelle (la Scène).
+Le flux de création (Step-by-Step)
+
+    L'utilisateur clique sur le QToolButton "+ Nouvelle Localité".
+
+    La Vue émet un signal vers le Contrôleur.
+
+    Le Contrôleur génère un ID unique et définit les coordonnées par défaut.
+
+    Le Contrôleur enregistre ces données dans le Buffer du Modèle.
+
+    Le Contrôleur ordonne à la Vue de dessiner le cercle.
+
+
+
+/PROJET_AUTOMATES
+│
+├── main.py                 # Instance Model, Controller, View
+│
+├── Controller.py           # Un seul fichier pour toute la logique de médiation
+│
+├── Model.py                # Contient la classe AutomatonModel (Buffer + Save/Load)
+│
+├── View/                   # On garde un dossier car le graphique est complexe
+│   ├── __init__.py
+│   ├── main_window.py      # La fenêtre, la Toolbar et le Properties Dock
+│   ├── canvas.py           # Fusion de QGraphicsView et QGraphicsScene
+│   └── items.py            # Regroupe NodeItem et EdgeItem
+│

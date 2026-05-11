@@ -20,14 +20,11 @@
                 "<id_location_target>"
             ]
         ],
-        "transitions_layout": {
-            "<transition_id>":
-            {
-                "nails": [
+        "transitions_layout": [
+                [
                     { "x": 0, "y": 0 }
                 ]
-            }
-        }
+            ]
     },
     "init": "<id_init_location>"
 }
