@@ -65,6 +65,14 @@ class NodeItem(QGraphicsEllipseItem):
             else:
                 self.setPen(QPen(Qt.black, 1)) # Retour à la normale
         return super().itemChange(change, value)
+        
+    def mouseReleaseEvent(self, event):
+        super().mouseReleaseEvent(event)
+        # Notifier la vue du déplacement final au relâchement du clic
+        if self.scene() and self.scene().views():
+            view = self.scene().views()[0]
+            if hasattr(view, 'node_moved'):
+                view.node_moved.emit(self.id, self.scenePos().x(), self.scenePos().y())
 
 class NailItem(QGraphicsEllipseItem):
     def __init__(self, x, y, transition):
@@ -84,6 +92,18 @@ class NailItem(QGraphicsEllipseItem):
             if self.transition:
                 self.transition.update_position()
         return super().itemChange(change, value)
+        
+    def mouseReleaseEvent(self, event):
+        super().mouseReleaseEvent(event)
+        # Trouver l'index de ce clou et notifier la vue au relâchement du clic
+        if self.transition and self.scene() and self.scene().views():
+            try:
+                nail_index = self.transition.nails.index(self)
+                view = self.scene().views()[0]
+                if hasattr(view, 'nail_moved'):
+                    view.nail_moved.emit(self.transition.source.id, self.transition.target.id, nail_index, self.scenePos().x(), self.scenePos().y())
+            except ValueError:
+                pass
 
 class TransitionItem(QGraphicsPathItem):
     def __init__(self, source_node, target_node, nails_pos=None):

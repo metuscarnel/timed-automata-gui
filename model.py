@@ -49,3 +49,16 @@ class AutomatonModel:
             if t["source"] == source_id and t["target"] == target_id:
                 t["action"] = action_name if action_name != "Aucune" else ""
                 break
+
+    def update_node_position(self, node_id, x, y):
+        """Met à jour les coordonnées d'une localité après un déplacement."""
+        if node_id in self.data["locations"]:
+            self.data["locations"][node_id]["node_pos"] = {"x": x, "y": y}
+
+    def update_nail_position(self, source_id, target_id, nail_index, x, y):
+        """Met à jour les coordonnées d'un clou spécifique sur une transition après déplacement."""
+        for t in self.data["transitions"]:
+            if t["source"] == source_id and t["target"] == target_id:
+                if 0 <= nail_index < len(t["nails"]):
+                    t["nails"][nail_index] = (x, y)
+                break

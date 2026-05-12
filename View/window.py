@@ -93,6 +93,10 @@ class MainWindow(QMainWindow):
         self.canvas.node_selected.connect(self.controller.handle_node_selected)
         self.canvas.transition_selected.connect(self.controller.handle_transition_selected)
         
+        # --- NOUVEAU : Connexion des signaux de déplacement au contrôleur ---
+        self.canvas.node_moved.connect(self.controller.update_node_position)
+        self.canvas.nail_moved.connect(self.controller.update_nail_position)
+        
         # --- NOUVEAU : Instanciation du Panneau Latéral (Dock) ---
         self.properties_dock = PropertiesDock(self.controller)
         self.addDockWidget(Qt.RightDockWidgetArea, self.properties_dock)

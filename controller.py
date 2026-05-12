@@ -104,3 +104,11 @@ class MainController:
     def update_transition_action(self, source_id, target_id, new_action):
         print(f"[Controller] Action {new_action} assignée à la transition {source_id}->{target_id}")
         self.model.update_transition_action(source_id, target_id, new_action)
+
+    def update_node_position(self, node_id, x, y):
+        print(f"[Controller] Localité {node_id} déplacée en ({x}, {y})")
+        self.model.update_node_position(node_id, x, y)
+
+    def update_nail_position(self, source_id, target_id, nail_index, x, y):
+        print(f"[Controller] Clou n°{nail_index} de {source_id}->{target_id} déplacé en ({x}, {y})")
+        self.model.update_nail_position(source_id, target_id, nail_index, x, y)

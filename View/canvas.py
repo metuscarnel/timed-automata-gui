@@ -13,10 +13,15 @@ class AutomataView(QGraphicsView):
     selection_cleared = Signal()
     node_selected = Signal(str)
     transition_selected = Signal(str, str)
+    
+    # Signaux pour le déplacement (mise à jour du modèle)
+    node_moved = Signal(str, float, float) # node_id, x, y
+    nail_moved = Signal(str, str, int, float, float) # source_id, target_id, nail_index, x, y
 
     def __init__(self):
         super().__init__()
         self.scene = QGraphicsScene()
+        
         self.setScene(self.scene)
         self.setMouseTracking(True) # OBLIGATOIRE pour suivre la souris sans clic !
         
