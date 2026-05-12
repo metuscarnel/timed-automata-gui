@@ -1,8 +1,9 @@
 from PySide6.QtWidgets import QMainWindow, QToolBar, QDialog, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton
 from PySide6.QtGui import QAction, QKeySequence, QActionGroup
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, Qt
 from .canvas import AutomataView
 from resources.icons import get_icons
+from .properties_dock import PropertiesDock
 
 class DeclarationDialog(QDialog):
     """Boîte de dialogue volante pour la création d'éléments globaux (Actions, Horloges)."""
@@ -86,6 +87,16 @@ class MainWindow(QMainWindow):
         # --- NOUVEAU : Connexion du clic de la zone de dessin au contrôleur ---
         self.canvas.canvas_clicked.connect(self.controller.handle_canvas_click)
         self.canvas.transition_created.connect(self.controller.handle_transition_created)
+        
+        # --- NOUVEAU : Connexion des signaux de sélection au contrôleur ---
+        self.canvas.selection_cleared.connect(self.controller.handle_selection_cleared)
+        self.canvas.node_selected.connect(self.controller.handle_node_selected)
+        self.canvas.transition_selected.connect(self.controller.handle_transition_selected)
+        
+        # --- NOUVEAU : Instanciation du Panneau Latéral (Dock) ---
+        self.properties_dock = PropertiesDock(self.controller)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.properties_dock)
+        self.properties_dock.hide() # Masqué par défaut
         
         # --- NOUVEAU : Appel de la création du menu ---
         self._setup_menubar()

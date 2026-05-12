@@ -1,5 +1,5 @@
-from PySide6.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsPathItem, QGraphicsItem
-from PySide6.QtGui import QBrush, QPen, QFont, QPainterPath
+from PySide6.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsPathItem, QGraphicsItem, QStyle
+from PySide6.QtGui import QBrush, QPen, QFont, QPainterPath, QColor
 from PySide6.QtCore import Qt, QPointF
 import math
 
@@ -40,6 +40,11 @@ class NodeItem(QGraphicsEllipseItem):
         """Mémorise une transition connectée à ce noeud."""
         self.transitions.append(transition)
 
+    def paint(self, painter, option, widget=None):
+        # --- NOUVEAU : Supprimer le cadre pointillé par défaut de Qt ---
+        option.state &= ~QStyle.State_Selected
+        super().paint(painter, option, widget)
+
     def itemChange(self, change, value):
         """Écoute les mouvements du noeud et met à jour ses flèches en temps réel."""
         if change == QGraphicsItem.ItemPositionHasChanged:
@@ -52,6 +57,13 @@ class NodeItem(QGraphicsEllipseItem):
                 for item in self.scene().items():
                     if isinstance(item, TransitionItem) and item not in self.transitions:
                         item.update_position()
+                        
+        elif change == QGraphicsItem.ItemSelectedHasChanged:
+            # --- NOUVEAU : Changement de couleur de la bordure ---
+            if value:
+                self.setPen(QPen(QColor("#0D99FF"), 2)) # Bleu électrique pour la sélection
+            else:
+                self.setPen(QPen(Qt.black, 1)) # Retour à la normale
         return super().itemChange(change, value)
 
 class NailItem(QGraphicsEllipseItem):
@@ -91,6 +103,9 @@ class TransitionItem(QGraphicsPathItem):
         
         self.setPen(QPen(Qt.black, 1))
         self.setZValue(-1) # Dessiner la ligne DERRIÈRE les noeuds
+        
+        # --- NOUVEAU : Rendre la flèche cliquable/sélectionnable ---
+        self.setFlag(QGraphicsItem.ItemIsSelectable)
         
         self.ctrl_x = 0 # Position X du point de courbure
         self.ctrl_y = 0 # Position Y du point de courbure
@@ -154,8 +169,19 @@ class TransitionItem(QGraphicsPathItem):
         path.quadTo(self.ctrl_x, self.ctrl_y, p2.x(), p2.y())
         self.setPath(path)
 
+    def itemChange(self, change, value):
+        # --- NOUVEAU : Changement de couleur de la flèche ---
+        if change == QGraphicsItem.ItemSelectedHasChanged:
+            if value:
+                self.setPen(QPen(QColor("#0D99FF"), 2)) # Bleu électrique pour la sélection
+            else:
+                self.setPen(QPen(Qt.black, 1)) # Retour à la normale
+        return super().itemChange(change, value)
+
     def paint(self, painter, option, widget=None):
         """Surcharge du dessin pour la pointe de flèche orientée selon la courbe"""
+        # --- NOUVEAU : Supprimer le cadre pointillé par défaut de Qt ---
+        option.state &= ~QStyle.State_Selected
         super().paint(painter, option, widget)
         
         # La tangente (direction de l'angle) à l'arrivée d'une courbe quad est P2 - ControlPoint
@@ -175,6 +201,6 @@ class TransitionItem(QGraphicsPathItem):
         wing1 = QPointF(end_x - arrow_size * math.cos(angle + math.pi / 6), end_y - arrow_size * math.sin(angle + math.pi / 6))
         wing2 = QPointF(end_x - arrow_size * math.cos(angle - math.pi / 6), end_y - arrow_size * math.sin(angle - math.pi / 6))
         
-        painter.setPen(self.pen()) # Utilise le même style (épaisseur 1) que la courbe
-        painter.setBrush(QBrush(Qt.black)) # Remplit la pointe en noir
+        painter.setPen(self.pen()) # Utilise le même style que la courbe
+        painter.setBrush(QBrush(self.pen().color())) # Utilise la couleur active (Gris ou Noir) pour remplir la pointe
         painter.drawPolygon([QPointF(end_x, end_y), wing1, wing2])

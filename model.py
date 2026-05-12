@@ -42,3 +42,10 @@ class AutomatonModel:
         """Ajoute une horloge si elle n'existe pas déjà (ignore les doublons)."""
         if clock_name and clock_name not in self.data["clocks"]:
             self.data["clocks"].append(clock_name)
+
+    def update_transition_action(self, source_id, target_id, action_name):
+        """Met à jour l'action associée à une transition."""
+        for t in self.data["transitions"]:
+            if t["source"] == source_id and t["target"] == target_id:
+                t["action"] = action_name if action_name != "Aucune" else ""
+                break

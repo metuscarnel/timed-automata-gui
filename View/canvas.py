@@ -8,17 +8,45 @@ class AutomataView(QGraphicsView):
     canvas_clicked = Signal(float, float)
     # Signal émis quand la transition est validée (avec liste de clous)
     transition_created = Signal(str, str, list)
+    
+    # Signaux pour le Dock de propriétés
+    selection_cleared = Signal()
+    node_selected = Signal(str)
+    transition_selected = Signal(str, str)
 
     def __init__(self):
         super().__init__()
         self.scene = QGraphicsScene()
         self.setScene(self.scene)
         self.setMouseTracking(True) # OBLIGATOIRE pour suivre la souris sans clic !
+        
+        # --- NOUVEAU : Fixer l'alignement pour éviter les sauts visuels ---
+        self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+        
         self.creation_mode = None # Ex: "location", "transition", etc.
         self.nodes = {} # Dictionnaire pour retrouver les NodeItems par leur ID
         self.drag_source_id = None
         self.temp_lines = [] # Lignes visuelles temporaires
         self.transition_nails_pos = [] # Coordonnées des clous posés
+        
+        # Écoute la sélection native de QGraphicsScene
+        self.scene.selectionChanged.connect(self._on_selection_changed)
+
+    def _on_selection_changed(self):
+        """Capture les éléments sélectionnés et relaie les bons identifiants vers la fenêtre."""
+        selected = self.scene.selectedItems()
+        if not selected:
+            self.selection_cleared.emit()
+            return
+            
+        item = selected[0]
+        if isinstance(item, NodeItem):
+            self.node_selected.emit(item.id)
+        elif isinstance(item, TransitionItem):
+            self.transition_selected.emit(item.source.id, item.target.id)
+        elif isinstance(item, NailItem):
+            # Si on clique sur un clou, on affiche les propriétés de sa transition parent
+            self.transition_selected.emit(item.transition.source.id, item.transition.target.id)
 
     def set_creation_mode(self, mode):
         """Change le mode de création et modifie le curseur."""

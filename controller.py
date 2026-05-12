@@ -79,3 +79,28 @@ class MainController:
         print("\n--- Attributs de l'instance 'model' ---")
         pprint.pprint(self.model.__dict__)
         print("---------------------------------------")
+
+    # --- GESTION DE LA SÉLECTION ET DES PROPRIÉTÉS ---
+
+    def handle_selection_cleared(self):
+        if self.view and hasattr(self.view, 'properties_dock'):
+            self.view.properties_dock.hide()
+
+    def handle_node_selected(self, node_id):
+        print(f"[Controller] Nœud sélectionné : {node_id}")
+        if self.view and hasattr(self.view, 'properties_dock'):
+            node_data = self.model.data["locations"].get(node_id, {})
+            self.view.properties_dock.show_node_props(node_id, node_data)
+
+    def handle_transition_selected(self, source_id, target_id):
+        print(f"[Controller] Transition sélectionnée : {source_id} -> {target_id}")
+        if self.view and hasattr(self.view, 'properties_dock'):
+            # Trouver les données de la transition
+            trans_data = next((t for t in self.model.data["transitions"] 
+                               if t["source"] == source_id and t["target"] == target_id), {})
+            available_actions = self.model.data.get("actions", [])
+            self.view.properties_dock.show_transition_props(source_id, target_id, trans_data, available_actions)
+
+    def update_transition_action(self, source_id, target_id, new_action):
+        print(f"[Controller] Action {new_action} assignée à la transition {source_id}->{target_id}")
+        self.model.update_transition_action(source_id, target_id, new_action)
