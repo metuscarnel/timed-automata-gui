@@ -180,3 +180,11 @@ python main.py
 - ✅ Création d'une classe `State` dédiée aux localités
 - ✅ Génération automatique des noms (L1, L2, L3, etc.)
 - ❌ Approche abandonnée (problèmes de rendu avec paint())
+
+### 6 mai 2026 - Dock de Propriétés & Invariants (v6)
+
+**Améliorations Fonctionnelles**:
+- ✅ Intégration complète du `PropertiesDock` (Panneau latéral) 
+- ✅ Remplacement du placeholder par un éditeur complet d'Invariant (Horloge, Opérateurs non stricts, Valeur numérique)
+- ✅ Disparition du contour pointillé par défaut de Qt au profit d'une bordure bleu électrique
+- ✅ Mise à jour en temps réel des modifications de l'utilisateur dans le Modèle via un flux MVC pur

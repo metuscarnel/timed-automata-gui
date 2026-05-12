@@ -37,13 +37,23 @@ def main():
         /* Menus déroulants */
         QMenu {
             background-color: #FFFFFF;
-            border: 1px solid #D5D5D5;
+            border: 1px solid #CCCCCC;
+            border-radius: 4px;
+            padding: 4px;
         }
         QMenu::item {
-            padding: 6px 25px 6px 20px;
+            padding: 6px 24px 6px 12px;
+            border-radius: 4px;
+            margin: 1px 4px;
         }
         QMenu::item:selected {
             background-color: #EBEBEB;
+            color: #000000;
+        }
+        QMenu::separator {
+            height: 1px;
+            background-color: #EEEEEE;
+            margin: 4px 8px;
         }
         
         /* Barre d'outils et ses boutons */
@@ -66,6 +76,39 @@ def main():
         QToolButton:pressed, QToolButton:checked {
             background-color: #E0E0E0;
             border: 1px solid #CCCCCC;
+        }
+        
+        /* --- QComboBox (Menus déroulants Flat Design) --- */
+        QComboBox {
+            background-color: #FFFFFF;
+            color: #000000;
+            border: 1px solid #CCCCCC;
+            border-radius: 4px;
+            padding: 5px 8px;
+        }
+        QComboBox:hover {
+            border: 1px solid #AAAAAA;
+        }
+        QComboBox:focus {
+            border: 1px solid #0D99FF; /* Bordure bleu électrique au focus */
+        }
+        QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 24px;
+            border: none; /* Pas de bordure séparant le texte de la flèche */
+        }
+        QComboBox::down-arrow {
+            /* La flèche native sera utilisée mais sans le bloc moche autour */
+        }
+        QComboBox QAbstractItemView {
+            background-color: #FFFFFF;
+            color: #000000;
+            border: 1px solid #CCCCCC;
+            border-radius: 4px;
+            selection-background-color: #E5F3FF; /* Fond bleu doux au survol */
+            selection-color: #000000;
+            outline: none; /* Enlève la ligne pointillée de sélection native Qt */
         }
     """)
     

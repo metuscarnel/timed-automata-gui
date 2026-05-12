@@ -20,7 +20,7 @@ class AutomatonModel:
             
         self.data["locations"][loc_id] = {
             "node_pos": {"x": x, "y": y},
-            "invariant": [] # On garde ça simple pour ce test
+            "invariants": [] # Stocke la liste des conditions d'invariants
         }
         return loc_id
 
@@ -62,3 +62,40 @@ class AutomatonModel:
                 if 0 <= nail_index < len(t["nails"]):
                     t["nails"][nail_index] = (x, y)
                 break
+
+    def add_node_invariant(self, node_id, clock, operator, value):
+        """Ajoute ou met à jour une condition d'invariant pour une horloge sur une localité."""
+        if node_id in self.data["locations"]:
+            if "invariants" not in self.data["locations"][node_id]:
+                self.data["locations"][node_id]["invariants"] = []
+            
+            # Vérifie si un invariant existe déjà pour cette horloge et le met à jour
+            for inv in self.data["locations"][node_id]["invariants"]:
+                if inv["clock"] == clock:
+                    inv["operator"] = operator
+                    inv["value"] = value
+                    return
+                    
+            self.data["locations"][node_id]["invariants"].append({
+                "clock": clock, "operator": operator, "value": value
+            })
+
+    def remove_node_invariant(self, node_id, index):
+        """Supprime un invariant spécifique d'une localité via son index."""
+        if node_id in self.data["locations"] and "invariants" in self.data["locations"][node_id]:
+            if 0 <= index < len(self.data["locations"][node_id]["invariants"]):
+                self.data["locations"][node_id]["invariants"].pop(index)
+
+    def remove_transition(self, source_id, target_id):
+        """Supprime une transition de la liste du modèle."""
+        self.data["transitions"] = [
+            t for t in self.data["transitions"] 
+            if not (t["source"] == source_id and t["target"] == target_id)
+        ]
+
+    def remove_node(self, node_id):
+        """Supprime une localité. (Les transitions sont déjà nettoyées par le contrôleur)."""
+        if node_id in self.data["locations"]:
+            del self.data["locations"][node_id]
+        if self.data.get("init") == node_id:
+            self.data["init"] = ""

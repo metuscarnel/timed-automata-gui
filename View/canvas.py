@@ -17,6 +17,10 @@ class AutomataView(QGraphicsView):
     # Signaux pour le déplacement (mise à jour du modèle)
     node_moved = Signal(str, float, float) # node_id, x, y
     nail_moved = Signal(str, str, int, float, float) # source_id, target_id, nail_index, x, y
+    
+    # Signaux pour les requêtes de suppression
+    node_delete_requested = Signal(str)
+    transition_delete_requested = Signal(str, str)
 
     def __init__(self):
         super().__init__()
@@ -76,6 +80,31 @@ class AutomataView(QGraphicsView):
         node = NodeItem(node_id, x, y, is_initial)
         self.nodes[node_id] = node
         self.scene.addItem(node)
+
+    def remove_node_visual(self, node_id):
+        """Supprime visuellement le nœud de la scène."""
+        if node_id in self.nodes:
+            node = self.nodes.pop(node_id)
+            if node in self.scene.items():
+                self.scene.removeItem(node)
+
+    def remove_transition_visual(self, source_id, target_id):
+        """Supprime visuellement la transition de la scène."""
+        source_node = self.nodes.get(source_id)
+        if source_node:
+            for t in list(source_node.transitions):
+                if t.target.id == target_id:
+                    # Détache des références
+                    t.source.transitions.remove(t)
+                    t.target.transitions.remove(t)
+                    # Retire les clous visuels
+                    for nail in t.nails:
+                        if nail in self.scene.items():
+                            self.scene.removeItem(nail)
+                    # Retire la ligne
+                    if t in self.scene.items():
+                        self.scene.removeItem(t)
+                    break
 
     def draw_transition(self, source_id, target_id, nails_pos=None):
         """Crée visuellement une flèche entre deux noeuds existants"""

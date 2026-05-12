@@ -7,6 +7,10 @@ class MainController:
 
     def set_view(self, view):
         self.view = view
+        # Connexion dynamique aux signaux de suppression de la scène graphique
+        if hasattr(self.view, "canvas"):
+            self.view.canvas.node_delete_requested.connect(self.handle_delete_node)
+            self.view.canvas.transition_delete_requested.connect(self.handle_delete_transition)
 
     def handle_add_location(self, checked=False):
         print(f"[Controller] Bouton Localité cliqué (Actif: {checked})")
@@ -90,7 +94,8 @@ class MainController:
         print(f"[Controller] Nœud sélectionné : {node_id}")
         if self.view and hasattr(self.view, 'properties_dock'):
             node_data = self.model.data["locations"].get(node_id, {})
-            self.view.properties_dock.show_node_props(node_id, node_data)
+            available_clocks = self.model.data.get("clocks", [])
+            self.view.properties_dock.show_node_props(node_id, node_data, available_clocks)
 
     def handle_transition_selected(self, source_id, target_id):
         print(f"[Controller] Transition sélectionnée : {source_id} -> {target_id}")
@@ -112,3 +117,38 @@ class MainController:
     def update_nail_position(self, source_id, target_id, nail_index, x, y):
         print(f"[Controller] Clou n°{nail_index} de {source_id}->{target_id} déplacé en ({x}, {y})")
         self.model.update_nail_position(source_id, target_id, nail_index, x, y)
+
+    def add_node_invariant(self, node_id, clock, operator, value):
+        print(f"[Controller] Ajout de l'invariant {clock} {operator} {value} à {node_id}")
+        self.model.add_node_invariant(node_id, clock, operator, value)
+        # Rafraîchir la vue en simulant une nouvelle sélection
+        self.handle_node_selected(node_id)
+
+    def remove_node_invariant(self, node_id, index):
+        print(f"[Controller] Suppression de l'invariant index {index} pour {node_id}")
+        self.model.remove_node_invariant(node_id, index)
+        # Rafraîchir la vue en simulant une nouvelle sélection
+        self.handle_node_selected(node_id)
+
+    def handle_delete_transition(self, source_id, target_id):
+        print(f"[Controller] Demande de suppression de la transition {source_id}->{target_id}")
+        self.model.remove_transition(source_id, target_id)
+        if self.view:
+            self.view.canvas.remove_transition_visual(source_id, target_id)
+            self.handle_selection_cleared()
+
+    def handle_delete_node(self, node_id):
+        print(f"[Controller] Demande de suppression de la localité {node_id} (Cascade activée)")
+        # 1. Identifier et supprimer en cascade les transitions liées
+        transitions_to_delete = [
+            (t["source"], t["target"]) for t in self.model.data["transitions"]
+            if t["source"] == node_id or t["target"] == node_id
+        ]
+        for src, tgt in transitions_to_delete:
+            self.handle_delete_transition(src, tgt)
+
+        # 2. Supprimer le nœud lui-même
+        self.model.remove_node(node_id)
+        if self.view:
+            self.view.canvas.remove_node_visual(node_id)
+            self.handle_selection_cleared()
