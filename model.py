@@ -1,6 +1,12 @@
 class AutomatonModel:
     def __init__(self):
-        self.data = {"locations": {}, "init": "", "transitions": []}
+        self.data = {
+            "locations": {}, 
+            "init": "", 
+            "transitions": [],
+            "actions": [],
+            "clocks": []
+        }
         self.loc_counter = 0
 
     def add_location(self, x, y):
@@ -18,10 +24,21 @@ class AutomatonModel:
         }
         return loc_id
 
-    def add_transition(self, source_id, target_id):
+    def add_transition(self, source_id, target_id, nails_pos=None):
         """Ajoute une transition dans le modèle"""
         transition = {
             "source": source_id,
-            "target": target_id
+            "target": target_id,
+            "nails": nails_pos or []
         }
         self.data["transitions"].append(transition)
+
+    def add_action(self, action_name):
+        """Ajoute une action si elle n'existe pas déjà (ignore les doublons)."""
+        if action_name and action_name not in self.data["actions"]:
+            self.data["actions"].append(action_name)
+
+    def add_clock(self, clock_name):
+        """Ajoute une horloge si elle n'existe pas déjà (ignore les doublons)."""
+        if clock_name and clock_name not in self.data["clocks"]:
+            self.data["clocks"].append(clock_name)

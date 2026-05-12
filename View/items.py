@@ -1,5 +1,5 @@
-from PySide6.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsLineItem
-from PySide6.QtGui import QBrush, QPen, QFont
+from PySide6.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsPathItem, QGraphicsItem
+from PySide6.QtGui import QBrush, QPen, QFont, QPainterPath
 from PySide6.QtCore import Qt, QPointF
 import math
 
@@ -17,6 +17,10 @@ class NodeItem(QGraphicsEllipseItem):
         self.setFlag(QGraphicsEllipseItem.ItemIsMovable)
         self.setFlag(QGraphicsEllipseItem.ItemIsSelectable)
         
+        # --- NOUVEAU : Activer les notifications de mouvement pour les flèches ---
+        self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
+        self.transitions = [] # Liste des flèches connectées
+        
         # --- NOUVEAU : Ajouter un cercle intérieur si c'est l'état initial ---
         if is_initial:
             # Cercle légèrement plus petit, centré
@@ -32,43 +36,145 @@ class NodeItem(QGraphicsEllipseItem):
         rect = self.text.boundingRect()
         self.text.setPos(-rect.width() / 2, -rect.height() / 2)
 
-class TransitionItem(QGraphicsLineItem):
-    def __init__(self, source_node, target_node):
+    def add_transition(self, transition):
+        """Mémorise une transition connectée à ce noeud."""
+        self.transitions.append(transition)
+
+    def itemChange(self, change, value):
+        """Écoute les mouvements du noeud et met à jour ses flèches en temps réel."""
+        if change == QGraphicsItem.ItemPositionHasChanged:
+            # 1. Met à jour les flèches connectées à ce noeud
+            for transition in self.transitions:
+                transition.update_position()
+                
+            # 2. Met à jour les AUTRES flèches de la scène pour esquiver ce noeud dynamiquement
+            if self.scene():
+                for item in self.scene().items():
+                    if isinstance(item, TransitionItem) and item not in self.transitions:
+                        item.update_position()
+        return super().itemChange(change, value)
+
+class NailItem(QGraphicsEllipseItem):
+    def __init__(self, x, y, transition):
+        super().__init__(-4, -4, 8, 8)
+        self.setPos(x, y)
+        self.setBrush(QBrush(Qt.black))
+        self.setPen(QPen(Qt.black, 1))
+        
+        self.setFlag(QGraphicsEllipseItem.ItemIsMovable)
+        self.setFlag(QGraphicsEllipseItem.ItemIsSelectable)
+        self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
+        self.transition = transition
+        self.setZValue(0)
+        
+    def itemChange(self, change, value):
+        if change == QGraphicsItem.ItemPositionHasChanged:
+            if self.transition:
+                self.transition.update_position()
+        return super().itemChange(change, value)
+
+class TransitionItem(QGraphicsPathItem):
+    def __init__(self, source_node, target_node, nails_pos=None):
         super().__init__()
         self.source = source_node
         self.target = target_node
+        self.nails = []
         
-        self.setPen(QPen(Qt.black, 1.5))
+        if nails_pos:
+            for nx, ny in nails_pos:
+                nail = NailItem(nx, ny, self)
+                self.nails.append(nail)
+                
+        # On informe les deux noeuds qu'ils ont une nouvelle flèche accrochée
+        self.source.add_transition(self)
+        self.target.add_transition(self)
+        
+        self.setPen(QPen(Qt.black, 1))
         self.setZValue(-1) # Dessiner la ligne DERRIÈRE les noeuds
+        
+        self.ctrl_x = 0 # Position X du point de courbure
+        self.ctrl_y = 0 # Position Y du point de courbure
         self.update_position()
         
     def update_position(self):
-        """Met à jour les coordonnées de la ligne entre les deux noeuds"""
+        """Calcule la courbe pour éviter les noeuds ou gérer les retours."""
         p1 = self.source.scenePos()
         p2 = self.target.scenePos()
-        self.setLine(p1.x(), p1.y(), p2.x(), p2.y())
 
-    def paint(self, painter, option, widget=None):
-        """Surcharge du dessin pour ajouter une pointe de flèche"""
-        super().paint(painter, option, widget)
-        
-        line = self.line()
-        p1, p2 = line.p1(), line.p2()
-        
+        if self.nails:
+            path = QPainterPath(p1)
+            for nail in self.nails:
+                path.lineTo(nail.scenePos())
+            path.lineTo(p2)
+            self.setPath(path)
+            
+            last_nail_pos = self.nails[-1].scenePos()
+            self.ctrl_x = last_nail_pos.x()
+            self.ctrl_y = last_nail_pos.y()
+            return
+
         dx, dy = p2.x() - p1.x(), p2.y() - p1.y()
         length = math.hypot(dx, dy)
         if length == 0:
             return
             
-        # Vecteur unitaire et calcul de l'intersection avec le bord du cercle cible (rayon=20)
-        nx, ny = dx / length, dy / length
-        end_x, end_y = p2.x() - nx * 20, p2.y() - ny * 20
+        curve_offset = 0
+        
+        # 1. Esquive si transition réciproque (A->B et B->A)
+        has_reciprocal = any(t.source == self.target and t.target == self.source for t in self.source.transitions)
+        if has_reciprocal:
+            curve_offset = 40
+        else:
+            # 2. Esquive dynamique des noeuds au milieu du chemin
+            if self.scene():
+                for item in self.scene().items():
+                    if isinstance(item, NodeItem) and item != self.source and item != self.target:
+                        cx, cy = item.scenePos().x(), item.scenePos().y()
+                        # Projection géométrique du centre du noeud-obstacle sur le segment de la flèche
+                        t = max(0, min(1, ((cx - p1.x()) * dx + (cy - p1.y()) * dy) / (length * length)))
+                        proj_x, proj_y = p1.x() + t * dx, p1.y() + t * dy
+                        distance_to_line = math.hypot(cx - proj_x, cy - proj_y)
+                        
+                        if distance_to_line < 45: # Si obstacle trop proche (Rayon 20 + marge 25)
+                            # On détermine le côté de l'esquive via le produit vectoriel
+                            cross = dx * (cy - p1.y()) - dy * (cx - p1.x())
+                            direction = -1 if cross > 0 else 1
+                            curve_offset = 60 * direction
+                            break # Un seul obstacle évité suffit pour courber
+                            
+        # Calcul du point de contrôle de la courbe de Bézier (Perpendiculaire au milieu)
+        mid_x, mid_y = (p1.x() + p2.x()) / 2, (p1.y() + p2.y()) / 2
+        nx, ny = -dy / length, dx / length # Vecteur normal
+        
+        self.ctrl_x = mid_x + nx * curve_offset
+        self.ctrl_y = mid_y + ny * curve_offset
+        
+        # Création du tracé courbé
+        path = QPainterPath(p1)
+        path.quadTo(self.ctrl_x, self.ctrl_y, p2.x(), p2.y())
+        self.setPath(path)
+
+    def paint(self, painter, option, widget=None):
+        """Surcharge du dessin pour la pointe de flèche orientée selon la courbe"""
+        super().paint(painter, option, widget)
+        
+        # La tangente (direction de l'angle) à l'arrivée d'une courbe quad est P2 - ControlPoint
+        p2 = self.target.scenePos()
+        vx, vy = p2.x() - self.ctrl_x, p2.y() - self.ctrl_y
+        v_len = math.hypot(vx, vy)
+        if v_len == 0: return
+        
+        tx, ty = vx / v_len, vy / v_len
+        
+        # On recule la pointe de flèche pour qu'elle s'arrête sur le bord du noeud (rayon = 20)
+        end_x, end_y = p2.x() - tx * 20, p2.y() - ty * 20
         
         # Dessin du triangle de la flèche
         arrow_size = 10
-        angle = math.atan2(dy, dx)
+        angle = math.atan2(vy, vx)
         wing1 = QPointF(end_x - arrow_size * math.cos(angle + math.pi / 6), end_y - arrow_size * math.sin(angle + math.pi / 6))
         wing2 = QPointF(end_x - arrow_size * math.cos(angle - math.pi / 6), end_y - arrow_size * math.sin(angle - math.pi / 6))
         
-        painter.setBrush(Qt.black)
+        painter.setPen(self.pen()) # Utilise le même style (épaisseur 1) que la courbe
+        painter.setBrush(QBrush(Qt.black)) # Remplit la pointe en noir
         painter.drawPolygon([QPointF(end_x, end_y), wing1, wing2])

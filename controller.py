@@ -1,8 +1,9 @@
+import pprint
+
 class MainController:
     def __init__(self, model):
         self.model = model
         self.view = None
-        self.source_node_id = None # Mémorise le 1er noeud cliqué pour la Transition
 
     def set_view(self, view):
         self.view = view
@@ -25,23 +26,14 @@ class MainController:
             # 2. Ordonner à la Vue de dessiner la localité
             self.view.canvas.draw_node(loc_id, x, y, is_initial)
 
-    def handle_node_click(self, node_id):
-        """Gère le clic sur un noeud existant."""
-        if self.view and self.view.canvas.creation_mode == "transition":
-            if not self.source_node_id:
-                # 1er clic : On enregistre le noeud de départ
-                self.source_node_id = node_id
-                print(f"[Controller] Transition : Noeud source sélectionné -> {node_id}")
-            else:
-                # 2ème clic : On a la cible, on crée la transition !
-                self.model.add_transition(self.source_node_id, node_id)
-                self.view.canvas.draw_transition(self.source_node_id, node_id)
-                print(f"[Controller] Transition créée de {self.source_node_id} à {node_id}")
-                self.source_node_id = None # Réinitialisation pour en dessiner d'autres
+    def handle_transition_created(self, source_id, target_id, nails_pos):
+        """Gère la création effective d'une transition après validation par la Vue."""
+        self.model.add_transition(source_id, target_id, nails_pos)
+        self.view.canvas.draw_transition(source_id, target_id, nails_pos)
+        print(f"[Controller] Transition créée de {source_id} à {target_id} avec {len(nails_pos)} clous")
 
     def handle_add_transition(self, checked=False):
         print(f"[Controller] Bouton Transition cliqué (Actif: {checked})")
-        self.source_node_id = None # On annule toute sélection en cours
         if self.view:
             if checked:
                 self.view.canvas.set_creation_mode("transition")
@@ -49,10 +41,22 @@ class MainController:
                 self.view.canvas.set_creation_mode(None)
 
     def handle_add_action(self):
-        print("[Controller] Bouton Action cliqué : Action à définir.")
+        print("[Controller] Bouton Action cliqué : Ouverture de la popup.")
+        if self.view:
+            self.view.show_action_dialog()
 
     def handle_add_clock(self):
-        print("[Controller] Bouton Horloge cliqué : Action à définir.")
+        print("[Controller] Bouton Horloge cliqué : Ouverture de la popup.")
+        if self.view:
+            self.view.show_clock_dialog()
+
+    def submit_action(self, action_name):
+        print(f"[Controller] Réception de l'action : {action_name}")
+        self.model.add_action(action_name)
+
+    def submit_clock(self, clock_name):
+        print(f"[Controller] Réception de l'horloge : {clock_name}")
+        self.model.add_clock(clock_name)
 
     # --- NOUVELLES MÉTHODES POUR LE MENU ---
 
@@ -69,3 +73,9 @@ class MainController:
         # C'EST ICI LA CLÉ DE NOTRE ARCHITECTURE
         # On demandera au modèle d'écrire self.model.data dans un fichier .json
         print(f"-> Données prêtes à être écrites : {self.model.data}")
+
+    def debug_print_model_instance(self):
+        """Affiche les attributs de l'instance du modèle (loc_counter, data, etc.)"""
+        print("\n--- Attributs de l'instance 'model' ---")
+        pprint.pprint(self.model.__dict__)
+        print("---------------------------------------")

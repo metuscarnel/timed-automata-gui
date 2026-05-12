@@ -1,7 +1,77 @@
-from PySide6.QtWidgets import QMainWindow, QToolBar
+from PySide6.QtWidgets import QMainWindow, QToolBar, QDialog, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton
 from PySide6.QtGui import QAction, QKeySequence, QActionGroup
+from PySide6.QtCore import Signal
 from .canvas import AutomataView
 from resources.icons import get_icons
+
+class DeclarationDialog(QDialog):
+    """Boîte de dialogue volante pour la création d'éléments globaux (Actions, Horloges)."""
+    validated = Signal(str)
+
+    def __init__(self, title, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        
+        # --- STYLESHEET (Design) ---
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #FAFAFA; /* Force le fond de la popup en clair */
+            }
+            QLineEdit {
+                background-color: #FFFFFF; /* Force le fond du champ en blanc */
+                color: #000000;            /* Force le texte en noir */
+                border: 1px solid #CCCCCC;
+                border-radius: 4px;
+                padding: 4px;
+            }
+            QPushButton {
+                background-color: #EBEBEB;
+                border: 1px solid #D5D5D5;
+                border-radius: 6px;
+                padding: 6px 12px;
+                color: #000000;
+            }
+            QPushButton:hover {
+                background-color: #E0E0E0;
+            }
+            QPushButton:pressed {
+                background-color: #D0D0D0;
+            }
+        """)
+        
+        layout = QVBoxLayout(self)
+        self.input_field = QLineEdit(self)
+        layout.addWidget(self.input_field)
+        
+        btn_layout = QHBoxLayout()
+        self.btn_validate = QPushButton("Valider", self)
+        self.btn_close = QPushButton("Fermer", self)
+        
+        btn_layout.addWidget(self.btn_validate)
+        btn_layout.addWidget(self.btn_close)
+        layout.addLayout(btn_layout)
+        
+        # --- SIGNALS ---
+        self.btn_validate.clicked.connect(self._handle_validation)
+        self.input_field.returnPressed.connect(self._handle_validation)  # Validation par touche Entrée
+        self.btn_close.clicked.connect(self.close)
+
+    def showEvent(self, event):
+        """Surcharge pour positionner la popup un peu plus haut que le centre au moment de l'affichage."""
+        super().showEvent(event)
+        if self.parent():
+            parent_geom = self.parent().geometry()
+            x = parent_geom.x() + (parent_geom.width() - self.width()) // 2
+            y = parent_geom.y() + (parent_geom.height() - self.height()) // 2
+            # Décaler de 200 pixels vers le haut (encore plus haut)
+            self.move(x, max(0, y - 200))
+
+    def _handle_validation(self):
+        text = self.input_field.text().strip()
+        if text:
+            self.validated.emit(text)
+            self.input_field.clear() # UX : vide le champ après soumission
+            self.input_field.setFocus()
 
 class MainWindow(QMainWindow):
     def __init__(self, controller):
@@ -15,7 +85,6 @@ class MainWindow(QMainWindow):
         
         # --- NOUVEAU : Connexion du clic de la zone de dessin au contrôleur ---
         self.canvas.canvas_clicked.connect(self.controller.handle_canvas_click)
-        self.canvas.node_clicked.connect(self.controller.handle_node_click)
         self.canvas.transition_created.connect(self.controller.handle_transition_created)
         
         # --- NOUVEAU : Appel de la création du menu ---
@@ -58,6 +127,18 @@ class MainWindow(QMainWindow):
         btn_clock.triggered.connect(self.controller.handle_add_clock)
         toolbar.addAction(btn_clock)
 
+    def show_action_dialog(self):
+        """Affiche la popup et connecte le résultat au contrôleur."""
+        dialog = DeclarationDialog("Nouvelle Action", self)
+        dialog.validated.connect(self.controller.submit_action)
+        dialog.exec()
+
+    def show_clock_dialog(self):
+        """Affiche la popup et connecte le résultat au contrôleur."""
+        dialog = DeclarationDialog("Nouvelle Horloge", self)
+        dialog.validated.connect(self.controller.submit_clock)
+        dialog.exec()
+
     def _setup_menubar(self):
         """Configure la barre de menus"""
         menubar = self.menuBar()
@@ -83,11 +164,18 @@ class MainWindow(QMainWindow):
         action_save.setShortcut(QKeySequence.Save)
         action_save.triggered.connect(self.controller.handle_save_file)
         
+        # Action Debug (Afficher l'instance)
+        action_debug = QAction("Afficher l'instance Modèle", self)
+        action_debug.setShortcut("Ctrl+D")
+        action_debug.triggered.connect(self.controller.debug_print_model_instance)
+        
         # Ajout des actions au menu
         menu_fichier.addAction(action_new)
         menu_fichier.addAction(action_open)
         menu_fichier.addAction(action_save)
         
+        menu_fichier.addSeparator()
+        menu_fichier.addAction(action_debug)
         menu_fichier.addSeparator()
         
         # Action Quitter
