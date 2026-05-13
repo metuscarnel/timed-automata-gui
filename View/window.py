@@ -1,78 +1,11 @@
-from PySide6.QtWidgets import QMainWindow, QToolBar, QDialog, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton
-from PySide6.QtGui import QAction, QKeySequence, QActionGroup
-from PySide6.QtCore import Signal, Qt
+from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QLabel, QToolButton, QHBoxLayout
+from PySide6.QtGui import QAction, QKeySequence, QActionGroup, QIcon, QFont
+from PySide6.QtCore import Signal, Qt, QPoint
 from .canvas import AutomataView
 from resources.icons import get_icons
 from .properties_dock import PropertiesDock
+from .popups import InlineAddPopup
 
-class DeclarationDialog(QDialog):
-    """Boîte de dialogue volante pour la création d'éléments globaux (Actions, Horloges)."""
-    validated = Signal(str)
-
-    def __init__(self, title, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle(title)
-        
-        # --- STYLESHEET (Design) ---
-        self.setStyleSheet("""
-            QDialog {
-                background-color: #FAFAFA; /* Force le fond de la popup en clair */
-            }
-            QLineEdit {
-                background-color: #FFFFFF; /* Force le fond du champ en blanc */
-                color: #000000;            /* Force le texte en noir */
-                border: 1px solid #CCCCCC;
-                border-radius: 4px;
-                padding: 4px;
-            }
-            QPushButton {
-                background-color: #EBEBEB;
-                border: 1px solid #D5D5D5;
-                border-radius: 6px;
-                padding: 6px 12px;
-                color: #000000;
-            }
-            QPushButton:hover {
-                background-color: #E0E0E0;
-            }
-            QPushButton:pressed {
-                background-color: #D0D0D0;
-            }
-        """)
-        
-        layout = QVBoxLayout(self)
-        self.input_field = QLineEdit(self)
-        layout.addWidget(self.input_field)
-        
-        btn_layout = QHBoxLayout()
-        self.btn_validate = QPushButton("Valider", self)
-        self.btn_close = QPushButton("Fermer", self)
-        
-        btn_layout.addWidget(self.btn_validate)
-        btn_layout.addWidget(self.btn_close)
-        layout.addLayout(btn_layout)
-        
-        # --- SIGNALS ---
-        self.btn_validate.clicked.connect(self._handle_validation)
-        self.input_field.returnPressed.connect(self._handle_validation)  # Validation par touche Entrée
-        self.btn_close.clicked.connect(self.close)
-
-    def showEvent(self, event):
-        """Surcharge pour positionner la popup un peu plus haut que le centre au moment de l'affichage."""
-        super().showEvent(event)
-        if self.parent():
-            parent_geom = self.parent().geometry()
-            x = parent_geom.x() + (parent_geom.width() - self.width()) // 2
-            y = parent_geom.y() + (parent_geom.height() - self.height()) // 2
-            # Décaler de 200 pixels vers le haut (encore plus haut)
-            self.move(x, max(0, y - 200))
-
-    def _handle_validation(self):
-        text = self.input_field.text().strip()
-        if text:
-            self.validated.emit(text)
-            self.input_field.clear() # UX : vide le champ après soumission
-            self.input_field.setFocus()
 
 class MainWindow(QMainWindow):
     def __init__(self, controller):
@@ -130,29 +63,69 @@ class MainWindow(QMainWindow):
         
         toolbar.addSeparator()
         
-        # Bouton Action
-        btn_action = QAction(get_icons()["action"], "Nouvelle Action", self)
-        btn_action.setToolTip("Ajouter une nouvelle action")
-        btn_action.triggered.connect(self.controller.handle_add_action)
-        toolbar.addAction(btn_action)
+        # --- NOUVEAU : Section Actions ---
+        self.actions_widget = self._create_declaration_widget(
+            get_icons()["action"], 
+            self._show_add_action_popup
+        )
+        toolbar.addWidget(self.actions_widget)
+        self.actions_label = self.actions_widget.findChild(QLabel, "items_label")
+
+        # --- NOUVEAU : Section Horloges ---
+        self.clocks_widget = self._create_declaration_widget(
+            get_icons()["clock"], 
+            self._show_add_clock_popup
+        )
+        toolbar.addWidget(self.clocks_widget)
+        self.clocks_label = self.clocks_widget.findChild(QLabel, "items_label")
+
+    def _create_declaration_widget(self, icon: QIcon, on_add_clicked):
+        """Crée un widget composite pour la toolbar (Icon, Label, Bouton +)."""
+        widget = QWidget()
+        layout = QHBoxLayout(widget)
+        layout.setContentsMargins(4, 0, 4, 0)
+        layout.setSpacing(4)
+
+        icon_label = QLabel()
+        icon_label.setPixmap(icon.pixmap(16, 16))
+        layout.addWidget(icon_label)
+
+        items_label = QLabel("Aucune")
+        items_label.setObjectName("items_label") # Pour le retrouver plus tard
         
-        # Bouton Horloge
-        btn_clock = QAction(get_icons()["clock"], "Nouvelle Horloge", self)
-        btn_clock.setToolTip("Ajouter une nouvelle horloge")
-        btn_clock.triggered.connect(self.controller.handle_add_clock)
-        toolbar.addAction(btn_clock)
+        # --- NOUVEAU : Police Palatino italique et couleur bleu électrique ---
+        items_label.setFont(QFont("Tahoma", 11, italic=True))
+        items_label.setStyleSheet("color: #0D99FF;")
+        
+        layout.addWidget(items_label)
 
-    def show_action_dialog(self):
-        """Affiche la popup et connecte le résultat au contrôleur."""
-        dialog = DeclarationDialog("Nouvelle Action", self)
-        dialog.validated.connect(self.controller.submit_action)
-        dialog.exec()
+        add_btn = QToolButton()
+        add_btn.setText("+")
+        add_btn.setFixedSize(24, 24)
+        add_btn.clicked.connect(on_add_clicked)
+        layout.addWidget(add_btn)
+        
+        return widget
 
-    def show_clock_dialog(self):
-        """Affiche la popup et connecte le résultat au contrôleur."""
-        dialog = DeclarationDialog("Nouvelle Horloge", self)
-        dialog.validated.connect(self.controller.submit_clock)
-        dialog.exec()
+    def _show_add_action_popup(self):
+        """Affiche la popup pour ajouter une action."""
+        add_btn = self.actions_widget.findChild(QToolButton)
+        popup = InlineAddPopup(self)
+        popup.validated.connect(self.controller.submit_action)
+        
+        # Positionner la popup sous le bouton '+'
+        btn_pos = add_btn.mapToGlobal(QPoint(0, add_btn.height()))
+        popup.show_at(btn_pos)
+
+    def _show_add_clock_popup(self):
+        """Affiche la popup pour ajouter une horloge."""
+        add_btn = self.clocks_widget.findChild(QToolButton)
+        popup = InlineAddPopup(self)
+        popup.validated.connect(self.controller.submit_clock)
+        
+        # Positionner la popup sous le bouton '+'
+        btn_pos = add_btn.mapToGlobal(QPoint(0, add_btn.height()))
+        popup.show_at(btn_pos)
 
     def _setup_menubar(self):
         """Configure la barre de menus"""
@@ -198,3 +171,13 @@ class MainWindow(QMainWindow):
         action_quit.setShortcut(QKeySequence.Quit)
         action_quit.triggered.connect(self.close)
         menu_fichier.addAction(action_quit)
+
+    def update_actions_display(self, actions: list):
+        """Met à jour le label des actions dans la toolbar."""
+        text = ", ".join(actions) if actions else "Aucune"
+        self.actions_label.setText(text)
+
+    def update_clocks_display(self, clocks: list):
+        """Met à jour le label des horloges dans la toolbar."""
+        text = ", ".join(clocks) if clocks else "Aucune"
+        self.clocks_label.setText(text)

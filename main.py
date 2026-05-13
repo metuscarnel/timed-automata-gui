@@ -1,4 +1,5 @@
 import sys
+import signal
 from PySide6.QtWidgets import QApplication
 
 # 1. Imports stricts de l'architecture
@@ -37,7 +38,7 @@ def main():
         /* Menus déroulants */
         QMenu {
             background-color: #FFFFFF;
-            border: 1px solid #CCCCCC;
+            border: 0.3px solid #CCCCCC;
             border-radius: 4px;
             padding: 4px;
         }
@@ -126,6 +127,9 @@ def main():
     
     # Affichage
     window.show()
+    
+    # Gère la fermeture propre via Ctrl+C dans le terminal sans lever d'exception "KeyboardInterrupt"
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
     
     sys.exit(app.exec())
 

@@ -44,23 +44,19 @@ class MainController:
             else:
                 self.view.canvas.set_creation_mode(None)
 
-    def handle_add_action(self):
-        print("[Controller] Bouton Action cliqué : Ouverture de la popup.")
-        if self.view:
-            self.view.show_action_dialog()
-
-    def handle_add_clock(self):
-        print("[Controller] Bouton Horloge cliqué : Ouverture de la popup.")
-        if self.view:
-            self.view.show_clock_dialog()
-
     def submit_action(self, action_name):
         print(f"[Controller] Réception de l'action : {action_name}")
         self.model.add_action(action_name)
+        # --- NOUVEAU : Rafraîchir la vue ---
+        if self.view:
+            self.view.update_actions_display(self.model.data["actions"])
 
     def submit_clock(self, clock_name):
         print(f"[Controller] Réception de l'horloge : {clock_name}")
         self.model.add_clock(clock_name)
+        # --- NOUVEAU : Rafraîchir la vue ---
+        if self.view:
+            self.view.update_clocks_display(self.model.data["clocks"])
 
     # --- NOUVELLES MÉTHODES POUR LE MENU ---
 

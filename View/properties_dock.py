@@ -43,6 +43,15 @@ class PropertiesDock(QDockWidget):
                 border: 1px solid #CCCCCC;
                 border-radius: 4px;
             }
+            QPushButton#deleteBtn {
+                background-color: #FFEBEE;
+                color: #D32F2F;
+                border: 1px solid #EF9A9A;
+                font-weight: bold;
+            }
+            QPushButton#deleteBtn:hover {
+                background-color: #FFCDD2;
+            }
         """)
 
         # Conteneur principal
@@ -80,10 +89,15 @@ class PropertiesDock(QDockWidget):
         self.inv_list_widget = QListWidget()
         self.btn_remove_inv = QPushButton("Supprimer l'invariant")
         
+        self.btn_delete_node = QPushButton("Supprimer la localité")
+        self.btn_delete_node.setObjectName("deleteBtn") # Application du style d'avertissement (Rouge)
+        
         self.node_layout.addRow("ID :", self.node_id_field)
         self.node_layout.addRow("Nouvel Inv. :", self.node_inv_layout)
         self.node_layout.addRow("Invariants :", self.inv_list_widget)
         self.node_layout.addRow("", self.btn_remove_inv)
+        self.node_layout.addRow("", QWidget()) # Espace pour aérer
+        self.node_layout.addRow("", self.btn_delete_node)
         self.stacked_widget.addWidget(self.node_panel)
 
         # --- PANNEAU TRANSITION ---
@@ -96,9 +110,14 @@ class PropertiesDock(QDockWidget):
         self.trans_target_field.setReadOnly(True)
         self.trans_action_combo = QComboBox()
         
+        self.btn_delete_trans = QPushButton("Supprimer la transition")
+        self.btn_delete_trans.setObjectName("deleteBtn") # Application du style d'avertissement (Rouge)
+        
         self.trans_layout.addRow("Source :", self.trans_source_field)
         self.trans_layout.addRow("Cible :", self.trans_target_field)
         self.trans_layout.addRow("Action :", self.trans_action_combo)
+        self.trans_layout.addRow("", QWidget()) # Espace pour aérer
+        self.trans_layout.addRow("", self.btn_delete_trans)
         self.stacked_widget.addWidget(self.trans_panel)
 
         # Signaux
@@ -108,6 +127,9 @@ class PropertiesDock(QDockWidget):
         self.btn_add_inv.clicked.connect(self._on_add_invariant)
         self.node_inv_value.returnPressed.connect(self._on_add_invariant)
         self.btn_remove_inv.clicked.connect(self._on_remove_invariant)
+        
+        self.btn_delete_node.clicked.connect(self._on_delete_node)
+        self.btn_delete_trans.clicked.connect(self._on_delete_trans)
 
     def show_node_props(self, node_id, data, available_clocks):
         self.node_id_field.setText(node_id)
@@ -176,3 +198,14 @@ class PropertiesDock(QDockWidget):
         
         if node_id and current_row >= 0:
             self.controller.remove_node_invariant(node_id, current_row)
+
+    def _on_delete_node(self):
+        node_id = self.node_id_field.text()
+        if node_id:
+            self.controller.handle_delete_node(node_id)
+
+    def _on_delete_trans(self):
+        source_id = self.trans_source_field.text()
+        target_id = self.trans_target_field.text()
+        if source_id and target_id:
+            self.controller.handle_delete_transition(source_id, target_id)

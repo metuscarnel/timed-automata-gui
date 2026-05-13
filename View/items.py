@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsPathItem, QGraphicsItem, QStyle, QMenu
+from PySide6.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsPathItem, QGraphicsItem, QStyle
 from PySide6.QtGui import QBrush, QPen, QFont, QPainterPath, QColor
 from PySide6.QtCore import Qt, QPointF
 import math
@@ -66,6 +66,16 @@ class NodeItem(QGraphicsEllipseItem):
                 self.setPen(QPen(Qt.black, 1)) # Retour à la normale
         return super().itemChange(change, value)
         
+    def mousePressEvent(self, event):
+        """Ouvre le Dock de propriétés au clic droit."""
+        if event.button() == Qt.RightButton:
+            self.setSelected(True) # Force la sélection visuelle (bordure bleue)
+            if self.scene() and self.scene().views():
+                view = self.scene().views()[0]
+                if hasattr(view, 'node_selected'):
+                    view.node_selected.emit(self.id)
+        super().mousePressEvent(event)
+
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
         # Notifier la vue du déplacement final au relâchement du clic
@@ -73,25 +83,6 @@ class NodeItem(QGraphicsEllipseItem):
             view = self.scene().views()[0]
             if hasattr(view, 'node_moved'):
                 view.node_moved.emit(self.id, self.scenePos().x(), self.scenePos().y())
-
-    def contextMenuEvent(self, event):
-        """Affiche le menu de suppression au clic droit."""
-        menu = QMenu()
-        menu.setStyleSheet("""
-            QMenu { background-color: #FFFFFF; border: 1px solid #CCCCCC; border-radius: 4px; padding: 4px; }
-            QMenu::item { color: #D32F2F; padding: 6px 24px 6px 12px; border-radius: 4px; }
-            QMenu::item:selected { background-color: #FFEBEE; }
-        """)
-        delete_action = menu.addAction("Supprimer la localité")
-        
-        # Exécuter le menu à la position de la souris à l'écran
-        action = menu.exec(event.screenPos())
-        
-        if action == delete_action:
-            if self.scene() and self.scene().views():
-                view = self.scene().views()[0]
-                if hasattr(view, 'node_delete_requested'):
-                    view.node_delete_requested.emit(self.id)
 
 class NailItem(QGraphicsEllipseItem):
     def __init__(self, x, y, transition):
@@ -112,6 +103,16 @@ class NailItem(QGraphicsEllipseItem):
                 self.transition.update_position()
         return super().itemChange(change, value)
         
+    def mousePressEvent(self, event):
+        """Ouvre le Dock de propriétés de la transition au clic droit sur un clou."""
+        if event.button() == Qt.RightButton:
+            self.setSelected(True)
+            if self.transition and self.scene() and self.scene().views():
+                view = self.scene().views()[0]
+                if hasattr(view, 'transition_selected'):
+                    view.transition_selected.emit(self.transition.source.id, self.transition.target.id)
+        super().mousePressEvent(event)
+
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
         # Trouver l'index de ce clou et notifier la vue au relâchement du clic
@@ -150,8 +151,14 @@ class TransitionItem(QGraphicsPathItem):
         self.ctrl_y = 0 # Position Y du point de courbure
         self.update_position()
         
+    def boundingRect(self):
+        """Surcharge la boîte englobante pour inclure la pointe de flèche et l'épaisseur du trait."""
+        extra = 15.0  # Marge de sécurité (pointe de flèche de taille 10 + épaisseur de ligne)
+        return super().boundingRect().adjusted(-extra, -extra, extra, extra)
+
     def update_position(self):
         """Calcule la courbe pour éviter les noeuds ou gérer les retours."""
+        self.prepareGeometryChange() # Prévient la scène graphique que la géométrie (et la boîte englobante) va changer
         p1 = self.source.scenePos()
         p2 = self.target.scenePos()
 
@@ -217,6 +224,16 @@ class TransitionItem(QGraphicsPathItem):
                 self.setPen(QPen(Qt.black, 1)) # Retour à la normale
         return super().itemChange(change, value)
 
+    def mousePressEvent(self, event):
+        """Ouvre le Dock de propriétés au clic droit."""
+        if event.button() == Qt.RightButton:
+            self.setSelected(True) # Force la sélection visuelle (bordure bleue)
+            if self.scene() and self.scene().views():
+                view = self.scene().views()[0]
+                if hasattr(view, 'transition_selected'):
+                    view.transition_selected.emit(self.source.id, self.target.id)
+        super().mousePressEvent(event)
+
     def paint(self, painter, option, widget=None):
         """Surcharge du dessin pour la pointe de flèche orientée selon la courbe"""
         # --- NOUVEAU : Supprimer le cadre pointillé par défaut de Qt ---
@@ -243,22 +260,3 @@ class TransitionItem(QGraphicsPathItem):
         painter.setPen(self.pen()) # Utilise le même style que la courbe
         painter.setBrush(QBrush(self.pen().color())) # Utilise la couleur active (Gris ou Noir) pour remplir la pointe
         painter.drawPolygon([QPointF(end_x, end_y), wing1, wing2])
-
-    def contextMenuEvent(self, event):
-        """Affiche le menu de suppression au clic droit."""
-        menu = QMenu()
-        menu.setStyleSheet("""
-            QMenu { background-color: #FFFFFF; border: 1px solid #CCCCCC; border-radius: 4px; padding: 4px; }
-            QMenu::item { color: #D32F2F; padding: 6px 24px 6px 12px; border-radius: 4px; }
-            QMenu::item:selected { background-color: #FFEBEE; }
-        """)
-        delete_action = menu.addAction("Supprimer la transition")
-        
-        # Exécuter le menu à la position de la souris à l'écran
-        action = menu.exec(event.screenPos())
-        
-        if action == delete_action:
-            if self.scene() and self.scene().views():
-                view = self.scene().views()[0]
-                if hasattr(view, 'transition_delete_requested'):
-                    view.transition_delete_requested.emit(self.source.id, self.target.id)

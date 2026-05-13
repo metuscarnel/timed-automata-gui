@@ -48,14 +48,8 @@ class AutomataView(QGraphicsView):
             self.selection_cleared.emit()
             return
             
-        item = selected[0]
-        if isinstance(item, NodeItem):
-            self.node_selected.emit(item.id)
-        elif isinstance(item, TransitionItem):
-            self.transition_selected.emit(item.source.id, item.target.id)
-        elif isinstance(item, NailItem):
-            # Si on clique sur un clou, on affiche les propriétés de sa transition parent
-            self.transition_selected.emit(item.transition.source.id, item.transition.target.id)
+        # L'ouverture du Dock ne se fait plus au clic gauche (sélection native).
+        # C'est désormais le clic droit sur un élément qui déclenchera l'ouverture.
 
     def set_creation_mode(self, mode):
         """Change le mode de création et modifie le curseur."""
@@ -123,9 +117,11 @@ class AutomataView(QGraphicsView):
         if event.button() == Qt.RightButton:
             if self.creation_mode == "transition" and self.drag_source_id:
                 self._cleanup_temp_transition()
-            else:
+                return
+            elif self.creation_mode is not None:
                 self.set_creation_mode(None)
-            return
+                return
+            # Si aucun mode de création n'est actif, on laisse passer le clic droit vers les objets.
 
         item = None
         # On parcourt tous les items sous le clic pour ignorer la ligne temporaire (qui bloque le clic)

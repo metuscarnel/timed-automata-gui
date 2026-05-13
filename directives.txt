@@ -1,33 +1,28 @@
-Palettes de couleurs : noir (pas très foncé) sur blanc un peu terne 
-bordures très fines, 
-Font : Tahoma (léger, agréable à l'oeil)
+Dans notre éditeur MVC, nous modifions l'interface de la barre d'outils (QToolBar) pour la gestion des Actions et des Horloges. L'objectif est d'utiliser de petites pop-ups (bulles de saisie / popovers) pour ajouter de nouvelles variables, afin de ne pas déformer la barre d'outils.
 
-Pour que ta "pieuvre" fonctionne sans s'emmêler les tentacules, voici le protocole exact à suivre dès qu'une nouvelle localité est créée. On sépare l'existence logique (le Buffer) de l'apparence visuelle (la Scène).
-Le flux de création (Step-by-Step)
+Spécifications fonctionnelles (UI et Pop-ups de saisie) :
 
-    L'utilisateur clique sur le QToolButton "+ Nouvelle Localité".
+    Structure de la ToolBar :
 
-    La Vue émet un signal vers le Contrôleur.
+        Les anciens boutons d'ouverture sont supprimés.
 
-    Le Contrôleur génère un ID unique et définit les coordonnées par défaut.
+        Pour la zone Horloges (et pareil pour les Actions), on affiche : "(L'icone):" , l'affichage des variables existantes, et un bouton d'action "+".
 
-    Le Contrôleur enregistre ces données dans le Buffer du Modèle.
+    Comportement du bouton "+" (La Pop-up) :
 
-    Le Contrôleur ordonne à la Vue de dessiner le cercle.
+        Le clic sur le bouton "+" ouvre une petite fenêtre volante (ex: un QDialog sans bordure, un QWidget avec le flag Popup, ou un QInputDialog personnalisé).
 
+        Positionnement : Cette pop-up doit s'afficher juste en dessous ou à côté du bouton "+" cliqué.
 
+        Contenu : Elle ne contient qu'un champ de saisie (QLineEdit).
 
-/PROJET_AUTOMATES
-│
-├── main.py                 # Instance Model, Controller, View
-│
-├── Controller.py           # Un seul fichier pour toute la logique de médiation
-│
-├── Model.py                # Contient la classe AutomatonModel (Buffer + Save/Load)
-│
-├── View/                   # On garde un dossier car le graphique est complexe
-│   ├── __init__.py
-│   ├── main_window.py      # La fenêtre, la Toolbar et le Properties Dock
-│   ├── canvas.py           # Fusion de QGraphicsView et QGraphicsScene
-│   └── items.py            # Regroupe NodeItem et EdgeItem
-│
+        Focus : Le champ doit prendre le focus automatiquement pour une frappe immédiate.
+
+    Validation et Annulation (Dans la Pop-up) :
+
+        Entrée : L'appui sur "Entrée" valide la saisie, envoie la donnée au Contrôleur, puis ferme la pop-up.
+
+        Échap (ou perte de focus) : Appuyer sur "Échap" ou cliquer ailleurs ferme la pop-up sans rien sauvegarder.
+
+Travail demandé :
+Mets à jour la construction de la . Crée la logique ou la petite classe pour cette pop-up de saisie, assure-toi de son bon positionnement par rapport au bouton "+", et câble le flux de validation vers le Contrôleur.
