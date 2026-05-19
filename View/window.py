@@ -11,7 +11,7 @@ class MainWindow(QMainWindow):
     def __init__(self, controller):
         super().__init__()
         self.controller = controller
-        self.resize(800, 600)
+        self.resize(1000, 600)
         
         # Le Canvas au centre
         self.canvas = AutomataView()
@@ -71,6 +71,8 @@ class MainWindow(QMainWindow):
         toolbar.addWidget(self.actions_widget)
         self.actions_label = self.actions_widget.findChild(QLabel, "items_label")
 
+        toolbar.addSeparator()
+
         # --- NOUVEAU : Section Horloges ---
         self.clocks_widget = self._create_declaration_widget(
             get_icons()["clock"], 
@@ -93,9 +95,13 @@ class MainWindow(QMainWindow):
         items_label = QLabel("Aucune")
         items_label.setObjectName("items_label") # Pour le retrouver plus tard
         
-        # --- NOUVEAU : Police Palatino italique et couleur bleu électrique ---
-        items_label.setFont(QFont("Tahoma", 11, italic=True))
-        items_label.setStyleSheet("color: #0D99FF;")
+        # --- NOUVEAU : Police IBM Plex Mono italique et couleur bleu électrique ---
+        items_label.setStyleSheet("""
+            color: #0D99FF; 
+            font-family: 'IBM Plex Mono'; 
+            font-size: 12pt; 
+            font-style: italic;
+        """)
         
         layout.addWidget(items_label)
 

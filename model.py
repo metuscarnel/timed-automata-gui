@@ -63,7 +63,7 @@ class AutomatonModel:
                     t["nails"][nail_index] = (x, y)
                 break
 
-    def add_node_invariant(self, node_id, clock, operator, value):
+    def add_node_invariant(self, node_id, clock, operator, target_type="value", target_value="0", offset=0):
         """Ajoute ou met à jour une condition d'invariant pour une horloge sur une localité."""
         if node_id in self.data["locations"]:
             if "invariants" not in self.data["locations"][node_id]:
@@ -73,18 +73,63 @@ class AutomatonModel:
             for inv in self.data["locations"][node_id]["invariants"]:
                 if inv["clock"] == clock:
                     inv["operator"] = operator
-                    inv["value"] = value
+                    inv["value"] = target_value
+                    inv["type"] = target_type
+                    inv["value"] = target_value
+                    if target_type == "clock":
+                        inv["offset"] = offset
+                    elif "offset" in inv:
+                        del inv["offset"]
                     return
                     
             self.data["locations"][node_id]["invariants"].append({
-                "clock": clock, "operator": operator, "value": value
+                "clock": clock, "operator": operator, "value": target_value, "type": target_type
             })
+            new_inv = {"clock": clock, "operator": operator, "type": target_type, "value": target_value}
+            if target_type == "clock":
+                new_inv["offset"] = offset
+            self.data["locations"][node_id]["invariants"].append(new_inv)
 
     def remove_node_invariant(self, node_id, index):
         """Supprime un invariant spécifique d'une localité via son index."""
         if node_id in self.data["locations"] and "invariants" in self.data["locations"][node_id]:
             if 0 <= index < len(self.data["locations"][node_id]["invariants"]):
                 self.data["locations"][node_id]["invariants"].pop(index)
+
+    def add_transition_guard(self, source_id, target_id, clock, operator, target_type="value", target_value="0", offset=0):
+        """Ajoute ou met à jour une condition de garde pour une horloge sur une transition."""
+        for t in self.data["transitions"]:
+            if t["source"] == source_id and t["target"] == target_id:
+                if "guards" not in t:
+                    t["guards"] = []
+                # Vérifie si une garde existe déjà pour cette horloge et la met à jour
+                for guard in t["guards"]:
+                    if guard["clock"] == clock:
+                        guard["operator"] = operator
+                        guard["value"] = value
+                        guard["type"] = target_type
+                        guard["value"] = target_value
+                        if target_type == "clock":
+                            guard["offset"] = offset
+                        elif "offset" in guard:
+                            del guard["offset"]
+                        return
+                t["guards"].append({
+                    "clock": clock, "operator": operator, "value": value, "type": target_type
+                })
+                new_guard = {"clock": clock, "operator": operator, "type": target_type, "value": target_value}
+                if target_type == "clock":
+                    new_guard["offset"] = offset
+                t["guards"].append(new_guard)
+                break
+
+    def remove_transition_guard(self, source_id, target_id, index):
+        """Supprime une garde spécifique d'une transition via son index."""
+        for t in self.data["transitions"]:
+            if t["source"] == source_id and t["target"] == target_id:
+                if "guards" in t and 0 <= index < len(t["guards"]):
+                    t["guards"].pop(index)
+                break
 
     def remove_transition(self, source_id, target_id):
         """Supprime une transition de la liste du modèle."""

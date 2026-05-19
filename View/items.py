@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsPathItem, QGraphicsItem, QStyle
-from PySide6.QtGui import QBrush, QPen, QFont, QPainterPath, QColor
+from PySide6.QtGui import QBrush, QPen, QFont, QPainterPath, QColor, QPainterPathStroker
 from PySide6.QtCore import Qt, QPointF
 import math
 
@@ -29,7 +29,7 @@ class NodeItem(QGraphicsEllipseItem):
 
         # --- NOUVEAU : Ajouter le texte (ID) centré ---
         self.text = QGraphicsTextItem(self.id, self)
-        self.text.setFont(QFont("Palatino", 12, italic=True))
+        self.text.setFont(QFont("IBM Plex Mono", 12, italic=True))
         self.text.setDefaultTextColor(Qt.black)
         
         # Centrer le texte par rapport au centre du cercle (-20, -20)
@@ -67,15 +67,15 @@ class NodeItem(QGraphicsEllipseItem):
         return super().itemChange(change, value)
         
     def mousePressEvent(self, event):
-        """Ouvre le Dock de propriétés au clic droit."""
+        """Ouvre le Dock de propriétés uniquement au clic droit pour les noeuds."""
         if event.button() == Qt.RightButton:
-            self.setSelected(True) # Force la sélection visuelle (bordure bleue)
+            self.setSelected(True)
             if self.scene() and self.scene().views():
                 view = self.scene().views()[0]
                 if hasattr(view, 'node_selected'):
                     view.node_selected.emit(self.id)
         super().mousePressEvent(event)
-
+        
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
         # Notifier la vue du déplacement final au relâchement du clic
@@ -104,8 +104,8 @@ class NailItem(QGraphicsEllipseItem):
         return super().itemChange(change, value)
         
     def mousePressEvent(self, event):
-        """Ouvre le Dock de propriétés de la transition au clic droit sur un clou."""
-        if event.button() == Qt.RightButton:
+        """Ouvre le Dock de propriétés de la transition au clic sur un clou."""
+        if event.button() in (Qt.LeftButton, Qt.RightButton):
             self.setSelected(True)
             if self.transition and self.scene() and self.scene().views():
                 view = self.scene().views()[0]
@@ -155,6 +155,13 @@ class TransitionItem(QGraphicsPathItem):
         """Surcharge la boîte englobante pour inclure la pointe de flèche et l'épaisseur du trait."""
         extra = 15.0  # Marge de sécurité (pointe de flèche de taille 10 + épaisseur de ligne)
         return super().boundingRect().adjusted(-extra, -extra, extra, extra)
+
+    def shape(self):
+        """Élargit la zone de clic (hitbox) pour faciliter la sélection à la souris."""
+        path = self.path()
+        stroker = QPainterPathStroker()
+        stroker.setWidth(10) # 10 pixels de large pour attraper le clic facilement
+        return stroker.createStroke(path)
 
     def update_position(self):
         """Calcule la courbe pour éviter les noeuds ou gérer les retours."""
@@ -225,8 +232,8 @@ class TransitionItem(QGraphicsPathItem):
         return super().itemChange(change, value)
 
     def mousePressEvent(self, event):
-        """Ouvre le Dock de propriétés au clic droit."""
-        if event.button() == Qt.RightButton:
+        """Ouvre le Dock de propriétés au clic."""
+        if event.button() in (Qt.LeftButton, Qt.RightButton):
             self.setSelected(True) # Force la sélection visuelle (bordure bleue)
             if self.scene() and self.scene().views():
                 view = self.scene().views()[0]

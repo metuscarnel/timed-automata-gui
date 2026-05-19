@@ -23,8 +23,6 @@ class InlineAddPopup(QWidget):
         self.line_edit = QLineEdit(self)
         layout.addWidget(self.line_edit)
 
-        self.line_edit.setFont(QFont("Tahoma", 11, italic=True))
-
         # --- Style ---
         self.setStyleSheet("""
             QLineEdit {
@@ -33,6 +31,9 @@ class InlineAddPopup(QWidget):
                 padding: 6px 10px;
                 background-color: #FFFFFF;
                 color: #0D99FF;
+                font-family: 'IBM Plex Mono';
+                font-size: 14pt;
+                font-style: italic;
             }
         """)
 

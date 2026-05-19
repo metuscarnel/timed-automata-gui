@@ -47,9 +47,6 @@ class AutomataView(QGraphicsView):
         if not selected:
             self.selection_cleared.emit()
             return
-            
-        # L'ouverture du Dock ne se fait plus au clic gauche (sélection native).
-        # C'est désormais le clic droit sur un élément qui déclenchera l'ouverture.
 
     def set_creation_mode(self, mode):
         """Change le mode de création et modifie le curseur."""

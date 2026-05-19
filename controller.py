@@ -100,7 +100,8 @@ class MainController:
             trans_data = next((t for t in self.model.data["transitions"] 
                                if t["source"] == source_id and t["target"] == target_id), {})
             available_actions = self.model.data.get("actions", [])
-            self.view.properties_dock.show_transition_props(source_id, target_id, trans_data, available_actions)
+            available_clocks = self.model.data.get("clocks", [])
+            self.view.properties_dock.show_transition_props(source_id, target_id, trans_data, available_actions, available_clocks)
 
     def update_transition_action(self, source_id, target_id, new_action):
         print(f"[Controller] Action {new_action} assignée à la transition {source_id}->{target_id}")
@@ -114,9 +115,9 @@ class MainController:
         print(f"[Controller] Clou n°{nail_index} de {source_id}->{target_id} déplacé en ({x}, {y})")
         self.model.update_nail_position(source_id, target_id, nail_index, x, y)
 
-    def add_node_invariant(self, node_id, clock, operator, value):
-        print(f"[Controller] Ajout de l'invariant {clock} {operator} {value} à {node_id}")
-        self.model.add_node_invariant(node_id, clock, operator, value)
+    def add_node_invariant(self, node_id, clock, operator, target_type, target_value, offset=0):
+        print(f"[Controller] Ajout de l'invariant {clock} {operator} {target_value} ({target_type}, offset={offset}) à {node_id}")
+        self.model.add_node_invariant(node_id, clock, operator, target_type, target_value, offset)
         # Rafraîchir la vue en simulant une nouvelle sélection
         self.handle_node_selected(node_id)
 
@@ -125,6 +126,18 @@ class MainController:
         self.model.remove_node_invariant(node_id, index)
         # Rafraîchir la vue en simulant une nouvelle sélection
         self.handle_node_selected(node_id)
+
+    def add_transition_guard(self, source_id, target_id, clock, operator, target_type, target_value, offset=0):
+        print(f"[Controller] Ajout de la garde {clock} {operator} {target_value} ({target_type}, offset={offset}) à la transition {source_id}->{target_id}")
+        self.model.add_transition_guard(source_id, target_id, clock, operator, target_type, target_value, offset)
+        # Rafraîchir la vue en simulant une nouvelle sélection de la flèche
+        self.handle_transition_selected(source_id, target_id)
+
+    def remove_transition_guard(self, source_id, target_id, index):
+        print(f"[Controller] Suppression de la garde index {index} pour la transition {source_id}->{target_id}")
+        self.model.remove_transition_guard(source_id, target_id, index)
+        # Rafraîchir la vue en simulant une nouvelle sélection
+        self.handle_transition_selected(source_id, target_id)
 
     def handle_delete_transition(self, source_id, target_id):
         print(f"[Controller] Demande de suppression de la transition {source_id}->{target_id}")
