@@ -1,317 +1,141 @@
 {
-    "actions": [],
-    "clocks": [
-        "x",
-        "y",
-        "z"
+  "actions": [],
+  "clocks": ["x", "y", "z"],
+  "locations": ["l0", "l1", "l2", "l3"],
+  "init": "l0",
+  "l0": {
+    "node_pos": {
+      "x": 362.0,
+      "y": 218.0
+    },
+    "name_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "invariant": [
+      [0, "inf", "inf", "inf"],
+      ["inf", 0, "inf", "inf"],
+      ["inf", -2, 0, "inf"],
+      ["inf", "inf", "inf", 0]
     ],
-    "locations": [
-        "l0",
-        "l1",
-        "l2",
+    "invariant_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "transitions": [
+      [
+        "",
+        [
+          [0, "inf", "inf", "inf"],
+          ["inf", 0, "inf", 0],
+          ["inf", "inf", 0, "inf"],
+          ["inf", "inf", "inf", 0]
+        ],
+        [],
+        "l1"
+      ],
+      [
+        "",
+        [
+          [0, "inf", "inf", "inf"],
+          ["inf", 0, "inf", "inf"],
+          ["inf", "inf", 0, "inf"],
+          ["inf", 0, "inf", 0]
+        ],
+        [],
         "l3"
+      ]
     ],
-    "init": "l0",
-    "l0": {
-        "node_pos": {
-            "x": 362.0,
-            "y": 218.0
-        },
-        "name_pos": {
-            "x": 0,
-            "y": 0
-        },
-        "invariant": [
-            [
-                0,
-                "inf",
-                "inf",
-                "inf"
-            ],
-            [
-                "inf",
-                0,
-                "inf",
-                "inf"
-            ],
-            [
-                "inf",
-                -2,
-                0,
-                "inf"
-            ],
-            [
-                "inf",
-                "inf",
-                "inf",
-                0
-            ]
-        ],
-        "invariant_pos": {
-            "x": 0,
-            "y": 0
-        },
-        "transitions": [
-            [
-                "",
-                [
-                    [
-                        0,
-                        "inf",
-                        "inf",
-                        "inf"
-                    ],
-                    [
-                        "inf",
-                        0,
-                        "inf",
-                        0
-                    ],
-                    [
-                        "inf",
-                        "inf",
-                        0,
-                        "inf"
-                    ],
-                    [
-                        "inf",
-                        "inf",
-                        "inf",
-                        0
-                    ]
-                ],
-                [],
-                "l1"
-            ],
-            [
-                "",
-                [
-                    [
-                        0,
-                        "inf",
-                        "inf",
-                        "inf"
-                    ],
-                    [
-                        "inf",
-                        0,
-                        "inf",
-                        "inf"
-                    ],
-                    [
-                        "inf",
-                        "inf",
-                        0,
-                        "inf"
-                    ],
-                    [
-                        "inf",
-                        0,
-                        "inf",
-                        0
-                    ]
-                ],
-                [],
-                "l3"
-            ]
-        ],
-        "transitions_layout": [
-            [],
-            []
-        ]
+    "transitions_layout": [[], []]
+  },
+  "l1": {
+    "node_pos": {
+      "x": 605.0,
+      "y": 174.0
     },
-    "l1": {
-        "node_pos": {
-            "x": 605.0,
-            "y": 174.0
-        },
-        "name_pos": {
-            "x": 0,
-            "y": 0
-        },
-        "invariant": [
-            [
-                0,
-                "inf",
-                "inf",
-                "inf"
-            ],
-            [
-                "inf",
-                0,
-                "inf",
-                "inf"
-            ],
-            [
-                "inf",
-                "inf",
-                0,
-                "inf"
-            ],
-            [
-                "inf",
-                "inf",
-                "inf",
-                0
-            ]
-        ],
-        "invariant_pos": {
-            "x": 0,
-            "y": 0
-        },
-        "transitions": [
-            [
-                "",
-                [
-                    [
-                        0,
-                        "inf",
-                        "inf",
-                        "inf"
-                    ],
-                    [
-                        "inf",
-                        0,
-                        "inf",
-                        "inf"
-                    ],
-                    [
-                        "inf",
-                        "inf",
-                        0,
-                        "inf"
-                    ],
-                    [
-                        "inf",
-                        "inf",
-                        "inf",
-                        0
-                    ]
-                ],
-                [],
-                "l2"
-            ]
-        ],
-        "transitions_layout": [
-            []
-        ]
+    "name_pos": {
+      "x": 0,
+      "y": 0
     },
-    "l2": {
-        "node_pos": {
-            "x": 639.0,
-            "y": 324.0
-        },
-        "name_pos": {
-            "x": 0,
-            "y": 0
-        },
-        "invariant": [
-            [
-                0,
-                "inf",
-                "inf",
-                "inf"
-            ],
-            [
-                "inf",
-                0,
-                "inf",
-                "inf"
-            ],
-            [
-                "inf",
-                "inf",
-                0,
-                "inf"
-            ],
-            [
-                "inf",
-                "inf",
-                "inf",
-                0
-            ]
-        ],
-        "invariant_pos": {
-            "x": 0,
-            "y": 0
-        },
-        "transitions": [
-            [
-                "",
-                [
-                    [
-                        0,
-                        "inf",
-                        "inf",
-                        "inf"
-                    ],
-                    [
-                        "inf",
-                        0,
-                        "inf",
-                        "inf"
-                    ],
-                    [
-                        "inf",
-                        "inf",
-                        0,
-                        "inf"
-                    ],
-                    [
-                        "inf",
-                        "inf",
-                        "inf",
-                        0
-                    ]
-                ],
-                [],
-                "l3"
-            ]
-        ],
-        "transitions_layout": [
-            []
-        ]
+    "invariant": [
+      [0, "inf", "inf", "inf"],
+      ["inf", 0, "inf", "inf"],
+      ["inf", "inf", 0, "inf"],
+      ["inf", "inf", "inf", 0]
+    ],
+    "invariant_pos": {
+      "x": 0,
+      "y": 0
     },
-    "l3": {
-        "node_pos": {
-            "x": 524.0,
-            "y": 378.0
-        },
-        "name_pos": {
-            "x": 0,
-            "y": 0
-        },
-        "invariant": [
-            [
-                0,
-                "inf",
-                -3,
-                "inf"
-            ],
-            [
-                "inf",
-                0,
-                "inf",
-                "inf"
-            ],
-            [
-                3,
-                "inf",
-                0,
-                "inf"
-            ],
-            [
-                "inf",
-                "inf",
-                "inf",
-                0
-            ]
+    "transitions": [
+      [
+        "",
+        [
+          [0, "inf", "inf", "inf"],
+          ["inf", 0, "inf", "inf"],
+          ["inf", "inf", 0, "inf"],
+          ["inf", "inf", "inf", 0]
         ],
-        "invariant_pos": {
-            "x": 0,
-            "y": 0
-        },
-        "transitions": [],
-        "transitions_layout": []
-    }
+        [],
+        "l2"
+      ]
+    ],
+    "transitions_layout": [[]]
+  },
+  "l2": {
+    "node_pos": {
+      "x": 639.0,
+      "y": 324.0
+    },
+    "name_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "invariant": [
+      [0, "inf", "inf", "inf"],
+      ["inf", 0, "inf", "inf"],
+      ["inf", "inf", 0, "inf"],
+      ["inf", "inf", "inf", 0]
+    ],
+    "invariant_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "transitions": [
+      [
+        "",
+        [
+          [0, "inf", "inf", "inf"],
+          ["inf", 0, "inf", "inf"],
+          ["inf", "inf", 0, "inf"],
+          ["inf", "inf", "inf", 0]
+        ],
+        [],
+        "l3"
+      ]
+    ],
+    "transitions_layout": [[]]
+  },
+  "l3": {
+    "node_pos": {
+      "x": 524.0,
+      "y": 378.0
+    },
+    "name_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "invariant": [
+      [0, "inf", -3, "inf"],
+      ["inf", 0, "inf", "inf"],
+      [3, "inf", 0, "inf"],
+      ["inf", "inf", "inf", 0]
+    ],
+    "invariant_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "transitions": [],
+    "transitions_layout": []
+  }
 }

@@ -1,3 +1,4 @@
+from serial import generate_and_save_engine_json
 class AutomatonModel:
     def __init__(self):
         self.data = {
@@ -177,3 +178,7 @@ class AutomatonModel:
             del self.data["locations"][node_id]
         if self.data.get("init") == node_id:
             self.data["init"] = ""
+    
+    def export_to_json(self, filepath):
+        """Délègue la compilation DBM et la sauvegarde au script tiers"""
+        return generate_and_save_engine_json(self.data, filepath)
