@@ -69,26 +69,42 @@ class AutomatonModel:
             if "invariants" not in self.data["locations"][node_id]:
                 self.data["locations"][node_id]["invariants"] = []
             
-            # Vérifie si un invariant existe déjà pour cette horloge et le met à jour
-            for inv in self.data["locations"][node_id]["invariants"]:
-                if inv["clock"] == clock:
-                    inv["operator"] = operator
-                    inv["value"] = target_value
-                    inv["type"] = target_type
-                    inv["value"] = target_value
-                    if target_type == "clock":
-                        inv["offset"] = offset
-                    elif "offset" in inv:
-                        del inv["offset"]
-                    return
+            invariants = self.data["locations"][node_id]["invariants"]
+            to_remove = []
+            updated = False
+            
+            for i, inv in enumerate(invariants):
+                same_target = (inv["clock"] == clock and inv["type"] == target_type)
+                if same_target and target_type == "clock" and inv["value"] != target_value:
+                    same_target = False
                     
-            self.data["locations"][node_id]["invariants"].append({
-                "clock": clock, "operator": operator, "value": target_value, "type": target_type
-            })
-            new_inv = {"clock": clock, "operator": operator, "type": target_type, "value": target_value}
-            if target_type == "clock":
-                new_inv["offset"] = offset
-            self.data["locations"][node_id]["invariants"].append(new_inv)
+                if same_target:
+                    same_operator = (inv["operator"] == operator)
+                    same_value = (inv["value"] == target_value)
+                    if target_type == "clock" and inv.get("offset", 0) != offset:
+                        same_value = False
+                        
+                    # Remplace si même opérateur, même valeur exacte, ou si on impose une égalité (==)
+                    if same_operator or same_value or operator == "==" or inv["operator"] == "==":
+                        if not updated:
+                            inv["operator"] = operator
+                            inv["value"] = target_value
+                            if target_type == "clock":
+                                inv["offset"] = offset
+                            elif "offset" in inv:
+                                del inv["offset"]
+                            updated = True
+                        else:
+                            to_remove.append(i)
+                            
+            for i in reversed(to_remove):
+                invariants.pop(i)
+                
+            if not updated:
+                new_inv = {"clock": clock, "operator": operator, "type": target_type, "value": target_value}
+                if target_type == "clock":
+                    new_inv["offset"] = offset
+                invariants.append(new_inv)
 
     def remove_node_invariant(self, node_id, index):
         """Supprime un invariant spécifique d'une localité via son index."""
@@ -102,25 +118,42 @@ class AutomatonModel:
             if t["source"] == source_id and t["target"] == target_id:
                 if "guards" not in t:
                     t["guards"] = []
-                # Vérifie si une garde existe déjà pour cette horloge et la met à jour
-                for guard in t["guards"]:
-                    if guard["clock"] == clock:
-                        guard["operator"] = operator
-                        guard["value"] = value
-                        guard["type"] = target_type
-                        guard["value"] = target_value
-                        if target_type == "clock":
-                            guard["offset"] = offset
-                        elif "offset" in guard:
-                            del guard["offset"]
-                        return
-                t["guards"].append({
-                    "clock": clock, "operator": operator, "value": value, "type": target_type
-                })
-                new_guard = {"clock": clock, "operator": operator, "type": target_type, "value": target_value}
-                if target_type == "clock":
-                    new_guard["offset"] = offset
-                t["guards"].append(new_guard)
+                
+                guards = t["guards"]
+                to_remove = []
+                updated = False
+                
+                for i, guard in enumerate(guards):
+                    same_target = (guard["clock"] == clock and guard["type"] == target_type)
+                    if same_target and target_type == "clock" and guard["value"] != target_value:
+                        same_target = False
+                        
+                    if same_target:
+                        same_operator = (guard["operator"] == operator)
+                        same_value = (guard["value"] == target_value)
+                        if target_type == "clock" and guard.get("offset", 0) != offset:
+                            same_value = False
+                            
+                        if same_operator or same_value or operator == "==" or guard["operator"] == "==":
+                            if not updated:
+                                guard["operator"] = operator
+                                guard["value"] = target_value
+                                if target_type == "clock":
+                                    guard["offset"] = offset
+                                elif "offset" in guard:
+                                    del guard["offset"]
+                                updated = True
+                            else:
+                                to_remove.append(i)
+                                
+                for i in reversed(to_remove):
+                    guards.pop(i)
+                    
+                if not updated:
+                    new_guard = {"clock": clock, "operator": operator, "type": target_type, "value": target_value}
+                    if target_type == "clock":
+                        new_guard["offset"] = offset
+                    guards.append(new_guard)
                 break
 
     def remove_transition_guard(self, source_id, target_id, index):
