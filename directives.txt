@@ -1,1 +1,48 @@
-- Virer les inégalités sctrictes et ajouter le signe "=="
+je souhaite ajouter une fonctionnalité d'édition intuitive : lorsqu'un utilisateur double-clique sur une contrainte (invariant ou garde) déjà ajoutée dans la liste du panneau latéral (Dock), ses composants doivent être réinjectés dans les widgets de saisie pour permettre sa modification.
+
+Structure des données d'une contrainte en mémoire :
+
+Format Valeur : {"clock": "x", "operator": "<=", "type": "value", "value": "5"}
+
+Format Horloge : {"clock": "x", "operator": "==", "type": "clock", "value": "y", "offset": 3}
+
+Widgets concernés dans le Dock (la Vue) :
+
+list_constraints (QListWidget) : La liste visuelle qui affiche les contraintes de la localité ou transition sélectionnée.
+
+combo_clock1 (QComboBox) : Première horloge.
+
+combo_operator (QComboBox) : Opérateurs (<=, >=, ==).
+
+combo_clock2 (QComboBox) : Deuxième horloge (avec "---" à l'index 0).
+
+line_value (QLineEdit ou QSpinBox) : La constante numérique.
+
+Spécifications de l'interaction (À implémenter) :
+
+Capture de l'événement (Dans la Vue) :
+
+Connecter le signal itemDoubleClicked de la QListWidget à une méthode du Contrôleur, par exemple : self.list_constraints.itemDoubleClicked.connect(self.controller.handle_constraint_double_click).
+
+Logique de réinjection (Dans le Contrôleur) :
+
+Implémenter handle_constraint_double_click(self, item).
+
+Récupérer l'index de la ligne double-cliquée (via self.view.list_constraints.currentRow()).
+
+Aller chercher le dictionnaire de données de la contrainte correspondant à cet index dans la liste active du Modèle (ou de la structure temporaire de l'élément sélectionné).
+
+Mettre à jour les composants graphiques de la Vue avec les données trouvées :
+
+Fixer le texte de combo_clock1 et combo_operator via .setCurrentText().
+
+Si type == 'value' : Forcer combo_clock2 sur "---" (index 0) et écrire la valeur (value) dans line_value.
+
+Si type == 'clock' : Fixer le texte de combo_clock2 avec le nom de l'horloge cible (value), et écrire la valeur de l'offset (offset) dans line_value.
+
+Gestion du bouton de validation :
+
+Lors du double-clic, passer temporairement le bouton "Ajouter" en mode "Modifier" (ou stocker l'index de la contrainte en cours d'édition dans le contrôleur) pour que le prochain clic remplace la contrainte à cet index précis au lieu d'en ajouter une nouvelle à la fin de la liste.
+
+Travail demandé :
+Génère le code PySide6 pour la connexion du signal dans la Vue, la fonction de traitement handle_constraint_double_click dans le Contrôleur et la logique de bascule pour la validation des modifications.

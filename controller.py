@@ -1,9 +1,12 @@
 import pprint
+import json
+from PySide6.QtWidgets import QFileDialog, QMessageBox
 
 class MainController:
     def __init__(self, model):
         self.model = model
         self.view = None
+        self.editing_constraint_index = None # Stocke l'index de la contrainte en cours de modification
 
     def set_view(self, view):
         self.view = view
@@ -64,15 +67,49 @@ class MainController:
         print("[Controller] Fichier -> Nouveau : Réinitialisation du Buffer.")
         # Plus tard : vider le self.model.data et effacer la scène graphique
 
-    def handle_open_file(self):
+    def trigger_open_dialog(self):
         print("[Controller] Fichier -> Ouvrir : Ouverture de la boîte de dialogue.")
-        # Plus tard : QFileDialog, lire le JSON, remplir le modèle, dessiner la scène
+        if self.view:
+            filepath, _ = QFileDialog.getOpenFileName(
+                self.view,
+                "Ouvrir un automate",
+                "",
+                "Fichiers JSON (*.json)"
+            )
+            if filepath:
+                try:
+                    with open(filepath, 'r', encoding='utf-8') as f:
+                        loaded_data = json.load(f)
+                    
+                    # Reconstruction du modèle interne
+                    self.model.load_from_json_data(loaded_data)
+                    print(f"-> Automate chargé avec succès depuis : {filepath}")
+                    
+                    # Rafraîchir la vue
+                    self.view.refresh_graph_display()
+                except Exception as e:
+                    QMessageBox.critical(
+                        self.view,
+                        "Erreur de chargement",
+                        f"Impossible de lire le fichier JSON.\nErreur : {str(e)}"
+                    )
 
-    def handle_save_file(self):
-        print("[Controller] Fichier -> Sauvegarder : Écriture du Buffer sur disque.")
-        # C'EST ICI LA CLÉ DE NOTRE ARCHITECTURE
-        # On demandera au modèle d'écrire self.model.data dans un fichier .json
-        print(f"-> Données prêtes à être écrites : {self.model.data}")
+    def trigger_save_dialog(self):
+        print("[Controller] Fichier -> Sauvegarder : Ouverture de la boîte de dialogue.")
+        if self.view:
+            filepath, _ = QFileDialog.getSaveFileName(
+                self.view,
+                "Enregistrer l'automate",
+                "",
+                "Fichiers JSON (*.json)"
+            )
+            if filepath:
+                # Sécurité : Forcer l'extension si elle n'est pas saisie par l'utilisateur
+                if not filepath.endswith(".json"):
+                    filepath += ".json"
+                
+                self.model.export_to_json(filepath)
+                print(f"-> Automate sauvegardé avec succès dans : {filepath}")
 
     def debug_print_model_instance(self):
         """Affiche les attributs de l'instance du modèle (loc_counter, data, etc.)"""
@@ -88,6 +125,11 @@ class MainController:
 
     def handle_node_selected(self, node_id):
         print(f"[Controller] Nœud sélectionné : {node_id}")
+        # Réinitialiser le mode d'édition si on change de sélection
+        self.editing_constraint_index = None
+        if self.view and hasattr(self.view, 'properties_dock') and hasattr(self.view.properties_dock, 'btn_add_constraint'):
+            self.view.properties_dock.btn_add_constraint.setText("Ajouter")
+            
         if self.view and hasattr(self.view, 'properties_dock'):
             node_data = self.model.data["locations"].get(node_id, {})
             available_clocks = self.model.data.get("clocks", [])
@@ -95,6 +137,11 @@ class MainController:
 
     def handle_transition_selected(self, source_id, target_id):
         print(f"[Controller] Transition sélectionnée : {source_id} -> {target_id}")
+        # Réinitialiser le mode d'édition si on change de sélection
+        self.editing_constraint_index = None
+        if self.view and hasattr(self.view, 'properties_dock') and hasattr(self.view.properties_dock, 'btn_add_constraint'):
+            self.view.properties_dock.btn_add_constraint.setText("Ajouter")
+            
         if self.view and hasattr(self.view, 'properties_dock'):
             # Trouver les données de la transition
             trans_data = next((t for t in self.model.data["transitions"] 
@@ -117,6 +164,14 @@ class MainController:
 
     def add_node_invariant(self, node_id, clock, operator, target_type, target_value, offset=0):
         print(f"[Controller] Ajout de l'invariant {clock} {operator} {target_value} ({target_type}, offset={offset}) à {node_id}")
+        
+        # Si on est en mode édition, on supprime l'ancienne contrainte d'abord
+        if self.editing_constraint_index is not None:
+            self.model.remove_node_invariant(node_id, self.editing_constraint_index)
+            self.editing_constraint_index = None
+            if hasattr(self.view.properties_dock, 'btn_add_constraint'):
+                self.view.properties_dock.btn_add_constraint.setText("Ajouter")
+                
         self.model.add_node_invariant(node_id, clock, operator, target_type, target_value, offset)
         # Rafraîchir la vue en simulant une nouvelle sélection
         self.handle_node_selected(node_id)
@@ -129,6 +184,14 @@ class MainController:
 
     def add_transition_guard(self, source_id, target_id, clock, operator, target_type, target_value, offset=0):
         print(f"[Controller] Ajout de la garde {clock} {operator} {target_value} ({target_type}, offset={offset}) à la transition {source_id}->{target_id}")
+        
+        # Si on est en mode édition, on supprime l'ancienne contrainte d'abord
+        if self.editing_constraint_index is not None:
+            self.model.remove_transition_guard(source_id, target_id, self.editing_constraint_index)
+            self.editing_constraint_index = None
+            if hasattr(self.view.properties_dock, 'btn_add_constraint'):
+                self.view.properties_dock.btn_add_constraint.setText("Ajouter")
+                
         self.model.add_transition_guard(source_id, target_id, clock, operator, target_type, target_value, offset)
         # Rafraîchir la vue en simulant une nouvelle sélection de la flèche
         self.handle_transition_selected(source_id, target_id)
@@ -138,6 +201,54 @@ class MainController:
         self.model.remove_transition_guard(source_id, target_id, index)
         # Rafraîchir la vue en simulant une nouvelle sélection
         self.handle_transition_selected(source_id, target_id)
+        
+    def handle_constraint_double_click(self, item):
+        """Gère le double-clic sur une contrainte dans le Dock pour la réinjecter et l'éditer."""
+        if not self.view or not hasattr(self.view, 'properties_dock'):
+            return
+            
+        dock = self.view.properties_dock
+        idx = dock.list_constraints.currentRow()
+        if idx < 0:
+            return
+            
+        constraint_data = None
+        
+        # 1. Trouver les données (Localité ou Transition)
+        if hasattr(dock, 'current_node_id') and dock.current_node_id:
+            node_data = self.model.data["locations"].get(dock.current_node_id, {})
+            invariants = node_data.get("invariants", [])
+            if idx < len(invariants):
+                constraint_data = invariants[idx]
+                
+        elif hasattr(dock, 'current_source_id') and getattr(dock, 'current_source_id', None):
+            src, tgt = dock.current_source_id, dock.current_target_id
+            trans_data = next((t for t in self.model.data["transitions"] if t["source"] == src and t["target"] == tgt), {})
+            guards = trans_data.get("guards", [])
+            if idx < len(guards):
+                constraint_data = guards[idx]
+                
+        if not constraint_data:
+            return
+            
+        # 2. Réinjecter les valeurs dans les widgets
+        dock.combo_clock1.setCurrentText(constraint_data["clock"])
+        dock.combo_operator.setCurrentText(constraint_data["operator"])
+        
+        # Gestion robuste selon le type de line_value (QLineEdit ou QSpinBox)
+        is_spinbox = hasattr(dock.line_value, 'setValue')
+        
+        if constraint_data["type"] == "value":
+            dock.combo_clock2.setCurrentIndex(0) # Index 0 => "---"
+            dock.line_value.setValue(int(constraint_data["value"])) if is_spinbox else dock.line_value.setText(str(constraint_data["value"]))
+        elif constraint_data["type"] == "clock":
+            dock.combo_clock2.setCurrentText(constraint_data["value"])
+            dock.line_value.setValue(int(constraint_data.get("offset", 0))) if is_spinbox else dock.line_value.setText(str(constraint_data.get("offset", 0)))
+                
+        # 3. Mettre à jour l'état du contrôleur et l'UI
+        self.editing_constraint_index = idx
+        if hasattr(dock, 'btn_add_constraint'):
+            dock.btn_add_constraint.setText("Modifier")
 
     def handle_delete_transition(self, source_id, target_id):
         print(f"[Controller] Demande de suppression de la transition {source_id}->{target_id}")

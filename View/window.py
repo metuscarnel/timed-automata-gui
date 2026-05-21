@@ -150,13 +150,13 @@ class MainWindow(QMainWindow):
         
         # Action Ouvrir
         action_open = QAction("Ouvrir", self)
-        action_open.setShortcut(QKeySequence.Open)
-        action_open.triggered.connect(self.controller.handle_open_file)
+        action_open.setShortcut(QKeySequence.StandardKey.Open)
+        action_open.triggered.connect(self.controller.trigger_open_dialog)
         
         # Action Sauvegarder
         action_save = QAction("Sauvegarder", self)
-        action_save.setShortcut(QKeySequence.Save)
-        action_save.triggered.connect(self.controller.handle_save_file)
+        action_save.setShortcut(QKeySequence.StandardKey.Save)
+        action_save.triggered.connect(self.controller.trigger_save_dialog)
         
         # Action Debug (Afficher l'instance)
         action_debug = QAction("Afficher l'instance Modèle", self)
@@ -187,3 +187,8 @@ class MainWindow(QMainWindow):
         """Met à jour le label des horloges dans la toolbar."""
         text = ", ".join(clocks) if clocks else "Aucune"
         self.clocks_label.setText(text)
+
+    def refresh_graph_display(self):
+        """Rafraîchit l'affichage du graphe (Étape 1 : placeholder)."""
+        print("[Vue] Rafraîchissement de l'affichage demandé après chargement du modèle.")
+        # À implémenter (Étape 2) : nettoyer le canvas et redessiner localités et transitions.

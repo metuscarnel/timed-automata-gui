@@ -7,15 +7,15 @@
         "node_pos": { "x": 0, "y": 0 },
         "name_pos": { "x": 0, "y": 0 },
         "invariant": [
-            [0, "inf", "inf"],
-            ["val", 0, "inf"],
-            ["val", "inf", 0]
+            [0, "infty", "infty"],
+            ["val", 0, "infty"],
+            ["val", "infty", 0]
         ],
         "invariant_pos": { "x": 0, "y": 0 },
         "transitions": [
             [
                 "<action>", 
-                [[0, "inf", "inf"], ["val", 0, "inf"], ["val", "inf", 0]], 
+                [[0, "infty", "infty"], ["val", 0, "infty"], ["val", "infty", 0]], 
                 ["<resets>"], 
                 "<id_location_target>"
             ]

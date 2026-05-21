@@ -178,7 +178,71 @@ class AutomatonModel:
             del self.data["locations"][node_id]
         if self.data.get("init") == node_id:
             self.data["init"] = ""
-    
+    #generation du json
     def export_to_json(self, filepath):
         """Délègue la compilation DBM et la sauvegarde au script tiers"""
         return generate_and_save_engine_json(self.data, filepath)
+    #chargement du json pour reconstruire le dictionnaire "data" du model
+    def load_from_json_data(self, json_data):
+        """Reconstruit le dictionnaire de données interne et affiche un bilan intelligent"""
+        self.data['clocks'] = json_data.get('clocks', [])
+        self.data['actions'] = json_data.get('actions', [])
+        self.data['init'] = json_data.get('init', '')
+        
+        self.data['locations'] = {}
+        self.data['transitions'] = []
+        
+        meta_keys = {'clocks', 'actions', 'init', 'locations', 'transitions'}
+        
+        # Extraction des données
+        for key, value in json_data.items():
+            if key not in meta_keys and isinstance(value, dict) and "node_pos" in value:
+                self.data['locations'][key] = {
+                    'node_pos': value.get('node_pos', {'x': 0.0, 'y': 0.0}),
+                    'name_pos': value.get('name_pos', {'x': 0.0, 'y': 0.0}),
+                    'invariant_pos': value.get('invariant_pos', {'x': 0.0, 'y': 0.0}),
+                    'raw_invariant_matrix': value.get('invariant', []) 
+                }
+                
+                transitions_du_noeud = value.get('transitions', [])
+                layouts_des_transitions = value.get('transitions_layout', [])
+                
+                for idx, t in enumerate(transitions_du_noeud):
+                    self.data['transitions'].append({
+                        'source': key,
+                        'target': t[3],
+                        'action': t[0],
+                        'resets': t[2],
+                        'nails': layouts_des_transitions[idx] if idx < len(layouts_des_transitions) else [],
+                        'raw_guard_matrix': t[1]
+                    })
+
+        # --- AFFICHAGE INTELLIGENT DU BILAN DE RECONSTRUCTION ---
+        print("\n" + "="*50)
+        print("🔍 BILAN DE RECONSTRUCTION DU MODÈLE (ANALYSE JSON)")
+        print("="*50)
+        print(f"• Horloges détectées ({len(self.data['clocks'])}) : {self.data['clocks']}")
+        print(f"• Actions détectées  ({len(self.data['actions'])}) : {self.data['actions'] if self.data['actions'] else 'Aucune'}")
+        print(f"• État initial       : {self.data['init']}")
+        print("-"*50)
+        
+        print(f"📍 LOCALITÉS RECONSTRUITES ({len(self.data['locations'])}):")
+        for loc_id, loc_info in self.data['locations'].items():
+            pos = loc_info['node_pos']
+            has_inv = any("infty" not in str(row) for row in loc_info['raw_invariant_matrix']) # Détection basique si l'invariant n'est pas vide
+            inv_status = "✅ Présent (Matrice chargée)" if has_inv else "❌ Aucun"
+            print(f"  - [{loc_id}] Position: (x: {pos['x']}, y: {pos['y']}) | Invariant: {inv_status}")
+            
+        print("-"*50)
+        print(f"🔀 TRANSITIONS RECONSTRUITES ({len(self.data['transitions'])}):")
+        for idx, trans in enumerate(self.data['transitions']):
+            act = f"'{trans['action']}'" if trans['action'] else "τ (action interne)"
+            rst = f", Resets: {trans['resets']}" if trans['resets'] else ""
+            nails_count = len(trans['nails'])
+            layout_status = f" ({nails_count} points de pliage)" if nails_count > 0 else ""
+            
+            print(f"  -  {trans['source']} ──[ {act}{rst} ]──> {trans['target']}{layout_status}")
+            
+        print("="*50 + "\n")
+
+    

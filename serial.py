@@ -43,16 +43,21 @@ def parse_to_string_constraints(raw_constraints):
 
 def build_dbm_from_constraints(constraints, clock_map):
     """
-    Convertit les chaînes normalisées en matrice DBM canonique.
+    Convertit les chaînes normalisées en matrice DBM brute (sans fermeture canonique).
     """
     num_clocks = len(clock_map) + 1
+    # Initialisation avec 9999 (représentant l'infini)
     dbm = [[9999 for _ in range(num_clocks)] for _ in range(num_clocks)]
+    
+    # La diagonale d'une DBM vaut toujours 0 (xi - xi <= 0)
     for i in range(num_clocks):
         dbm[i][i] = 0
 
+    # L'horloge globale x0 est fixée à l'index 0
     full_clock_map = {'x0': 0}
     full_clock_map.update(clock_map)
 
+    # Regex pour capturer le format standardisé garanti par le parser
     var = r"([a-zA-Z_]\w*)"
     regex = var + r"-" + var + r"<=(-?\d+)"
 
@@ -63,18 +68,11 @@ def build_dbm_from_constraints(constraints, clock_map):
             name_i, name_j, val = match.groups()
             i = full_clock_map[name_i]
             j = full_clock_map[name_j]
+            
+            # On garde la contrainte la plus stricte s'il y a des doublons
             dbm[i][j] = min(dbm[i][j], int(val))
-
-    for k in range(num_clocks):
-        for i in range(num_clocks):
-            for j in range(num_clocks):
-                if dbm[i][k] != 9999 and dbm[k][j] != 9999:
-                    if dbm[i][j] > dbm[i][k] + dbm[k][j]:
-                        dbm[i][j] = dbm[i][k] + dbm[k][j]
                         
     return dbm
-
-
 def generate_and_save_engine_json(instance, output_filepath="model_compiled.json"):
     """
     Parcourt le modèle entier, génère toutes les DBM, affiche les contraintes et sauvegarde le JSON.
@@ -105,7 +103,7 @@ def generate_and_save_engine_json(instance, output_filepath="model_compiled.json
         for r in range(len(inv_matrix)):
             for c in range(len(inv_matrix[r])):
                 if inv_matrix[r][c] == 9999:
-                    inv_matrix[r][c] = "inf"
+                    inv_matrix[r][c] = "infty"
                     
         # --- Gardes des transitions ---
         out_transitions = []
@@ -125,7 +123,7 @@ def generate_and_save_engine_json(instance, output_filepath="model_compiled.json
                 for r in range(len(guard_matrix)):
                     for c in range(len(guard_matrix[r])):
                         if guard_matrix[r][c] == 9999:
-                            guard_matrix[r][c] = "inf"
+                            guard_matrix[r][c] = "infty"
                 
                 action = t.get('action', "")
                 resets = t.get('resets', [])
