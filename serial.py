@@ -54,7 +54,7 @@ def build_dbm_from_constraints(constraints, clock_map):
         dbm[i][i] = 0
 
     # L'horloge globale x0 est fixée à l'index 0
-    full_clock_map = {'x0': 0}
+    full_clock_map = {'x 0': 0}
     full_clock_map.update(clock_map)
 
     # Regex pour capturer le format standardisé garanti par le parser
@@ -116,7 +116,7 @@ def generate_and_save_engine_json(instance, output_filepath="model_compiled.json
                 
                 # Affichage Console
                 if guard_strings:
-                    print(f"   ↳ 🔀 [Transition {loc_id} -> {t['target']}] Gardes normalisées : {guard_strings}")
+                    print(f"   ↳[Transition {loc_id} -> {t['target']}] Gardes normalisées : {guard_strings}")
                     
                 guard_matrix = build_dbm_from_constraints(guard_strings, clock_map)
                 
@@ -143,29 +143,4 @@ def generate_and_save_engine_json(instance, output_filepath="model_compiled.json
         
     with open(output_filepath, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=4, ensure_ascii=False)
-        
-    print("--- FIN DE L'EXTRACTION ---")
-    print(f"✅ Compilation terminée avec succès ! Sauvegardé dans : {output_filepath}\n")
-    return output
-
-# --- Bloc de test ---
-if __name__ == "__main__":
-    model_instance = {
-        'actions': [],
-        'clocks': ['x', 'y', 'z'],
-        'init': 'l0',
-        'locations': {
-            'l0': {'invariants': [{'clock': 'x', 'operator': '>=', 'type': 'clock', 'value': 'y', 'offset': 2}], 'node_pos': {'x': 362.0, 'y': 218.0}},
-            'l1': {'invariants': [], 'node_pos': {'x': 605.0, 'y': 174.0}},
-            'l2': {'invariants': [], 'node_pos': {'x': 639.0, 'y': 324.0}},
-            'l3': {'invariants': [{'clock': 'y', 'operator': '==', 'type': 'value', 'value': '3'}], 'node_pos': {'x': 524.0, 'y': 378.0}}
-        },
-        'transitions': [
-            {'guards': [{'clock': 'x', 'operator': '<=', 'type': 'clock', 'value': 'z'}], 'nails': [], 'source': 'l0', 'target': 'l1'},
-            {'nails': [], 'source': 'l1', 'target': 'l2'},
-            {'nails': [], 'source': 'l2', 'target': 'l3'},
-            {'guards': [{'clock': 'x', 'operator': '>=', 'type': 'clock', 'value': 'z'}], 'nails': [], 'source': 'l0', 'target': 'l3'}
-        ]
-    }
-
-    generate_and_save_engine_json(model_instance, "model_compiled.json")
+        return output

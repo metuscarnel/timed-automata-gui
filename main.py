@@ -127,8 +127,7 @@ def main():
     
     # Affichage
     window.show()
-    
-    # Gère la fermeture propre via Ctrl+C dans le terminal sans lever d'exception "KeyboardInterrupt"
+    # fermteure via Ctrl+C dans le terminal
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     
     sys.exit(app.exec())

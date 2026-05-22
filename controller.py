@@ -272,3 +272,6 @@ class MainController:
         if self.view:
             self.view.canvas.remove_node_visual(node_id)
             self.handle_selection_cleared()
+    def handle_edit_inv(self,node_id):
+        print(f"[Controller] demande de modification d'un invariant de {node_id}")
+        

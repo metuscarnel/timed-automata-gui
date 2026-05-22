@@ -167,12 +167,14 @@ class PropertiesDock(QDockWidget):
         self.node_inv_value.returnPressed.connect(self._on_add_invariant)
         self.btn_remove_inv.clicked.connect(self._on_remove_invariant)
         
-        self.node_inv_clock.currentIndexChanged.connect(self._validate_inv_add_btn)
+        
         self.node_inv_clock_target.currentIndexChanged.connect(self._validate_inv_add_btn)
         
         self.btn_delete_node.clicked.connect(self._on_delete_node)
         self.btn_delete_trans.clicked.connect(self._on_delete_trans)
-
+        self.inv_list_widget.itemDoubleClicked.connect(self._on_edit_invariant)
+        self.guard_list_widget.itemDoubleClicked.connect(self._on_edit_guard)
+        
     def show_node_props(self, node_id, data, available_clocks):
         self.node_id_field.setText(node_id)
         
@@ -384,3 +386,11 @@ class PropertiesDock(QDockWidget):
         target_id = self.trans_target_field.text()
         if source_id and target_id:
             self.controller.handle_delete_transition(source_id, target_id)
+   
+
+    def _on_edit_invariant(self, item):
+        print("Invariant edit")
+        self.btn_add_guard.setText("v")
+        print(self.btn_add_guard.text())
+    def _on_edit_guard(self, item):
+        print("Guard editing")
