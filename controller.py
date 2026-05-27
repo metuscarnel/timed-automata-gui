@@ -148,7 +148,43 @@ class MainController:
                                if t["source"] == source_id and t["target"] == target_id), {})
             available_actions = self.model.data.get("actions", [])
             available_clocks = self.model.data.get("clocks", [])
+            
+            # (Étape 1 & 3) Mise à jour dynamique des cases à cocher pour les resets
+            self.view.properties_dock.update_resets_list(available_clocks)
+            
+            # 3. Étape 3 : Récupération des resets et remplissage des cases
+            active_resets = trans_data.get('resets', [])
+            for cb in self.view.properties_dock.checkboxes_resets:
+                # Désactivation temporaire du signal pour ne pas déclencher la sauvegarde
+                cb.blockSignals(True)
+                if cb.text() in active_resets:
+                    cb.setChecked(True)
+                else:
+                    cb.setChecked(False)
+                cb.blockSignals(False)
+                
+                # Connexion à l'étape 2 pour que le modèle soit mis à jour instantanément au clic
+                cb.stateChanged.connect(lambda state, s=source_id, t=target_id: self.update_transition_resets(s, t))
+                
             self.view.properties_dock.show_transition_props(source_id, target_id, trans_data, available_actions, available_clocks)
+
+    # 2. Étape 2 : Méthode appelée lors de la validation/sauvegarde de la transition (ou instantanément)
+    def update_transition_resets(self, source_id, target_id):
+        # Initialisation de la liste vide
+        selected_resets = []
+        
+        if self.view and hasattr(self.view, 'properties_dock'):
+            # Parcours de la liste des cases
+            for cb in self.view.properties_dock.checkboxes_resets:
+                # Si la case est cochée, on récupère son texte
+                if cb.isChecked():
+                    selected_resets.append(cb.text())
+                    
+        # Assignation de la liste à la clé 'resets' dans le dictionnaire de la transition
+        for t in self.model.data["transitions"]:
+            if t["source"] == source_id and t["target"] == target_id:
+                t["resets"] = selected_resets
+                break
 
     def update_transition_action(self, source_id, target_id, new_action):
         print(f"[Controller] Action {new_action} assignée à la transition {source_id}->{target_id}")
@@ -162,9 +198,46 @@ class MainController:
         print(f"[Controller] Clou n°{nail_index} de {source_id}->{target_id} déplacé en ({x}, {y})")
         self.model.update_nail_position(source_id, target_id, nail_index, x, y)
 
+    @staticmethod
+    def is_constraint_equivalent(new_c, existing_c):
+        """Vérifie si deux contraintes sont mathématiquement ou logiquement équivalentes."""
+        # Récupération sécurisée des valeurs
+        c1, op1, t1, v1 = new_c.get('clock'), new_c.get('operator'), new_c.get('type'), new_c.get('value')
+        off1 = int(new_c.get('offset', 0))
+        
+        c2, op2, t2, v2 = existing_c.get('clock'), existing_c.get('operator'), existing_c.get('type'), existing_c.get('value')
+        off2 = int(existing_c.get('offset', 0))
+
+        # 1. Comparaison stricte
+        if c1 == c2 and op1 == op2 and t1 == t2 and v1 == v2 and off1 == off2:
+            return True
+
+        # 2. Comparaison logique avec inversion pour les horloges
+        if t1 == 'clock' and t2 == 'clock':
+            if c1 == v2 and v1 == c2:
+                op_inverse = {'<=': '>=', '>=': '<=', '==': '=='}
+                if op_inverse.get(op1) == op2:
+                    if off1 == -off2:
+                        return True
+                        
+        return False
+
     def add_node_invariant(self, node_id, clock, operator, target_type, target_value, offset=0):
         print(f"[Controller] Ajout de l'invariant {clock} {operator} {target_value} ({target_type}, offset={offset}) à {node_id}")
         
+        # --- Validation anti-doublon logique ---
+        new_c = {'clock': clock, 'operator': operator, 'type': target_type, 'value': target_value, 'offset': offset}
+        node_data = self.model.data["locations"].get(node_id, {})
+        existing_invariants = node_data.get("invariants", [])
+        
+        for i, existing_c in enumerate(existing_invariants):
+            if self.editing_constraint_index == i:
+                continue # On ignore la comparaison avec la contrainte en cours d'édition
+            if self.is_constraint_equivalent(new_c, existing_c):
+                print("[Controller] ⚠️ La contrainte existe déjà ou est mathématiquement équivalente. Ajout ignoré.")
+                return # On bloque l'ajout
+        # ----------------------------------------
+
         # Si on est en mode édition, on supprime l'ancienne contrainte d'abord
         if self.editing_constraint_index is not None:
             self.model.remove_node_invariant(node_id, self.editing_constraint_index)
@@ -185,6 +258,19 @@ class MainController:
     def add_transition_guard(self, source_id, target_id, clock, operator, target_type, target_value, offset=0):
         print(f"[Controller] Ajout de la garde {clock} {operator} {target_value} ({target_type}, offset={offset}) à la transition {source_id}->{target_id}")
         
+        # --- Validation anti-doublon logique ---
+        new_c = {'clock': clock, 'operator': operator, 'type': target_type, 'value': target_value, 'offset': offset}
+        trans_data = next((t for t in self.model.data["transitions"] if t["source"] == source_id and t["target"] == target_id), {})
+        existing_guards = trans_data.get("guards", [])
+        
+        for i, existing_c in enumerate(existing_guards):
+            if self.editing_constraint_index == i:
+                continue # On ignore la comparaison avec la garde en cours d'édition
+            if self.is_constraint_equivalent(new_c, existing_c):
+                print("[Controller] ⚠️ La garde existe déjà ou est mathématiquement équivalente. Ajout ignoré.")
+                return # On bloque l'ajout
+        # ----------------------------------------
+
         # Si on est en mode édition, on supprime l'ancienne contrainte d'abord
         if self.editing_constraint_index is not None:
             self.model.remove_transition_guard(source_id, target_id, self.editing_constraint_index)
@@ -274,4 +360,7 @@ class MainController:
             self.handle_selection_cleared()
     def handle_edit_inv(self,node_id):
         print(f"[Controller] demande de modification d'un invariant de {node_id}")
-        
+    
+    def get_available_clocks(self):
+        """Retourne la liste des horloges disponibles dans le modèle."""
+        return self.model.data.get("clocks", [])

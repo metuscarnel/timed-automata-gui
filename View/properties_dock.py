@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QDockWidget, QWidget, QFormLayout, QLineEdit, QComboBox, QVBoxLayout, QStackedWidget, QHBoxLayout, QListWidget, QPushButton
+from PySide6.QtWidgets import QDockWidget, QWidget, QFormLayout, QLineEdit, QComboBox, QVBoxLayout, QStackedWidget, QHBoxLayout, QListWidget, QPushButton, QGroupBox, QCheckBox
 from PySide6.QtGui import QDoubleValidator, QIntValidator
 from PySide6.QtCore import Qt
 
@@ -134,13 +134,22 @@ class PropertiesDock(QDockWidget):
         self.trans_guard_layout.addWidget(self.trans_guard_clock_target)
         self.trans_guard_layout.addWidget(self.trans_guard_value)
         self.trans_guard_layout.addWidget(self.btn_add_guard)
-        
         self.guard_list_widget = QListWidget()
         self.btn_remove_guard = QPushButton("Supprimer la garde")
+       
+        self.reset_group = QGroupBox("Horloges à réinitialiser (Resets)")
+        self.resets_layout = QVBoxLayout()
+        self.reset_group.setLayout(self.resets_layout)
+        
+        # 1. Étape 1 : Initialisation de la liste des cases à cocher
+        self.checkboxes_resets = []
         
         self.btn_delete_trans = QPushButton("Supprimer la transition")
         self.btn_delete_trans.setObjectName("deleteBtn") # Application du style d'avertissement (Rouge)
+        self.trans_layout.addWidget(self.reset_group)
         
+        
+        #self.trans_layout.addRow("Resets", self.resets)
         self.trans_layout.addRow("Source :", self.trans_source_field)
         self.trans_layout.addRow("Cible :", self.trans_target_field)
         self.trans_layout.addRow("Action :", self.trans_action_combo)
@@ -158,7 +167,6 @@ class PropertiesDock(QDockWidget):
         self.btn_add_guard.clicked.connect(self._on_add_guard)
         self.trans_guard_value.returnPressed.connect(self._on_add_guard)
         self.btn_remove_guard.clicked.connect(self._on_remove_guard)
-        
         self.trans_guard_clock.currentIndexChanged.connect(self._validate_guard_add_btn)
         self.trans_guard_clock_target.currentIndexChanged.connect(self._validate_guard_add_btn)
 
@@ -166,7 +174,7 @@ class PropertiesDock(QDockWidget):
         self.btn_add_inv.clicked.connect(self._on_add_invariant)
         self.node_inv_value.returnPressed.connect(self._on_add_invariant)
         self.btn_remove_inv.clicked.connect(self._on_remove_invariant)
-        
+
         
         self.node_inv_clock_target.currentIndexChanged.connect(self._validate_inv_add_btn)
         
@@ -177,7 +185,8 @@ class PropertiesDock(QDockWidget):
         
     def show_node_props(self, node_id, data, available_clocks):
         self.node_id_field.setText(node_id)
-        
+        self.update_clock_list([], None, None) # Initialisation avec une liste vide pour configurer les ComboBox
+
         # Bloquer les signaux pendant la mise à jour UI (pour ne pas déclencher la sauvegarde à tort)
         self.node_inv_clock.blockSignals(True)
         self.node_inv_op.blockSignals(True)
@@ -304,11 +313,30 @@ class PropertiesDock(QDockWidget):
         else:
             self.btn_add_guard.setEnabled(True)
 
+    # 1. Étape 1 : Création de la méthode update_resets_list
+    def update_resets_list(self, all_clocks):
+        # Boucle while pour vider totalement le QVBoxLayout
+        while self.resets_layout.count():
+            item = self.resets_layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+                
+        # Vider la liste self.checkboxes_resets
+        self.checkboxes_resets.clear()
+        
+        # Boucle for sur all_clocks pour créer et ajouter les cases
+        for clock in all_clocks:
+            cb = QCheckBox(clock)
+            self.resets_layout.addWidget(cb)
+            self.checkboxes_resets.append(cb)
+
     def _on_action_changed(self, new_action):
         source_id = self.trans_source_field.text()
         target_id = self.trans_target_field.text()
         if source_id and target_id:
             self.controller.update_transition_action(source_id, target_id, new_action)
+
 
     def _on_add_invariant(self):
         node_id = self.node_id_field.text()
@@ -394,3 +422,9 @@ class PropertiesDock(QDockWidget):
         print(self.btn_add_guard.text())
     def _on_edit_guard(self, item):
         print("Guard editing")
+
+    def update_clock_list(self,clocks, source_id, target_id):
+        print("Mise à jour des listes de clocks dans les propriétés...")
+        print(self.controller.get_available_clocks())
+        
+        

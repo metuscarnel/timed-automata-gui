@@ -311,3 +311,13 @@ class AutomatonModel:
             )
 
         print("=" * 50 + "\n")
+
+    def add_reset(self, clock, source_id, target_id):
+       #ajout d'un reset
+        for t in self.data["transitions"]:
+            if t["source"] == source_id and t["target"] == target_id:
+                if "resets" not in t:
+                    t["resets"] = []
+                if clock not in t["resets"]:
+                    t["resets"].append(clock)
+    

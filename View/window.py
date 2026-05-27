@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QLabel, QToolButton, QHBoxLayout
+from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QLabel, QToolButton, QHBoxLayout, QVBoxLayout, QGroupBox
 from PySide6.QtGui import QAction, QKeySequence, QActionGroup, QIcon, QFont
 from PySide6.QtCore import Signal, Qt, QPoint
 from .canvas import AutomataView
@@ -41,7 +41,7 @@ class MainWindow(QMainWindow):
         # (Ton code précédent pour la Toolbar avec le bouton + Nouvelle Localité...)
         toolbar = QToolBar()
         self.addToolBar(toolbar)
-        
+ 
         # --- NOUVEAU : Groupe d'actions pour n'avoir qu'un seul mode actif à la fois ---
         self.action_group = QActionGroup(self)
         self.action_group.setExclusionPolicy(QActionGroup.ExclusionPolicy.ExclusiveOptional)
@@ -192,3 +192,4 @@ class MainWindow(QMainWindow):
         """Rafraîchit l'affichage du graphe (Étape 1 : placeholder)."""
         print("[Vue] Rafraîchissement de l'affichage demandé après chargement du modèle.")
         # À implémenter (Étape 2) : nettoyer le canvas et redessiner localités et transitions.
+    

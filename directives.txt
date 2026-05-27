@@ -1,48 +1,37 @@
-je souhaite ajouter une fonctionnalité d'édition intuitive : lorsqu'un utilisateur double-clique sur une contrainte (invariant ou garde) déjà ajoutée dans la liste du panneau latéral (Dock), ses composants doivent être réinjectés dans les widgets de saisie pour permettre sa modification.
+Contexte : Dans mon application PySide6 (architecture MVC), je gère un éditeur d'automates temporisés. Je souhaite implémenter une validation anti-doublon logique lors de l'ajout d'une contrainte (invariant ou garde) dans le contrôleur.
 
-Structure des données d'une contrainte en mémoire :
+Objectif : Si l'utilisateur tente d'ajouter une contrainte qui est mathématiquement et logiquement équivalente à une contrainte déjà présente dans la liste, le système doit l'ignorer et ne pas l'ajouter.
 
-Format Valeur : {"clock": "x", "operator": "<=", "type": "value", "value": "5"}
+Exemple de la règle visée : > Ajouter x <= y (offset 0) alors que y >= x (offset 0) est déjà présent doit être bloqué.
 
-Format Horloge : {"clock": "x", "operator": "==", "type": "clock", "value": "y", "offset": 3}
+Rappel de la structure d'une contrainte en dictionnaire :
+{'clock': 'x', 'operator': '<=', 'type': 'clock', 'value': 'y', 'offset': 0}
 
-Widgets concernés dans le Dock (la Vue) :
+Spécifications de la validation (À implémenter) :
 
-list_constraints (QListWidget) : La liste visuelle qui affiche les contraintes de la localité ou transition sélectionnée.
+Création d'une fonction d'équivalence :
 
-combo_clock1 (QComboBox) : Première horloge.
+Écrire une méthode utilitaire (dans le Modèle ou le Contrôleur) par exemple is_constraint_equivalent(new_c, existing_c).
 
-combo_operator (QComboBox) : Opérateurs (<=, >=, ==).
+Cette fonction renvoie True si :
 
-combo_clock2 (QComboBox) : Deuxième horloge (avec "---" à l'index 0).
+Les deux dictionnaires sont strictement identiques.
 
-line_value (QLineEdit ou QSpinBox) : La constante numérique.
+OU si c'est une comparaison entre deux horloges (type == 'clock') et que la relation inversée est respectée :
 
-Spécifications de l'interaction (À implémenter) :
+new_c['clock'] == existing_c['value']
 
-Capture de l'événement (Dans la Vue) :
+new_c['value'] == existing_c['clock']
 
-Connecter le signal itemDoubleClicked de la QListWidget à une méthode du Contrôleur, par exemple : self.list_constraints.itemDoubleClicked.connect(self.controller.handle_constraint_double_click).
+L'opérateur est l'inverse exact : (<= devient >=, >= devient <=, == reste ==)
 
-Logique de réinjection (Dans le Contrôleur) :
+L'offset est inversé : new_c['offset'] == -existing_c['offset']
 
-Implémenter handle_constraint_double_click(self, item).
+Intégration dans l'ajout (Contrôleur) :
 
-Récupérer l'index de la ligne double-cliquée (via self.view.list_constraints.currentRow()).
+Dans la méthode qui valide le formulaire d'ajout d'une contrainte, juste avant de l'ajouter à la liste interne (self.current_constraints), faire une boucle sur les contraintes déjà présentes.
 
-Aller chercher le dictionnaire de données de la contrainte correspondant à cet index dans la liste active du Modèle (ou de la structure temporaire de l'élément sélectionné).
-
-Mettre à jour les composants graphiques de la Vue avec les données trouvées :
-
-Fixer le texte de combo_clock1 et combo_operator via .setCurrentText().
-
-Si type == 'value' : Forcer combo_clock2 sur "---" (index 0) et écrire la valeur (value) dans line_value.
-
-Si type == 'clock' : Fixer le texte de combo_clock2 avec le nom de l'horloge cible (value), et écrire la valeur de l'offset (offset) dans line_value.
-
-Gestion du bouton de validation :
-
-Lors du double-clic, passer temporairement le bouton "Ajouter" en mode "Modifier" (ou stocker l'index de la contrainte en cours d'édition dans le contrôleur) pour que le prochain clic remplace la contrainte à cet index précis au lieu d'en ajouter une nouvelle à la fin de la liste.
+Si is_constraint_equivalent renvoie True pour l'une d'elles, interrompre l'ajout (optionnel : afficher un petit message dans la console indiquant que la contrainte existe déjà).
 
 Travail demandé :
-Génère le code PySide6 pour la connexion du signal dans la Vue, la fonction de traitement handle_constraint_double_click dans le Contrôleur et la logique de bascule pour la validation des modifications.
+Génère le code Python de la fonction is_constraint_equivalent et montre-moi comment l'intégrer proprement dans ma méthode d'ajout du contrôleur avec une boucle de vérification.
