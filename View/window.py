@@ -1,6 +1,8 @@
-from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QLabel, QToolButton, QHBoxLayout, QVBoxLayout, QGroupBox
-from PySide6.QtGui import QAction, QKeySequence, QActionGroup, QIcon, QFont
-from PySide6.QtCore import Signal, Qt, QPoint
+from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QLabel, QToolButton, QHBoxLayout, QVBoxLayout, QGroupBox, QGraphicsPathItem, QGraphicsPolygonItem, QGraphicsTextItem
+from PySide6.QtGui import QAction, QKeySequence, QActionGroup, QIcon, QFont, QPainterPath, QPolygonF, QPen, QBrush
+from PySide6.QtCore import Signal, Qt, QPoint, QPointF
+import math
+
 from .canvas import AutomataView
 from resources.icons import get_icons
 from .properties_dock import PropertiesDock
@@ -189,7 +191,39 @@ class MainWindow(QMainWindow):
         self.clocks_label.setText(text)
 
     def refresh_graph_display(self):
-        """Rafraîchit l'affichage du graphe (Étape 1 : placeholder)."""
+        """Rafraîchit l'affichage du graphe (Étape 1 : Localités)."""
         print("[Vue] Rafraîchissement de l'affichage demandé après chargement du modèle.")
-        # À implémenter (Étape 2) : nettoyer le canvas et redessiner localités et transitions.
-    
+        
+        # 1. Nettoyage : Vider complètement la scène graphique et les dictionnaires internes
+        self.canvas.scene.clear()
+        self.canvas.nodes.clear() # Vide le dictionnaire des références visuelles
+        self.canvas._cleanup_temp_transition() # Au cas où une création était en cours
+        
+        # Récupération des données depuis le Modèle
+        data = self.controller.model.data
+        
+        # Mise à jour des listes d'actions et d'horloges dans la barre d'outils
+        self.update_actions_display(data.get("actions", []))
+        self.update_clocks_display(data.get("clocks", []))
+        
+        locations = data.get("locations", {})
+        init_node = data.get("init", "")
+        
+        # 2. Dessin des Nœuds (Localités)
+        for node_id, node_data in locations.items():
+            # Extraire les coordonnées
+            pos = node_data.get("node_pos", {"x": 0.0, "y": 0.0})
+            is_initial = (node_id == init_node)
+            
+            # Instancier le nœud graphique (Utilisation de la méthode existante draw_node qui gère le NodeItem)
+            self.canvas.draw_node(node_id, pos.get("x", 0.0), pos.get("y", 0.0), is_initial)
+            
+        # 3. Dessin des Transitions
+        transitions = data.get("transitions", [])
+        for t in transitions:
+            source_id = t.get("source")
+            target_id = t.get("target")
+            nails_pos = t.get("nails", [])
+            
+            # Déléguer la création à la logique MVC existante du Canvas
+            self.canvas.draw_transition(source_id, target_id, nails_pos)

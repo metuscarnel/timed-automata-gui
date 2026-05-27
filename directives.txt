@@ -1,37 +1,35 @@
-Contexte : Dans mon application PySide6 (architecture MVC), je gère un éditeur d'automates temporisés. Je souhaite implémenter une validation anti-doublon logique lors de l'ajout d'une contrainte (invariant ou garde) dans le contrôleur.
+Contexte : Dans ma Vue PySide6 (architecture MVC), mes transitions dessinées avec QGraphicsPathItem ne suivent pas les nœuds quand je les déplace, et disparaissent au clic. Je dois refactoriser mes éléments graphiques en créant des classes personnalisées liées entre elles.
 
-Objectif : Si l'utilisateur tente d'ajouter une contrainte qui est mathématiquement et logiquement équivalente à une contrainte déjà présente dans la liste, le système doit l'ignorer et ne pas l'ajouter.
+Objectif : Créer deux classes GraphicNode et GraphicEdge pour gérer l'interactivité, et mettre à jour la fonction de dessin pour les utiliser.
 
-Exemple de la règle visée : > Ajouter x <= y (offset 0) alors que y >= x (offset 0) est déjà présent doit être bloqué.
+Spécifications techniques demandées :
 
-Rappel de la structure d'une contrainte en dictionnaire :
-{'clock': 'x', 'operator': '<=', 'type': 'clock', 'value': 'y', 'offset': 0}
+1. Créer la classe GraphicNode(QGraphicsEllipseItem) :
 
-Spécifications de la validation (À implémenter) :
+Dans le __init__, activer les flags : ItemIsSelectable, ItemIsMovable, et surtout ItemSendsGeometryChanges.
 
-Création d'une fonction d'équivalence :
+Ajouter un attribut self.edges = [] (liste des transitions connectées).
 
-Écrire une méthode utilitaire (dans le Modèle ou le Contrôleur) par exemple is_constraint_equivalent(new_c, existing_c).
+Définir un Z-value élevé (ex: 10) pour qu'il soit toujours au-dessus des flèches.
 
-Cette fonction renvoie True si :
+Surcharger la méthode itemChange(self, change, value). Si change == QGraphicsItem.ItemPositionHasChanged, parcourir self.edges et appeler edge.update_path(). Retourner la valeur par défaut.
 
-Les deux dictionnaires sont strictement identiques.
+2. Créer la classe GraphicEdge(QGraphicsPathItem) :
 
-OU si c'est une comparaison entre deux horloges (type == 'clock') et que la relation inversée est respectée :
+Dans le __init__, prendre en paramètres source_node et target_node (qui sont des instances de GraphicNode).
 
-new_c['clock'] == existing_c['value']
+S'ajouter automatiquement aux listes des nœuds : source_node.edges.append(self) et target_node.edges.append(self).
 
-new_c['value'] == existing_c['clock']
+Définir un Z-value faible (ex: -1) pour passer sous les nœuds.
 
-L'opérateur est l'inverse exact : (<= devient >=, >= devient <=, == reste ==)
+Ajouter une méthode update_path(self) qui recalcule le QPainterPath entre le centre de self.source_node et le centre de self.target_node. (Reprendre la logique de trigonométrie pour la pointe de flèche ici).
 
-L'offset est inversé : new_c['offset'] == -existing_c['offset']
+3. Mise à jour de refresh_graph_display (dans la Vue) :
 
-Intégration dans l'ajout (Contrôleur) :
+Vider la scène.
 
-Dans la méthode qui valide le formulaire d'ajout d'une contrainte, juste avant de l'ajouter à la liste interne (self.current_constraints), faire une boucle sur les contraintes déjà présentes.
+Dictionnaire temporaire : graphic_nodes = {}.
 
-Si is_constraint_equivalent renvoie True pour l'une d'elles, interrompre l'ajout (optionnel : afficher un petit message dans la console indiquant que la contrainte existe déjà).
+Boucle 1 : Créer les GraphicNode aux bonnes coordonnées x, y, les ajouter à la scène, et les stocker dans graphic_nodes[id_du_noeud].
 
-Travail demandé :
-Génère le code Python de la fonction is_constraint_equivalent et montre-moi comment l'intégrer proprement dans ma méthode d'ajout du contrôleur avec une boucle de vérification.
+Boucle 2 : Parcourir les transitions du modèle. Récupérer source = graphic_nodes[t['source']] et target = graphic_nodes[t['target']]. Créer le GraphicEdge(source, target), et l'ajouter à la scène.
