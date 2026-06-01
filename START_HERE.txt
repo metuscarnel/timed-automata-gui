@@ -1,0 +1,175 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║           🎨 Interface de Dessin d'Automates Temporisés (TA)               ║
+║                                                                            ║
+║                    Bienvenue dans le projet COSMO 2025 !                   ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+📍 OÙ COMMENCER ?
+═══════════════════════════════════════════════════════════════════════════
+
+┌─ Je veux juste TESTER (5 min)
+│  └─→ GETTING_STARTED.md
+│
+├─ Je veux comprendre le FONCTIONNEMENT (30 min)  
+│  └─→ README.md
+│
+├─ Je veux CONTRIBUER au code (1-2h)
+│  └─→ ARCHITECTURE.md
+│
+├─ Je me suis PERDU dans la documentation
+│  └─→ INDEX.md (guide de navigation)
+│
+└─ Je ne sais pas quoi faire
+   └─→ Lisez cette page jusqu'au bout ! ✓
+
+═══════════════════════════════════════════════════════════════════════════
+
+⚡ DÉMARRAGE EN 1 MINUTE
+═══════════════════════════════════════════════════════════════════════════
+
+  1. Installez:
+     $ cd interface
+     $ python3 -m venv venv
+     $ source venv/bin/activate
+     $ pip install -r requirements.txt
+
+  2. Lancez:
+     $ python main.py
+
+  3. Cliquez sur "📍 Localité" dans la toolbar, puis sur le canvas
+  
+  ✅ Vous venez de créer votre première localité !
+
+═══════════════════════════════════════════════════════════════════════════
+
+🎯 FONCTIONNALITÉS PRINCIPALES
+═══════════════════════════════════════════════════════════════════════════
+
+  ✓ Créer des localités (états) automatiquement numérotées (l0, l1, l2...)
+  ✓ Créer des transitions (flèches) entre localités
+  ✓ Déclarer des horloges (x, y, z...)
+  ✓ Ajouter des invariants (x <= 5)
+  ✓ Ajouter des gardes (x > 3)
+  ✓ Ajouter des resets (x := 0)
+  ✓ Sauvegarder/charger au format JSON
+  ✓ Débogage en direct (Cmd+D)
+
+═══════════════════════════════════════════════════════════════════════════
+
+🏗️ ARCHITECTURE EN 30 SECONDES
+═══════════════════════════════════════════════════════════════════════════
+
+  ┌─────────────────┐
+  │   Model (Data)  │  ← Stocke tout (localités, transitions, horloges)
+  └────────┬────────┘
+           │ (signal Qt)
+  ┌────────▼────────────┐
+  │ Controller (Logic)  │  ← Fait les décisions
+  └────────┬────────────┘
+           │ (appelle)
+  ┌────────▼────────────┐
+  │   View (Interface)  │  ← Affiche et capte les clics
+  └─────────────────────┘
+
+  → Chaque couche indépendante, pas de couplage
+
+═══════════════════════════════════════════════════════════════════════════
+
+📚 DOCUMENTATION
+═══════════════════════════════════════════════════════════════════════════
+
+  README.md              (18 KB)  → Guide complet + manuel d'utilisation
+  GETTING_STARTED.md     (3 KB)   → Tutoriel rapide (5 min)
+  ARCHITECTURE.md        (21 KB)  → Pour développeurs/contributeurs
+  INDEX.md               (5 KB)   → Index de navigation
+  FEATURES_TRACKING.md   (8 KB)   → Liste des fonctionnalités
+
+  Total: 55 KB, 1700+ lignes de documentation
+  
+═══════════════════════════════════════════════════════════════════════════
+
+⌨️ RACCOURCIS ESSENTIELS
+═══════════════════════════════════════════════════════════════════════════
+
+  Cmd+D (macOS) / Ctrl+D (Windows)  →  Débogage (affiche l'état)
+  Échap                             →  Quitter le mode de création
+  Delete                            →  Supprimer l'élément sélectionné
+  Clic droit                        →  Menu contextuel
+
+═══════════════════════════════════════════════════════════════════════════
+
+🚀 EXEMPLE COMPLET (3 minutes)
+═══════════════════════════════════════════════════════════════════════════
+
+  Créer un automate "feu tricolore":
+  
+  1. Mode: Cliquez "📍 Localité"
+  2. Canvas: Cliquez 3 fois → l0, l1, l2 s'ajoutent
+  3. Mode: Cliquez "➔ Transition"
+  4. Canvas: l0 → l1, l1 → l2, l2 → l0
+  5. Ajouter horloge "t" via Menu → Déclarer Horloges
+  6. Chaque transition: +Garde "t > 5", +Reset "t"
+  7. Menu → Sauvegarder
+  
+  ✅ Automate à 3 états avec timing !
+
+═══════════════════════════════════════════════════════════════════════════
+
+🐛 PROBLÈME ?
+═══════════════════════════════════════════════════════════════════════════
+
+  "L'app ne démarre pas"
+  → pip install PySide6
+
+  "Aucun clic enregistré"
+  → Vérifiez que le mode est activé (bouton surligné)
+  → Essayez Échap puis réactivez
+
+  "JSON invalide"
+  → Vérifiez que c'est un fichier créé par cet outil
+  → Utilisez model_template.json comme référence
+
+  Voir: README.md → Troubleshooting
+
+═══════════════════════════════════════════════════════════════════════════
+
+👥 PROJET
+═══════════════════════════════════════════════════════════════════════════
+
+  Nom:      Interface de Dessin d'Automates Temporisés
+  Projet:   COSMO - CILS 2025
+  Langage:  Python 3.10+
+  UI:       PySide6 (Qt)
+  Données:  JSON + DBM (Difference Bound Matrix)
+
+═══════════════════════════════════════════════════════════════════════════
+
+🎓 COMMANDES PRINCIPALES
+═══════════════════════════════════════════════════════════════════════════
+
+  Installation:
+    $ python3 -m venv venv
+    $ source venv/bin/activate
+    $ pip install -r requirements.txt
+
+  Lancer:
+    $ python main.py
+
+  Débogage:
+    $ python main.py  # Puis Cmd+D dans l'app
+
+═══════════════════════════════════════════════════════════════════════════
+
+✅ PRÊT À COMMENCER ?
+═══════════════════════════════════════════════════════════════════════════
+
+  Option 1: Impatient?     → Lisez GETTING_STARTED.md (5 min)
+  Option 2: Normal?        → Lisez README.md (30 min)
+  Option 3: Développeur?   → Lisez ARCHITECTURE.md (1-2h)
+  Option 4: Perdu?         → Consultez INDEX.md
+
+═══════════════════════════════════════════════════════════════════════════
+
+Bonne chance et bon développement ! 🚀

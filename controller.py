@@ -32,6 +32,8 @@ class MainController:
             print(f"[Controller] Création de la localité {loc_id} en ({x}, {y})")
             # 2. Ordonner à la Vue de dessiner la localité
             self.view.canvas.draw_node(loc_id, x, y, is_initial)
+            # 3. Mettre à jour la liste des états initiaux dans la barre d'outils
+            self.view.update_locations_list(list(self.model.data["locations"].keys()), self.model.data.get("init"))
 
     def handle_transition_created(self, source_id, target_id, nails_pos):
         """Gère la création effective d'une transition après validation par la Vue."""
@@ -60,6 +62,14 @@ class MainController:
         # --- NOUVEAU : Rafraîchir la vue ---
         if self.view:
             self.view.update_clocks_display(self.model.data["clocks"])
+
+    def handle_initial_state_changed(self, new_init_state):
+        """Gère le changement d'état initial depuis la barre d'outils."""
+        if new_init_state:
+            print(f"[Controller] Changement de l'état initial vers : {new_init_state}")
+            self.model.set_initial_state(new_init_state)
+            if self.view:
+                self.view.refresh_graph_display() # Rafraîchit pour appliquer la double bordure au bon endroit
 
     # --- NOUVELLES MÉTHODES POUR LE MENU ---
 

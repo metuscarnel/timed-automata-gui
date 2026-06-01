@@ -219,12 +219,18 @@ class AutomatonModel:
             if not (t["source"] == source_id and t["target"] == target_id)
         ]
 
+    def set_initial_state(self, loc_id):
+        """Définit la localité initiale si elle existe."""
+        if loc_id in self.data["locations"]:
+            self.data["init"] = loc_id
+
     def remove_node(self, node_id):
         """Supprime une localité. (Les transitions sont déjà nettoyées par le contrôleur)."""
         if node_id in self.data["locations"]:
             del self.data["locations"][node_id]
         if self.data.get("init") == node_id:
-            self.data["init"] = ""
+            # Assigner une nouvelle localité initiale par défaut s'il en reste, pour éviter un champ vide
+            self.data["init"] = next(iter(self.data["locations"].keys())) if self.data["locations"] else ""
 
     # generation du json
     def export_to_json(self, filepath):

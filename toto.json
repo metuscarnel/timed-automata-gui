@@ -1,13 +1,9 @@
 {
-  "actions": [],
+  "actions": ["a", "b"],
   "clocks": ["x", "y", "z", "t"],
-  "locations": ["l0", "l1", "l2", "l3"],
-  "init": "l0",
+  "locations": ["l0", "l1", "l3"],
+  "init": "l1",
   "l0": {
-    "node_pos": {
-      "x": 291.0,
-      "y": 335.0
-    },
     "name_pos": {
       "x": 0,
       "y": 0
@@ -40,28 +36,16 @@
         "",
         [
           [0, "infty", "infty", "infty", "infty"],
-          ["infty", 0, "infty", "infty", "infty"],
-          ["infty", "infty", 0, "infty", "infty"],
-          ["infty", "infty", "infty", 0, "infty"],
-          ["infty", "infty", "infty", "infty", 0]
-        ],
-        [],
-        "l2"
-      ],
-      [
-        "",
-        [
-          [0, "infty", "infty", "infty", "infty"],
           ["infty", 0, -3, "infty", 0],
           ["infty", "infty", 0, 0, "infty"],
           ["infty", "infty", 0, 0, "infty"],
           ["infty", 0, "infty", "infty", 0]
         ],
-        ["x", "y", "z", "t"],
+        ["x", "z", "t"],
         "l3"
       ]
     ],
-    "transitions_layout": [[], [], []]
+    "transitions_layout": [[], []]
   },
   "l1": {
     "node_pos": {
@@ -83,35 +67,25 @@
       "x": 0,
       "y": 0
     },
-    "transitions": [],
-    "transitions_layout": []
-  },
-  "l2": {
-    "node_pos": {
-      "x": 329.0,
-      "y": 101.0
-    },
-    "name_pos": {
-      "x": 0,
-      "y": 0
-    },
-    "invariant": [
-      [0, "infty", "infty", "infty", "infty"],
-      ["infty", 0, "infty", "infty", "infty"],
-      ["infty", "infty", 0, "infty", "infty"],
-      ["infty", "infty", "infty", 0, "infty"],
-      ["infty", "infty", "infty", "infty", 0]
+    "transitions": [
+      [
+        "",
+        [
+          [0, "infty", "infty", "infty", "infty"],
+          ["infty", 0, "infty", "infty", "infty"],
+          ["infty", "infty", 0, "infty", "infty"],
+          ["infty", "infty", "infty", 0, "infty"],
+          ["infty", "infty", "infty", "infty", 0]
+        ],
+        [],
+        "l0"
+      ]
     ],
-    "invariant_pos": {
-      "x": 0,
-      "y": 0
-    },
-    "transitions": [],
-    "transitions_layout": []
+    "transitions_layout": [[]]
   },
   "l3": {
     "node_pos": {
-      "x": 428.0,
+      "x": 429.0,
       "y": 194.0
     },
     "name_pos": {
@@ -121,7 +95,7 @@
     "invariant": [
       [0, "infty", "infty", "infty", "infty"],
       ["infty", 0, "infty", "infty", "infty"],
-      ["infty", "infty", 0, "infty", "infty"],
+      ["infty", 0, 0, "infty", "infty"],
       ["infty", "infty", "infty", 0, "infty"],
       ["infty", "infty", "infty", "infty", 0]
     ],

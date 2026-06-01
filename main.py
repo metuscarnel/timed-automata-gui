@@ -16,7 +16,7 @@ def main():
     app.setStyleSheet("""
         /* Style global : blanc un peu terne et noir pas très foncé */
         QWidget {
-            font-family: 'Inter';
+            font-family: 'IBM Plex Mono';
             background-color: #FAFAFA;
             color: #2C2C2C;
         }

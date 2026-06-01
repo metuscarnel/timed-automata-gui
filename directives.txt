@@ -1,35 +1,21 @@
-Contexte : Dans ma Vue PySide6 (architecture MVC), mes transitions dessinées avec QGraphicsPathItem ne suivent pas les nœuds quand je les déplace, et disparaissent au clic. Je dois refactoriser mes éléments graphiques en créant des classes personnalisées liées entre elles.
+J'étends mon éditeur d'automates en PySide6 pour y inclure la gestion de variables de données. Je dois ajouter un bouton/icone (Datas) dans ma barre d'outils existante pour ouvrir une nouvelle fenêtre d'édition dédiée.
 
-Objectif : Créer deux classes GraphicNode et GraphicEdge pour gérer l'interactivité, et mettre à jour la fonction de dessin pour les utiliser.
+Travail demandé :
 
-Spécifications techniques demandées :
+Créer une nouvelle classe DataEditorDialog(QDialog) :
 
-1. Créer la classe GraphicNode(QGraphicsEllipseItem) :
+Définir un layout principal (ex: QVBoxLayout).
 
-Dans le __init__, activer les flags : ItemIsSelectable, ItemIsMovable, et surtout ItemSendsGeometryChanges.
+Ajouter un QTabWidget avec 3 onglets (ex: "Variables", "Opérations", "Paramètres").
 
-Ajouter un attribut self.edges = [] (liste des transitions connectées).
+Ajouter des layouts vides basiques dans chaque onglet pour que je puisse les remplir plus tard.
 
-Définir un Z-value élevé (ex: 10) pour qu'il soit toujours au-dessus des flèches.
+Ajouter une QDialogButtonBox (Ok / Annuler) en bas pour fermer la fenêtre.
 
-Surcharger la méthode itemChange(self, change, value). Si change == QGraphicsItem.ItemPositionHasChanged, parcourir self.edges et appeler edge.update_path(). Retourner la valeur par défaut.
+Mettre à jour la Vue principale (MainWindow) :
 
-2. Créer la classe GraphicEdge(QGraphicsPathItem) :
+Montrer comment ajouter un nouveau bouton (Action) "Éditeur de Données" dans ma QToolBar existante.
 
-Dans le __init__, prendre en paramètres source_node et target_node (qui sont des instances de GraphicNode).
+Connecter ce bouton à une méthode open_data_editor(self) qui instancie et affiche DataEditorDialog via .exec().
 
-S'ajouter automatiquement aux listes des nœuds : source_node.edges.append(self) et target_node.edges.append(self).
-
-Définir un Z-value faible (ex: -1) pour passer sous les nœuds.
-
-Ajouter une méthode update_path(self) qui recalcule le QPainterPath entre le centre de self.source_node et le centre de self.target_node. (Reprendre la logique de trigonométrie pour la pointe de flèche ici).
-
-3. Mise à jour de refresh_graph_display (dans la Vue) :
-
-Vider la scène.
-
-Dictionnaire temporaire : graphic_nodes = {}.
-
-Boucle 1 : Créer les GraphicNode aux bonnes coordonnées x, y, les ajouter à la scène, et les stocker dans graphic_nodes[id_du_noeud].
-
-Boucle 2 : Parcourir les transitions du modèle. Récupérer source = graphic_nodes[t['source']] et target = graphic_nodes[t['target']]. Créer le GraphicEdge(source, target), et l'ajouter à la scène.
+Format de sortie : Génère uniquement le code Python clair et commenté pour la classe DataEditorDialog et l'extrait de code pour la barre d'outils.

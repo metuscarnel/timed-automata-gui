@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QLabel, QToolButton, QHBoxLayout, QVBoxLayout, QGroupBox, QGraphicsPathItem, QGraphicsPolygonItem, QGraphicsTextItem
+from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QLabel, QToolButton, QHBoxLayout, QVBoxLayout, QGroupBox, QGraphicsPathItem, QGraphicsPolygonItem, QGraphicsTextItem, QComboBox
 from PySide6.QtGui import QAction, QKeySequence, QActionGroup, QIcon, QFont, QPainterPath, QPolygonF, QPen, QBrush
 from PySide6.QtCore import Signal, Qt, QPoint, QPointF
 import math
@@ -7,6 +7,7 @@ from .canvas import AutomataView
 from resources.icons import get_icons
 from .properties_dock import PropertiesDock
 from .popups import InlineAddPopup
+from .data_editor import DataEditorDialog
 
 
 class MainWindow(QMainWindow):
@@ -65,6 +66,22 @@ class MainWindow(QMainWindow):
         
         toolbar.addSeparator()
         
+        # --- NOUVEAU : Section État initial ---
+        self.init_state_widget = QWidget()
+        init_layout = QHBoxLayout(self.init_state_widget)
+        init_layout.setContentsMargins(4, 0, 4, 0)
+        init_layout.setSpacing(4)
+        
+        init_label = QLabel("Init :")
+        init_label.setStyleSheet("color: #2C2C2C; font-weight: bold; font-family: 'IBM Plex Mono';")
+        self.init_state_combo = QComboBox()
+        self.init_state_combo.setToolTip("Choisir la localité initiale")
+        self.init_state_combo.currentTextChanged.connect(self.controller.handle_initial_state_changed)
+        
+        init_layout.addWidget(init_label)
+        init_layout.addWidget(self.init_state_combo)
+        toolbar.addWidget(self.init_state_widget)
+
         # --- NOUVEAU : Section Actions ---
         self.actions_widget = self._create_declaration_widget(
             get_icons()["action"], 
@@ -82,6 +99,20 @@ class MainWindow(QMainWindow):
         )
         toolbar.addWidget(self.clocks_widget)
         self.clocks_label = self.clocks_widget.findChild(QLabel, "items_label")
+
+        toolbar.addSeparator()
+
+        # --- NOUVEAU : Bouton Éditeur de Données ---
+        btn_data = QToolButton(self)
+        btn_data.setText("Datas")
+        btn_data.setToolTip("Ouvrir l'éditeur de variables et de données")
+        
+        # On grossit le texte et on utilise le font IBM Plex Mono avec un bleu électrique
+        btn_data.setStyleSheet("""
+            font-family: 'IBM Plex Mono'; font-size: 14pt; font-weight: bold; color: #0D99FF;
+        """)
+        btn_data.clicked.connect(self.open_data_editor)
+        toolbar.addWidget(btn_data)
 
     def _create_declaration_widget(self, icon: QIcon, on_add_clicked):
         """Crée un widget composite pour la toolbar (Icon, Label, Bouton +)."""
@@ -190,6 +221,15 @@ class MainWindow(QMainWindow):
         text = ", ".join(clocks) if clocks else "Aucune"
         self.clocks_label.setText(text)
 
+    def update_locations_list(self, locations: list, current_init: str):
+        """Met à jour le menu déroulant des localités pour l'état initial."""
+        self.init_state_combo.blockSignals(True) # Évite un appel circulaire lors du nettoyage de la liste
+        self.init_state_combo.clear()
+        self.init_state_combo.addItems(locations)
+        if current_init in locations:
+            self.init_state_combo.setCurrentText(current_init)
+        self.init_state_combo.blockSignals(False)
+
     def refresh_graph_display(self):
         """Rafraîchit l'affichage du graphe (Étape 1 : Localités)."""
         print("[Vue] Rafraîchissement de l'affichage demandé après chargement du modèle.")
@@ -209,6 +249,9 @@ class MainWindow(QMainWindow):
         locations = data.get("locations", {})
         init_node = data.get("init", "")
         
+        # Mise à jour de la liste de sélection de l'état initial
+        self.update_locations_list(list(locations.keys()), init_node)
+
         # 2. Dessin des Nœuds (Localités)
         for node_id, node_data in locations.items():
             # Extraire les coordonnées
@@ -227,3 +270,8 @@ class MainWindow(QMainWindow):
             
             # Déléguer la création à la logique MVC existante du Canvas
             self.canvas.draw_transition(source_id, target_id, nails_pos)
+
+    def open_data_editor(self):
+        """Instancie et affiche la fenêtre de l'éditeur de données."""
+        dialog = DataEditorDialog(self)
+        dialog.exec()
