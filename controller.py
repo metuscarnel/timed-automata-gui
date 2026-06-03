@@ -71,6 +71,10 @@ class MainController:
             if self.view:
                 self.view.refresh_graph_display() # Rafraîchit pour appliquer la double bordure au bon endroit
 
+    def update_variables_data(self, variables_data):
+        print("[Controller] Mise à jour des variables de données depuis l'éditeur.")
+        self.model.update_variables(variables_data)
+
     # --- NOUVELLES MÉTHODES POUR LE MENU ---
 
     def handle_new_file(self):
@@ -374,3 +378,45 @@ class MainController:
     def get_available_clocks(self):
         """Retourne la liste des horloges disponibles dans le modèle."""
         return self.model.data.get("clocks", [])
+
+    def handle_modify_clock(self, old_name, new_name):
+        print(f"[Controller] Modification horloge : {old_name} -> {new_name}")
+        self.model.modify_clock(old_name, new_name)
+        if self.view:
+            self.view.update_clocks_display(self.model.data["clocks"])
+            self._refresh_properties_dock()
+
+    def handle_delete_clock(self, clock_name):
+        print(f"[Controller] Suppression horloge : {clock_name}")
+        self.model.delete_clock(clock_name)
+        if self.view:
+            self.view.update_clocks_display(self.model.data["clocks"])
+            self._refresh_properties_dock()
+
+    def handle_modify_action(self, old_name, new_name):
+        print(f"[Controller] Modification action : {old_name} -> {new_name}")
+        self.model.modify_action(old_name, new_name)
+        if self.view:
+            self.view.update_actions_display(self.model.data["actions"])
+            self._refresh_properties_dock()
+
+    def handle_delete_action(self, action_name):
+        print(f"[Controller] Suppression action : {action_name}")
+        self.model.delete_action(action_name)
+        if self.view:
+            self.view.update_actions_display(self.model.data["actions"])
+            self._refresh_properties_dock()
+
+    def _refresh_properties_dock(self):
+        """Recharge les propriétés affichées dans le Dock si celui-ci est visible"""
+        if self.view and hasattr(self.view, 'properties_dock') and self.view.properties_dock.isVisible():
+            selected_items = self.view.canvas.scene.selectedItems()
+            if not selected_items: return
+            item = selected_items[0]
+            
+            if hasattr(item, 'id'):
+                self.handle_node_selected(item.id)
+            elif hasattr(item, 'source') and hasattr(item, 'target'):
+                self.handle_transition_selected(item.source.id, item.target.id)
+            elif hasattr(item, 'transition'):
+                self.handle_transition_selected(item.transition.source.id, item.transition.target.id)

@@ -9,6 +9,18 @@ class AutomatonModel:
             "transitions": [],
             "actions": [],
             "clocks": [],
+            "variables": {
+                "definition": {
+                    "define": [],
+                    "typedef": {
+                        "structure": {},
+                        "alias": []
+                    }
+                },
+                "init_variables": [],
+                "update_functions": {},
+                "constraints": {}
+            }
         }
         self.loc_counter = 0
 
@@ -224,6 +236,10 @@ class AutomatonModel:
         if loc_id in self.data["locations"]:
             self.data["init"] = loc_id
 
+    def update_variables(self, new_variables_data):
+        """Met à jour l'ensemble des données liées aux variables depuis l'éditeur de données."""
+        self.data["variables"] = new_variables_data
+
     def remove_node(self, node_id):
         """Supprime une localité. (Les transitions sont déjà nettoyées par le contrôleur)."""
         if node_id in self.data["locations"]:
@@ -236,6 +252,34 @@ class AutomatonModel:
     def export_to_json(self, filepath):
         """Délègue la compilation DBM et la sauvegarde au script tiers"""
         return generate_and_save_engine_json(self.data, filepath)
+        """Prépare et nettoie les données avant de déléguer la sauvegarde au script tiers"""
+        export_data = copy.deepcopy(self.data)
+        
+        def to_engine_string(c):
+            if isinstance(c, dict):
+                if c.get("type") == "value":
+                    return f"{c['clock']} {c['operator']} {c['value']}"
+                else:
+                    offset = c.get("offset", 0)
+                    clock2 = c.get("value")
+                    # Simplification si le script tente d'utiliser x0 explicitement
+                    if clock2 in ["x0", "0", None]:
+                        return f"{c['clock']} {c['operator']} {offset}"
+                    return f"{c['clock']} - {clock2} {c['operator']} {offset}"
+            elif isinstance(c, str):
+                # Nettoyage des chaînes générées contenant "x0" pour éviter le KeyError
+                return c.replace(" - x0", "").replace("-x0", "").replace(" - 0", "").replace("-0", "")
+            return str(c)
+
+        for loc in export_data["locations"].values():
+            if "invariants" in loc:
+                loc["invariants"] = [to_engine_string(inv) for inv in loc["invariants"]]
+                
+        for t in export_data["transitions"]:
+            if "guards" in t:
+                t["guards"] = [to_engine_string(g) for g in t["guards"]]
+                
+        return generate_and_save_engine_json(export_data, filepath)
 
     # chargement du json pour reconstruire le dictionnaire "data" du model
     def load_from_json_data(self, json_data):
@@ -249,12 +293,37 @@ class AutomatonModel:
             "clocks": json_data.get("clocks", []),
             "init": json_data.get("init", ""),
             "locations": {},
-            "transitions": []
+            "transitions": [],
+            "variables": json_data.get("variables", {
+                "definition": {
+                    "define": [],
+                    "typedef": {
+                        "structure": {},
+                        "alias": []
+                    }
+                },
+                "init_variables": [],
+                "update_functions": {},
+                "constraints": {}
+            })
         }
-
+        # ajout des données 
         # Génération de la map des horloges (indexation décalée de 1 car index 0 = x0)
         clock_map = {name: i + 1 for i, name in enumerate(self.data["clocks"])}
-        meta_keys = {"clocks", "actions", "init", "locations", "transitions"}
+        meta_keys = {"clocks", "actions", "init", "locations", "transitions", "variables"}
+
+        def parse_to_dict(c_str):
+            """Convertit une contrainte texte (DBM) en dictionnaire lisible par l'UI"""
+            if isinstance(c_str, dict): return c_str
+            clean_str = str(c_str).replace(" ", "")
+            match = re.match(r"^([a-zA-Z0-9_]+)(?:-([a-zA-Z0-9_]+))?([<>=!]+)(-?\d+)$", clean_str)
+            if match:
+                c1, c2, op, val = match.groups()
+                if c2 and c2 not in ["x0", "0"]:
+                    return {"clock": c1, "operator": op, "type": "clock", "value": c2, "offset": int(val)}
+                else:
+                    return {"clock": c1, "operator": op, "type": "value", "value": val}
+            return {"clock": str(c_str), "operator": "<=", "type": "value", "value": "0"}
 
         # 2. Parcours du JSON pour extraire et traduire les données
         for key, value in json_data.items():
@@ -263,6 +332,7 @@ class AutomatonModel:
                 # Traduction immédiate de la matrice d'invariant en dictionnaires UI
                 raw_inv = value.get("invariant", [])
                 invariants_textuels = convert_dbm_to_constraints(raw_inv, clock_map) if raw_inv else []
+                invariants_textuels = [parse_to_dict(c) for c in convert_dbm_to_constraints(raw_inv, clock_map)] if raw_inv else []
                 
                 # Stockage exclusif des données nettoyées
                 self.data["locations"][key] = {
@@ -280,6 +350,7 @@ class AutomatonModel:
                     # Traduction immédiate de la matrice de garde en dictionnaires UI
                     raw_guard = t[1]
                     gardes_textuelles = convert_dbm_to_constraints(raw_guard, clock_map) if raw_guard else []
+                    gardes_textuelles = [parse_to_dict(c) for c in convert_dbm_to_constraints(raw_guard, clock_map)] if raw_guard else []
                     
                     # Reconstruction de la transition selon la structure exacte du modèle
                     transition_dict = {
@@ -296,6 +367,8 @@ class AutomatonModel:
         # 3. Synchronisation du compteur de localités du modèle
         self.loc_counter = len(self.data["locations"])
         
+
+        
         # 4. Affichage de contrôle (Déclenché lors du chargement ou via ton Cmd + D)
         print("\n" + "=" * 60)
         print(" 📋 [Cmd + D] ÉTAT INTERNE DU MODÈLE MVC RECONSTRUIT")
@@ -311,5 +384,81 @@ class AutomatonModel:
                     t["resets"] = []
                 if clock not in t["resets"]:
                     t["resets"].append(clock)
+
+    def modify_clock(self, old_name, new_name):
+        """Modifie le nom d'une horloge partout où elle est utilisée."""
+        if old_name not in self.data["clocks"]: return
+        if new_name in self.data["clocks"]: return # Eviter d'écraser
+        
+        idx = self.data["clocks"].index(old_name)
+        self.data["clocks"][idx] = new_name
+        
+        for loc in self.data["locations"].values():
+            for inv in loc.get("invariants", []):
+                if inv.get("clock") == old_name:
+                    inv["clock"] = new_name
+                if inv.get("type") == "clock" and inv.get("value") == old_name:
+                    inv["value"] = new_name
+                    
+        for t in self.data["transitions"]:
+            for guard in t.get("guards", []):
+                if guard.get("clock") == old_name:
+                    guard["clock"] = new_name
+                if guard.get("type") == "clock" and guard.get("value") == old_name:
+                    guard["value"] = new_name
+            if "resets" in t:
+                t["resets"] = [new_name if r == old_name else r for r in t["resets"]]
+
+    def delete_clock(self, clock_name):
+        """Supprime une horloge et toutes les contraintes qui l'utilisent."""
+        if clock_name not in self.data["clocks"]: return
+        
+        self.data["clocks"].remove(clock_name)
+        
+        for loc in self.data["locations"].values():
+            if "invariants" in loc:
+                loc["invariants"] = [inv for inv in loc["invariants"] 
+                                     if inv.get("clock") != clock_name and not (inv.get("type") == "clock" and inv.get("value") == clock_name)]
+        
+        for t in self.data["transitions"]:
+            if "guards" in t:
+                t["guards"] = [guard for guard in t["guards"] 
+                               if guard.get("clock") != clock_name and not (guard.get("type") == "clock" and guard.get("value") == clock_name)]
+            if "resets" in t and clock_name in t["resets"]:
+                t["resets"].remove(clock_name)
+
+    def modify_action(self, old_name, new_name):
+        """Modifie le nom d'une action partout où elle est utilisée."""
+        if old_name not in self.data["actions"]: return
+        if new_name in self.data["actions"]: return
+        
+        idx = self.data["actions"].index(old_name)
+        self.data["actions"][idx] = new_name
+        
+        for t in self.data["transitions"]:
+            if t.get("action") == old_name:
+                t["action"] = new_name
+                
+        vars_data = self.data.get("variables", {})
+        if "update_functions" in vars_data and old_name in vars_data["update_functions"]:
+            vars_data["update_functions"][new_name] = vars_data["update_functions"].pop(old_name)
+        if "constraints" in vars_data and old_name in vars_data["constraints"]:
+            vars_data["constraints"][new_name] = vars_data["constraints"].pop(old_name)
+
+    def delete_action(self, action_name):
+        """Supprime une action et ses données additionnelles (update-functions et contraintes)."""
+        if action_name not in self.data["actions"]: return
+        
+        self.data["actions"].remove(action_name)
+        
+        for t in self.data["transitions"]:
+            if t.get("action") == action_name:
+                t["action"] = ""
+                
+        vars_data = self.data.get("variables", {})
+        if "update_functions" in vars_data and action_name in vars_data["update_functions"]:
+            del vars_data["update_functions"][action_name]
+        if "constraints" in vars_data and action_name in vars_data["constraints"]:
+            del vars_data["constraints"][action_name]
     
     

@@ -9,7 +9,10 @@ class DataEditorDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Éditeur de Données")
-        self.resize(500, 400)
+        if parent:
+            self.resize(parent.size())
+        else:
+            self.resize(1000, 600)
 
         # --- STYLESHEET (Uniformisation avec le reste de l'application) ---
         self.setStyleSheet("""
@@ -70,6 +73,10 @@ class DataEditorDialog(QDialog):
                 color: #2C2C2C;
             }
         """)
+        
+        # --- Dictionnaires pour référencer les champs de textes dynamiques ---
+        self.action_widgets = {}
+        self.structure_widgets = {}
 
         # Layout principal de la boîte de dialogue
         main_layout = QVBoxLayout(self)
@@ -79,101 +86,87 @@ class DataEditorDialog(QDialog):
         
       
 
-        # Onglet 2 : Opérations (avec layout basique vide)
+        # Onglet 2 : Variable (Anciennement Opérations)
         self.tab_definitions = QWidget()
-        self.layout_definitions = QHBoxLayout(self.tab_definitions)
+        self.layout_definitions = QVBoxLayout(self.tab_definitions)
+        
+        # Section Variable
+        self.layout_variable = QVBoxLayout()
+        self.label_variable = QLabel("Variable")
+        self.content_variable = QTextEdit()
+        self.content_variable.setPlaceholderText("Saisissez les variables...")
+        self.layout_variable.addWidget(self.label_variable)
+        self.layout_variable.addWidget(self.content_variable)
+        self.layout_definitions.addLayout(self.layout_variable)
+        
+        # Section Initialisation
+        self.layout_initialisation = QVBoxLayout()
+        self.label_initialisation = QLabel("Initialisation")
+        self.content_initialisation = QTextEdit()
+        self.content_initialisation.setPlaceholderText("Saisissez les initialisations...")
+        self.layout_initialisation.addWidget(self.label_initialisation)
+        self.layout_initialisation.addWidget(self.content_initialisation)
+        self.layout_definitions.addLayout(self.layout_initialisation)
+        
+        self.tab_widget.addTab(self.tab_definitions, "Variable")
+        
+        # Onglet 1 : Données Additionelles (Anciennement Variables)
+        self.tab_additional_data = QScrollArea()
+        self.tab_additional_data.setWidgetResizable(True)
+        self.tab_additional_data.setStyleSheet("QScrollArea { border: none; background-color: transparent; }")
+        
+        self.container_additional_data = QWidget()
+        self.layout_additional_data = QVBoxLayout(self.container_additional_data)
+        self.tab_additional_data.setWidget(self.container_additional_data)
         
         # Section Define
         self.layout_define = QVBoxLayout()
         self.label_define = QLabel("Define")
         self.content_define = QTextEdit()
         self.content_define.setPlaceholderText("Saisissez le contenu pour Define...")
+        self.content_define.setMinimumHeight(80)
         self.layout_define.addWidget(self.label_define)
         self.layout_define.addWidget(self.content_define)
-        self.layout_definitions.addLayout(self.layout_define)
+        self.layout_additional_data.addLayout(self.layout_define)
         
         # Section Alias
         self.layout_alias = QVBoxLayout()
         self.label_alias = QLabel("Alias")
         self.content_alias = QTextEdit()
-        self.content_alias.setPlaceholderText("contenu textuel...")
+        self.content_alias.setPlaceholderText("Saisissez le contenu pour Alias...")
+        self.content_alias.setMinimumHeight(80)
         self.layout_alias.addWidget(self.label_alias)
         self.layout_alias.addWidget(self.content_alias)
-        self.layout_definitions.addLayout(self.layout_alias)
-        
-        self.tab_widget.addTab(self.tab_definitions, "Opérations")
-        # Onglet 1 : Variables (avec layout basique vide)
-        self.tab_variables = QWidget()
-        self.layout_variables = QVBoxLayout(self.tab_variables)
-        
-        # --- NOUVEAU : En-tête avec le bouton + pour les variables ---
-        self.header_variables = QHBoxLayout()
-        self.label_variables = QLabel("Liste des variables")
-        self.btn_add_variable = QToolButton()
-        self.btn_add_variable.setText("+")
-        self.btn_add_variable.setFixedSize(24, 24)
-        self.btn_add_variable.setToolTip("Ajouter une nouvelle variable")
-        
-        self.header_variables.addWidget(self.label_variables)
-        self.header_variables.addStretch() # Pousse le bouton à droite
-        self.header_variables.addWidget(self.btn_add_variable)
-        self.layout_variables.addLayout(self.header_variables)
-        
-        # --- NOUVEAU : Zone défilante pour lister des widgets complexes (Label + TextEdit) ---
-        self.scroll_variables = QScrollArea()
-        self.scroll_variables.setWidgetResizable(True)
-        self.scroll_variables.setStyleSheet("QScrollArea { border: none; background-color: transparent; }")
-        
-        self.container_variables = QWidget()
-        self.layout_variables_list = QVBoxLayout(self.container_variables)
-        self.layout_variables_list.setAlignment(Qt.AlignTop)
-        self.scroll_variables.setWidget(self.container_variables)
-        self.layout_variables.addWidget(self.scroll_variables)
+        self.layout_additional_data.addLayout(self.layout_alias)
 
-        self.btn_add_variable.clicked.connect(self._show_add_variable_popup)
-        self.tab_widget.addTab(self.tab_variables, "Variables")
+        # Section Structures
+        self.header_structures = QHBoxLayout()
+        self.label_structures = QLabel("Structures")
+        self.btn_add_structure = QToolButton()
+        self.btn_add_structure.setText("+")
+        self.btn_add_structure.setFixedSize(24, 24)
+        self.btn_add_structure.setToolTip("Ajouter une nouvelle structure")
+        self.btn_add_structure.clicked.connect(self._show_add_structure_popup)
+        
+        self.header_structures.addWidget(self.label_structures)
+        self.header_structures.addStretch()
+        self.header_structures.addWidget(self.btn_add_structure)
+        self.layout_additional_data.addLayout(self.header_structures)
+        
+        self.layout_structures_list = QVBoxLayout()
+        self.layout_structures_list.setAlignment(Qt.AlignTop)
+        self.layout_additional_data.addLayout(self.layout_structures_list)
 
-        # Onglet 3 : Contraintes (Initialisation des variables)
-        self.tab_constraints = QWidget()
-        self.layout_constraints = QVBoxLayout(self.tab_constraints)
-        
-        self.constraint_edit_layout = QHBoxLayout()
-        
-        self.combo_constraint_var = QComboBox()
-        
-        self.label_constraint_eq = QLabel("=")
-        
-        self.line_constraint_value = QLineEdit()
-        self.line_constraint_value.setPlaceholderText("Valeur d'initialisation...")
-        
-        self.btn_add_constraint = QPushButton("+")
-        
-        self.constraint_edit_layout.addWidget(self.combo_constraint_var)
-        self.constraint_edit_layout.addWidget(self.label_constraint_eq)
-        self.constraint_edit_layout.addWidget(self.line_constraint_value)
-        self.constraint_edit_layout.addWidget(self.btn_add_constraint)
-        self.layout_constraints.addLayout(self.constraint_edit_layout)
-        
-        self.list_constraints = QListWidget()
-        self.layout_constraints.addWidget(self.list_constraints)
-        
-        self.btn_add_constraint.clicked.connect(self._add_constraint_to_list)
+        self.tab_widget.addTab(self.tab_additional_data, "Données Additionelles")
 
-        # --- NOUVEAU : Zone défilante pour les contraintes par variable ---
-        self.label_var_constraints = QLabel("Contraintes des variables :")
-        self.layout_constraints.addWidget(self.label_var_constraints)
+        # Onglet 3 : Actions
+        self.tab_actions = QWidget()
+        self.layout_actions = QVBoxLayout(self.tab_actions)
         
-        self.scroll_var_constraints = QScrollArea()
-        self.scroll_var_constraints.setWidgetResizable(True)
-        self.scroll_var_constraints.setStyleSheet("QScrollArea { border: none; background-color: transparent; }")
+        self.actions_tab_widget = QTabWidget()
+        self.layout_actions.addWidget(self.actions_tab_widget)
         
-        self.container_var_constraints = QWidget()
-        self.layout_var_constraints_list = QVBoxLayout(self.container_var_constraints)
-        self.layout_var_constraints_list.setAlignment(Qt.AlignTop)
-        self.scroll_var_constraints.setWidget(self.container_var_constraints)
-        self.layout_constraints.addWidget(self.scroll_var_constraints)
-
-        self.tab_widget.addTab(self.tab_constraints, "Contraintes")
+        self.tab_widget.addTab(self.tab_actions, "Actions")
 
         main_layout.addWidget(self.tab_widget)
 
@@ -184,57 +177,121 @@ class DataEditorDialog(QDialog):
         
         main_layout.addWidget(self.button_box)
 
-    def _show_add_variable_popup(self):
-        """Affiche la popup pour ajouter une variable."""
+    def _show_add_structure_popup(self):
+        """Affiche la popup pour ajouter une structure."""
         popup = InlineAddPopup(self)
-        popup.validated.connect(self._add_variable_to_list)
-        
-        # Positionner la popup sous le bouton '+'
-        btn_pos = self.btn_add_variable.mapToGlobal(QPoint(0, self.btn_add_variable.height()))
+        popup.validated.connect(self._on_structure_added_from_popup)
+        btn_pos = self.btn_add_structure.mapToGlobal(QPoint(0, self.btn_add_structure.height()))
         popup.show_at(btn_pos)
 
-    def _add_variable_to_list(self, var_name):
-        """Ajoute la variable et sa zone de texte 'update-function' associée."""
-        var_widget = QWidget()
-        var_layout = QHBoxLayout(var_widget)
-        var_layout.setContentsMargins(0, 0, 0, 0)
-        
-        var_label = QLabel(var_name)
-        var_label.setFixedWidth(100) # Fixe la largeur pour que tous les champs textes soient alignés
-        
-        var_textedit = QTextEdit()
-        var_textedit.setPlaceholderText(f"update-function pour {var_name}...")
-        var_textedit.setMaximumHeight(60) # Limite la hauteur pour pouvoir voir plusieurs variables à la fois
-        
-        var_layout.addWidget(var_label)
-        var_layout.addWidget(var_textedit)
-        
-        self.layout_variables_list.addWidget(var_widget)
-        
-        # --- NOUVEAU : Ajout de la contrainte associée dans l'onglet Contraintes ---
-        var_constraint_widget = QWidget()
-        var_constraint_layout = QHBoxLayout(var_constraint_widget)
-        var_constraint_layout.setContentsMargins(0, 0, 0, 0)
-        
-        var_constraint_label = QLabel(var_name)
-        var_constraint_label.setFixedWidth(100) # Fixe la largeur pour que tous les champs textes soient alignés
-        
-        var_constraint_textedit = QTextEdit()
-        var_constraint_textedit.setPlaceholderText(f"Contrainte pour {var_name}...")
-        var_constraint_textedit.setMaximumHeight(60) # Limite la hauteur
-        
-        var_constraint_layout.addWidget(var_constraint_label)
-        var_constraint_layout.addWidget(var_constraint_textedit)
-        
-        self.layout_var_constraints_list.addWidget(var_constraint_widget)
-        
-        # On ajoute aussi la variable au menu déroulant pour l'initialisation
-        self.combo_constraint_var.addItem(var_name)
+    def _on_structure_added_from_popup(self, struct_name):
+        self._add_structure_to_list(struct_name)
 
-    def _add_constraint_to_list(self):
-        """Ajoute la contrainte d'initialisation dans la liste."""
-        var = self.combo_constraint_var.currentText()
-        val = self.line_constraint_value.text().strip()
-        if var and val:
-            self.list_constraints.addItem(f"{var} = {val}")
-            self.line_constraint_value.clear()
+    def load_data(self, data, actions=None):
+        """Remplit les onglets avec les données existantes du modèle."""
+        if actions is None: actions = []
+        # 1. Données Additionelles (Define / Alias)
+        define_list = data.get("definition", {}).get("define", [])
+        self.content_define.setText("\n".join(define_list))
+        
+        alias_data = data.get("definition", {}).get("typedef", {}).get("alias", [])
+        self.content_alias.setText("\n".join(alias_data) if isinstance(alias_data, list) else str(alias_data))
+        
+        structure_data = data.get("definition", {}).get("typedef", {}).get("structure", {})
+        for struct_name, struct_content in structure_data.items():
+            content_text = "\n".join(struct_content) if isinstance(struct_content, list) else str(struct_content) if struct_content else ""
+            self._add_structure_to_list(struct_name, content_text)
+        
+        # 2. Variable (Variable / Initialisation)
+        var_list = data.get("variable_text", [])
+        self.content_variable.setText("\n".join(var_list))
+        
+        # Protection : utilise init_variables de votre JSON original dans la vue
+        init_list = data.get("init_variables", [])
+        self.content_initialisation.setText("\n".join(init_list) if isinstance(init_list, list) else str(init_list))
+        
+        # 3. Actions (Update-functions et Contraintes par sous-onglets)
+        self.actions_tab_widget.clear()
+        self.action_widgets = {}
+        
+        update_funcs = data.get("update_functions", {})
+        constraints = data.get("constraints", {})
+        
+        for action in actions:
+            tab = QWidget()
+            layout = QVBoxLayout(tab)
+            
+            label_update = QLabel(f"Update-function pour '{action}'")
+            text_update = QTextEdit()
+            text_update.setPlaceholderText(f"Saisissez la fonction de mise à jour pour {action}...")
+            u_data = update_funcs.get(action, [])
+            text_update.setText("\n".join(u_data) if isinstance(u_data, list) else str(u_data) if u_data else "")
+            
+            label_constraint = QLabel(f"Contrainte pour '{action}'")
+            text_constraint = QTextEdit()
+            text_constraint.setPlaceholderText(f"Saisissez la contrainte pour {action}...")
+            c_data = constraints.get(action, [])
+            text_constraint.setText("\n".join(c_data) if isinstance(c_data, list) else str(c_data) if c_data else "")
+            
+            layout.addWidget(label_update)
+            layout.addWidget(text_update)
+            layout.addWidget(label_constraint)
+            layout.addWidget(text_constraint)
+            
+            self.actions_tab_widget.addTab(tab, action)
+            self.action_widgets[action] = {"update": text_update, "constraint": text_constraint}
+
+    def get_data(self):
+        """Extrait toutes les données saisies sous forme de dictionnaire."""
+        define_text = self.content_define.toPlainText().strip()
+        alias_text = self.content_alias.toPlainText().strip()
+        
+        variable_text = self.content_variable.toPlainText().strip()
+        initialisation_text = self.content_initialisation.toPlainText().strip()
+        
+        structures_dict = {}
+        for s_name, s_widget in self.structure_widgets.items():
+            s_text = s_widget.toPlainText().strip()
+            if s_text:
+                structures_dict[s_name] = s_text.split('\n')
+                
+        update_functions_dict = {}
+        constraints_dict = {}
+        for action, widgets in self.action_widgets.items():
+            u_text = widgets["update"].toPlainText().strip()
+            c_text = widgets["constraint"].toPlainText().strip()
+            if u_text:
+                update_functions_dict[action] = u_text.split('\n')
+            if c_text:
+                constraints_dict[action] = c_text.split('\n')
+        
+        return {
+            "definition": {
+                "define": define_text.split('\n') if define_text else [],
+                "typedef": { "structure": structures_dict, "alias": alias_text.split('\n') if alias_text else [] }
+            },
+            "variable_text": variable_text.split('\n') if variable_text else [],
+            "init_variables": initialisation_text.split('\n') if initialisation_text else [],
+            "update_functions": update_functions_dict,
+            "constraints": constraints_dict
+        }
+
+    def _add_structure_to_list(self, struct_name, content_text=""):
+        """Ajoute une structure et sa zone de texte associée."""
+        if struct_name in self.structure_widgets: return
+        
+        struct_widget = QWidget()
+        struct_layout = QVBoxLayout(struct_widget)
+        struct_layout.setContentsMargins(0, 0, 0, 0)
+        
+        struct_label = QLabel(struct_name)
+        struct_textedit = QTextEdit()
+        struct_textedit.setPlaceholderText(f"Contenu de la structure {struct_name}...")
+        struct_textedit.setText(content_text)
+        struct_textedit.setMaximumHeight(80)
+        
+        struct_layout.addWidget(struct_label)
+        struct_layout.addWidget(struct_textedit)
+        
+        self.layout_structures_list.addWidget(struct_widget)
+        self.structure_widgets[struct_name] = struct_textedit

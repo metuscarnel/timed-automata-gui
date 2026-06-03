@@ -54,7 +54,7 @@ def build_dbm_from_constraints(constraints, clock_map):
         dbm[i][i] = 0
 
     # L'horloge globale x0 est fixée à l'index 0
-    full_clock_map = {'x 0': 0}
+    full_clock_map = {'x0': 0}
     full_clock_map.update(clock_map)
 
     # Regex pour capturer le format standardisé garanti par le parser
@@ -82,11 +82,30 @@ def generate_and_save_engine_json(instance, output_filepath="model_compiled.json
     clocks = instance.get('clocks', [])
     clock_map = {name: i + 1 for i, name in enumerate(clocks)}
     
+    # Structuration stricte des variables selon le format attendu
+    variables_raw = instance.get('variables', {})
+    def_raw = variables_raw.get('definition', {})
+    typedef_raw = def_raw.get('typedef', {})
+    
+    structured_variables = {
+        "definition": {
+            "define": def_raw.get("define", []),
+            "typedef": {
+                "structure": typedef_raw.get("structure", {}),
+                "alias": typedef_raw.get("alias", {})
+            }
+        },
+        "init_variables": variables_raw.get("init_variables", []),
+        "update_functions": variables_raw.get("update_functions", {}),
+        "constraints": variables_raw.get("constraints", {})
+    }
+
     output = {
         "actions": instance.get('actions', []),
         "clocks": clocks,
         "locations": list(instance.get('locations', {}).keys()),
-        "init": instance.get('init', '')
+        "init": instance.get('init', ''),
+        "variables": structured_variables
     }
     
     for loc_id, loc_data in instance.get('locations', {}).items():

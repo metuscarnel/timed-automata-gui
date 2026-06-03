@@ -1,0 +1,140 @@
+{
+  "actions": ["a", "c", "d", "e"],
+  "clocks": ["x", "y", "z"],
+  "locations": ["l0", "l1", "l2", "l3"],
+  "init": "l3",
+  "variables": {
+    "definition": {
+      "define": [
+        "include <stdio.h>",
+        "include prototype.h",
+        "include definition.h"
+      ],
+      "typedef": {
+        "structure": {},
+        "alias": ["we are the champions"]
+      }
+    },
+    "init_variables": ["x = 3", "y = 2"],
+    "update_functions": {
+      "x": ["x = x+3"],
+      "y": ["y =  y*6"]
+    },
+    "constraints": {
+      "x": ["return x+3;"],
+      "y": ["return y+7;"]
+    }
+  },
+  "l0": {
+    "node_pos": {
+      "x": 504.0,
+      "y": 446.0
+    },
+    "name_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "invariant": [
+      [0, "infty", "infty", "infty"],
+      ["infty", 0, "infty", "infty"],
+      ["infty", "infty", 0, "infty"],
+      ["infty", "infty", "infty", 0]
+    ],
+    "invariant_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "transitions": [],
+    "transitions_layout": []
+  },
+  "l1": {
+    "node_pos": {
+      "x": 737.0,
+      "y": 300.0
+    },
+    "name_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "invariant": [
+      [0, "infty", "infty", "infty"],
+      ["infty", 0, "infty", "infty"],
+      ["infty", "infty", 0, "infty"],
+      ["infty", "infty", "infty", 0]
+    ],
+    "invariant_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "transitions": [
+      [
+        "",
+        [
+          [0, "infty", "infty", "infty"],
+          ["infty", 0, "infty", "infty"],
+          ["infty", "infty", 0, "infty"],
+          ["infty", "infty", "infty", 0]
+        ],
+        [],
+        "l0"
+      ]
+    ],
+    "transitions_layout": [[]]
+  },
+  "l2": {
+    "node_pos": {
+      "x": 1095.0,
+      "y": 357.0
+    },
+    "name_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "invariant": [
+      [0, "infty", "infty", "infty"],
+      ["infty", 0, "infty", "infty"],
+      ["infty", "infty", 0, "infty"],
+      ["infty", "infty", "infty", 0]
+    ],
+    "invariant_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "transitions": [],
+    "transitions_layout": []
+  },
+  "l3": {
+    "node_pos": {
+      "x": 694.0,
+      "y": 458.0
+    },
+    "name_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "invariant": [
+      [0, "infty", "infty", "infty"],
+      ["infty", 0, "infty", "infty"],
+      ["infty", "infty", 0, "infty"],
+      ["infty", "infty", "infty", 0]
+    ],
+    "invariant_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "transitions": [
+      [
+        "",
+        [
+          [0, "infty", "infty", "infty"],
+          ["infty", 0, "infty", "infty"],
+          ["infty", "infty", 0, "infty"],
+          ["infty", "infty", "infty", 0]
+        ],
+        [],
+        "l1"
+      ]
+    ],
+    "transitions_layout": [[]]
+  }
+}

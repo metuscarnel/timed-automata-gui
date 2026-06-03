@@ -2,6 +2,7 @@
     "actions": [ "<list_actions>" ],
     "clocks": [ "<list_clocks>" ],
     "locations": [ "<liste_locations>" ],
+   
     
     "<id_location>": {
         "node_pos": { "x": 0, "y": 0 },
@@ -26,5 +27,17 @@
                 ]
             ]
     },
-    "init": "<id_init_location>"
+    "init": "<id_init_location>",
+     "variables": {
+        "definition": {
+            "define": [],
+            "typedef": {
+                "structure": {},
+                "alias": {}
+            }
+        },
+        "init_variables": [],
+        "update_functions": {},
+        "constraints": {}
+    },
 }

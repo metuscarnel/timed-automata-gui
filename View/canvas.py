@@ -118,7 +118,28 @@ class AutomataView(QGraphicsView):
             elif self.creation_mode is not None:
                 self.set_creation_mode(None)
                 return
-            # Si aucun mode de création n'est actif, on laisse passer le clic droit vers les objets.
+            else:
+                # --- NOUVEAU : Focus d'édition des transitions sur Clic Droit ---
+                clicked_item = self.itemAt(event.pos())
+                curr = clicked_item
+                while curr:
+                    if isinstance(curr, TransitionItem):
+                        self.scene.clearSelection()
+                        curr.setSelected(True)
+                        # On émet explicitement le signal pour ouvrir le panneau d'édition
+                        self.transition_selected.emit(curr.source.id, curr.target.id)
+                        return
+                    curr = curr.parentItem()
+                # Si aucun mode de création n'est actif, on laisse passer le clic droit vers les objets.
+
+        # --- NOUVEAU : Ignorer le clic gauche sur les transitions (sauf les clous) ---
+        if event.button() == Qt.LeftButton and self.creation_mode is None:
+            clicked_item = self.itemAt(event.pos())
+            curr = clicked_item
+            while curr:
+                if isinstance(curr, TransitionItem) and not isinstance(clicked_item, NailItem):
+                    return # On bloque la sélection par défaut avec le clic gauche
+                curr = curr.parentItem()
 
         item = None
         # On parcourt tous les items sous le clic pour ignorer la ligne temporaire (qui bloque le clic)

@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QLabel, QToolButton, QHBoxLayout, QVBoxLayout, QGroupBox, QGraphicsPathItem, QGraphicsPolygonItem, QGraphicsTextItem, QComboBox
+from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QLabel, QToolButton, QHBoxLayout, QVBoxLayout, QGroupBox, QGraphicsPathItem, QGraphicsPolygonItem, QGraphicsTextItem, QComboBox, QMenu, QInputDialog, QMessageBox
 from PySide6.QtGui import QAction, QKeySequence, QActionGroup, QIcon, QFont, QPainterPath, QPolygonF, QPen, QBrush
 from PySide6.QtCore import Signal, Qt, QPoint, QPointF
 import math
@@ -83,22 +83,20 @@ class MainWindow(QMainWindow):
         toolbar.addWidget(self.init_state_widget)
 
         # --- NOUVEAU : Section Actions ---
-        self.actions_widget = self._create_declaration_widget(
+        self.actions_widget, self.actions_layout = self._create_declaration_widget(
             get_icons()["action"], 
             self._show_add_action_popup
         )
         toolbar.addWidget(self.actions_widget)
-        self.actions_label = self.actions_widget.findChild(QLabel, "items_label")
 
         toolbar.addSeparator()
 
         # --- NOUVEAU : Section Horloges ---
-        self.clocks_widget = self._create_declaration_widget(
+        self.clocks_widget, self.clocks_layout = self._create_declaration_widget(
             get_icons()["clock"], 
             self._show_add_clock_popup
         )
         toolbar.addWidget(self.clocks_widget)
-        self.clocks_label = self.clocks_widget.findChild(QLabel, "items_label")
 
         toolbar.addSeparator()
 
@@ -125,18 +123,11 @@ class MainWindow(QMainWindow):
         icon_label.setPixmap(icon.pixmap(16, 16))
         layout.addWidget(icon_label)
 
-        items_label = QLabel("Aucune")
-        items_label.setObjectName("items_label") # Pour le retrouver plus tard
-        
-        # --- NOUVEAU : Police IBM Plex Mono italique et couleur bleu électrique ---
-        items_label.setStyleSheet("""
-            color: #0D99FF; 
-            font-family: 'IBM Plex Mono'; 
-            font-size: 12pt; 
-            font-style: italic;
-        """)
-        
-        layout.addWidget(items_label)
+        items_container = QWidget()
+        items_layout = QHBoxLayout(items_container)
+        items_layout.setContentsMargins(0, 0, 0, 0)
+        items_layout.setSpacing(4)
+        layout.addWidget(items_container)
 
         add_btn = QToolButton()
         add_btn.setText("+")
@@ -144,7 +135,7 @@ class MainWindow(QMainWindow):
         add_btn.clicked.connect(on_add_clicked)
         layout.addWidget(add_btn)
         
-        return widget
+        return widget, items_layout
 
     def _show_add_action_popup(self):
         """Affiche la popup pour ajouter une action."""
@@ -212,14 +203,72 @@ class MainWindow(QMainWindow):
         menu_fichier.addAction(action_quit)
 
     def update_actions_display(self, actions: list):
-        """Met à jour le label des actions dans la toolbar."""
-        text = ", ".join(actions) if actions else "Aucune"
-        self.actions_label.setText(text)
+        """Met à jour le layout des actions dans la toolbar."""
+        self._clear_layout(self.actions_layout)
+        if not actions:
+            lbl = QLabel("Aucune")
+            lbl.setStyleSheet("color: #0D99FF; font-family: 'IBM Plex Mono'; font-size: 12pt; font-style: italic;")
+            self.actions_layout.addWidget(lbl)
+        else:
+            for i, act in enumerate(actions):
+                lbl = self._create_context_label(act, "action")
+                self.actions_layout.addWidget(lbl)
+                if i < len(actions) - 1:
+                    sep = QLabel(",")
+                    sep.setStyleSheet("color: #0D99FF; font-family: 'IBM Plex Mono'; font-size: 12pt;")
+                    self.actions_layout.addWidget(sep)
 
     def update_clocks_display(self, clocks: list):
-        """Met à jour le label des horloges dans la toolbar."""
-        text = ", ".join(clocks) if clocks else "Aucune"
-        self.clocks_label.setText(text)
+        """Met à jour le layout des horloges dans la toolbar."""
+        self._clear_layout(self.clocks_layout)
+        if not clocks:
+            lbl = QLabel("Aucune")
+            lbl.setStyleSheet("color: #0D99FF; font-family: 'IBM Plex Mono'; font-size: 12pt; font-style: italic;")
+            self.clocks_layout.addWidget(lbl)
+        else:
+            for i, clk in enumerate(clocks):
+                lbl = self._create_context_label(clk, "clock")
+                self.clocks_layout.addWidget(lbl)
+                if i < len(clocks) - 1:
+                    sep = QLabel(",")
+                    sep.setStyleSheet("color: #0D99FF; font-family: 'IBM Plex Mono'; font-size: 12pt;")
+                    self.clocks_layout.addWidget(sep)
+
+    def _clear_layout(self, layout):
+        while layout.count():
+            child = layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+
+    def _create_context_label(self, text, item_type):
+        lbl = QLabel(text)
+        lbl.setStyleSheet("color: #0D99FF; font-family: 'IBM Plex Mono'; font-size: 12pt; font-style: italic;")
+        lbl.setCursor(Qt.PointingHandCursor)
+        lbl.setContextMenuPolicy(Qt.CustomContextMenu)
+        lbl.customContextMenuRequested.connect(lambda pos, l=lbl, t=item_type: self._show_item_context_menu(l, pos, t))
+        return lbl
+
+    def _show_item_context_menu(self, label, pos, item_type):
+        menu = QMenu(self)
+        mod_action = menu.addAction("Modifier")
+        del_action = menu.addAction("Supprimer")
+        
+        action = menu.exec(label.mapToGlobal(pos))
+        
+        if action == mod_action:
+            new_name, ok = QInputDialog.getText(self, f"Modifier {item_type}", "Nouveau nom :", text=label.text())
+            if ok and new_name.strip() and new_name.strip() != label.text():
+                if item_type == "action":
+                    self.controller.handle_modify_action(label.text(), new_name.strip())
+                else:
+                    self.controller.handle_modify_clock(label.text(), new_name.strip())
+        elif action == del_action:
+            reply = QMessageBox.question(self, "Confirmation", f"Voulez-vous vraiment supprimer '{label.text()}' (et toutes les contraintes associées) ?", QMessageBox.Yes | QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                if item_type == "action":
+                    self.controller.handle_delete_action(label.text())
+                else:
+                    self.controller.handle_delete_clock(label.text())
 
     def update_locations_list(self, locations: list, current_init: str):
         """Met à jour le menu déroulant des localités pour l'état initial."""
@@ -274,4 +323,14 @@ class MainWindow(QMainWindow):
     def open_data_editor(self):
         """Instancie et affiche la fenêtre de l'éditeur de données."""
         dialog = DataEditorDialog(self)
-        dialog.exec()
+        
+        # 1. Charger les données du modèle
+        dialog.load_data(
+            self.controller.model.data.get("variables", {}), 
+            self.controller.model.data.get("actions", [])
+        )
+        
+        # 2. Si l'utilisateur valide (Ok), on récupère et sauvegarde les données
+        if dialog.exec():
+            new_variables_data = dialog.get_data()
+            self.controller.update_variables_data(new_variables_data)
