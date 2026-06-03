@@ -169,36 +169,28 @@ class AutomatonModel:
 
     # generation du json
     def export_to_json(self, filepath):
-        """Délègue la compilation DBM et la sauvegarde au script tiers"""
-        return generate_and_save_engine_json(self.data, filepath)
-        """Prépare et nettoie les données avant de déléguer la sauvegarde au script tiers"""
-        export_data = copy.deepcopy(self.data)
+        """Délègue la compilation DBM au script tiers, puis réordonne le JSON pour mettre 'variables' à la fin."""
+        # 1. Sauvegarder le fichier initialement via le script existant
+        result = generate_and_save_engine_json(self.data, filepath)
         
-        def to_engine_string(c):
-            if isinstance(c, dict):
-                if c.get("type") == "value":
-                    return f"{c['clock']} {c['operator']} {c['value']}"
-                else:
-                    offset = c.get("offset", 0)
-                    clock2 = c.get("value")
-                    # Simplification si le script tente d'utiliser x0 explicitement
-                    if clock2 in ["x0", "0", None]:
-                        return f"{c['clock']} {c['operator']} {offset}"
-                    return f"{c['clock']} - {clock2} {c['operator']} {offset}"
-            elif isinstance(c, str):
-                # Nettoyage des chaînes générées contenant "x0" pour éviter le KeyError
-                return c.replace(" - x0", "").replace("-x0", "").replace(" - 0", "").replace("-0", "")
-            return str(c)
-
-        for loc in export_data["locations"].values():
-            if "invariants" in loc:
-                loc["invariants"] = [to_engine_string(inv) for inv in loc["invariants"]]
+        # 2. Post-traitement : Forcer la clé "variables" à être la toute dernière dans le fichier généré
+        try:
+            import json
+            with open(filepath, 'r', encoding='utf-8') as f:
+                saved_data = json.load(f)
                 
-        for t in export_data["transitions"]:
-            if "guards" in t:
-                t["guards"] = [to_engine_string(g) for g in t["guards"]]
+            if "variables" in saved_data:
+                # Retirer et réinsérer la clé la place automatiquement à la fin du dictionnaire (Python 3.7+)
+                vars_content = saved_data.pop("variables")
+                saved_data["variables"] = vars_content
                 
-        return generate_and_save_engine_json(export_data, filepath)
+                with open(filepath, 'w', encoding='utf-8') as f:
+                    # Réécriture propre du JSON avec variables à la fin
+                    json.dump(saved_data, f, indent=4, ensure_ascii=False)
+        except Exception as e:
+            print(f"[Model] Erreur lors de la réorganisation du JSON : {e}")
+            
+        return result
 
     # chargement du json pour reconstruire le dictionnaire "data" du model
     def load_from_json_data(self, json_data):

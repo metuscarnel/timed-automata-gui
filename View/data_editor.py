@@ -117,6 +117,7 @@ class DataEditorDialog(QDialog):
         
         self.container_additional_data = QWidget()
         self.layout_additional_data = QVBoxLayout(self.container_additional_data)
+        self.layout_additional_data.setAlignment(Qt.AlignTop)
         self.tab_additional_data.setWidget(self.container_additional_data)
         
         # Section Define
@@ -124,7 +125,7 @@ class DataEditorDialog(QDialog):
         self.label_define = QLabel("Define")
         self.content_define = QTextEdit()
         self.content_define.setPlaceholderText("Saisissez le contenu pour Define...")
-        self.content_define.setMinimumHeight(80)
+        self.content_define.setMinimumHeight(200)
         self.layout_define.addWidget(self.label_define)
         self.layout_define.addWidget(self.content_define)
         self.layout_additional_data.addLayout(self.layout_define)
@@ -134,7 +135,7 @@ class DataEditorDialog(QDialog):
         self.label_alias = QLabel("Alias")
         self.content_alias = QTextEdit()
         self.content_alias.setPlaceholderText("Saisissez le contenu pour Alias...")
-        self.content_alias.setMinimumHeight(80)
+        self.content_alias.setMinimumHeight(200)
         self.layout_alias.addWidget(self.label_alias)
         self.layout_alias.addWidget(self.content_alias)
         self.layout_additional_data.addLayout(self.layout_alias)
@@ -199,12 +200,14 @@ class DataEditorDialog(QDialog):
         
         structure_data = data.get("definition", {}).get("typedef", {}).get("structure", {})
         for struct_name, struct_content in structure_data.items():
+            if struct_name == "Variable":
+                continue # On ignore la clé "Variable" ici pour ne pas créer un onglet supplémentaire
             content_text = "\n".join(struct_content) if isinstance(struct_content, list) else str(struct_content) if struct_content else ""
             self._add_structure_to_list(struct_name, content_text)
         
         # 2. Variable (Variable / Initialisation)
-        var_list = data.get("variable_text", [])
-        self.content_variable.setText("\n".join(var_list))
+        var_list = structure_data.get("Variable", [])
+        self.content_variable.setText("\n".join(var_list) if isinstance(var_list, list) else str(var_list))
         
         # Protection : utilise init_variables de votre JSON original dans la vue
         init_list = data.get("init_variables", [])
@@ -250,10 +253,12 @@ class DataEditorDialog(QDialog):
         initialisation_text = self.content_initialisation.toPlainText().strip()
         
         structures_dict = {}
+        if variable_text:
+            structures_dict["Variable"] = variable_text.split('\n')
+            
         for s_name, s_widget in self.structure_widgets.items():
             s_text = s_widget.toPlainText().strip()
-            if s_text:
-                structures_dict[s_name] = s_text.split('\n')
+            structures_dict[s_name] = s_text.split('\n') if s_text else []
                 
         update_functions_dict = {}
         constraints_dict = {}
@@ -270,7 +275,6 @@ class DataEditorDialog(QDialog):
                 "define": define_text.split('\n') if define_text else [],
                 "typedef": { "structure": structures_dict, "alias": alias_text.split('\n') if alias_text else [] }
             },
-            "variable_text": variable_text.split('\n') if variable_text else [],
             "init_variables": initialisation_text.split('\n') if initialisation_text else [],
             "update_functions": update_functions_dict,
             "constraints": constraints_dict
@@ -288,7 +292,7 @@ class DataEditorDialog(QDialog):
         struct_textedit = QTextEdit()
         struct_textedit.setPlaceholderText(f"Contenu de la structure {struct_name}...")
         struct_textedit.setText(content_text)
-        struct_textedit.setMaximumHeight(80)
+        struct_textedit.setMinimumHeight(200)
         
         struct_layout.addWidget(struct_label)
         struct_layout.addWidget(struct_textedit)

@@ -1,0 +1,126 @@
+{
+  "actions": ["a", "b", "c"],
+  "clocks": ["x", "y", "z"],
+  "locations": ["l0", "l1", "l2"],
+  "init": "l0",
+  "variables": {
+    "definition": {
+      "define": ["je mange", "je dors", "je vis"],
+      "typedef": {
+        "structure": {
+          "Variable": ["variable", "variable", "variable"],
+          "a": ["bien"]
+        },
+        "alias": ["je dors", "je mange", "je vis"]
+      }
+    },
+    "init_variables": ["init", "init", "init", "init"],
+    "update_functions": {
+      "a": ["aaaaa"],
+      "b": ["aaaabbbbbb"],
+      "c": ["cdfefe"]
+    },
+    "constraints": {}
+  },
+  "l0": {
+    "node_pos": {
+      "x": 417.0,
+      "y": 95.0
+    },
+    "name_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "invariant": [
+      [0, "infty", "infty", "infty"],
+      ["infty", 0, "infty", "infty"],
+      ["infty", "infty", 0, "infty"],
+      ["infty", "infty", "infty", 0]
+    ],
+    "invariant_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "transitions": [
+      [
+        "",
+        [
+          [0, "infty", "infty", "infty"],
+          ["infty", 0, "infty", "infty"],
+          ["infty", "infty", 0, "infty"],
+          ["infty", "infty", "infty", 0]
+        ],
+        [],
+        "l2"
+      ]
+    ],
+    "transitions_layout": [[]]
+  },
+  "l1": {
+    "node_pos": {
+      "x": 235.0,
+      "y": 151.0
+    },
+    "name_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "invariant": [
+      [0, "infty", "infty", "infty"],
+      ["infty", 0, "infty", "infty"],
+      ["infty", "infty", 0, "infty"],
+      ["infty", "infty", "infty", 0]
+    ],
+    "invariant_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "transitions": [
+      [
+        "",
+        [
+          [0, "infty", "infty", "infty"],
+          ["infty", 0, "infty", "infty"],
+          ["infty", "infty", 0, "infty"],
+          ["infty", "infty", "infty", 0]
+        ],
+        [],
+        "l0"
+      ],
+      [
+        "",
+        [
+          [0, "infty", "infty", "infty"],
+          ["infty", 0, "infty", "infty"],
+          ["infty", "infty", 0, "infty"],
+          ["infty", "infty", "infty", 0]
+        ],
+        [],
+        "l2"
+      ]
+    ],
+    "transitions_layout": [[], []]
+  },
+  "l2": {
+    "node_pos": {
+      "x": 530.0,
+      "y": 179.0
+    },
+    "name_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "invariant": [
+      [0, "infty", "infty", "infty"],
+      ["infty", 0, "infty", "infty"],
+      ["infty", "infty", 0, 3],
+      ["infty", "infty", -3, 0]
+    ],
+    "invariant_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "transitions": [],
+    "transitions_layout": []
+  }
+}
