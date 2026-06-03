@@ -141,8 +141,8 @@ class MainController:
         print(f"[Controller] Nœud sélectionné : {node_id}")
         # Réinitialiser le mode d'édition si on change de sélection
         self.editing_constraint_index = None
-        if self.view and hasattr(self.view, 'properties_dock') and hasattr(self.view.properties_dock, 'btn_add_constraint'):
-            self.view.properties_dock.btn_add_constraint.setText("Ajouter")
+        if self.view and hasattr(self.view, 'properties_dock') and hasattr(self.view.properties_dock, 'btn_add_inv'):
+            self.view.properties_dock.btn_add_inv.setText("+")
             
         if self.view and hasattr(self.view, 'properties_dock'):
             node_data = self.model.data["locations"].get(node_id, {})
@@ -153,8 +153,8 @@ class MainController:
         print(f"[Controller] Transition sélectionnée : {source_id} -> {target_id}")
         # Réinitialiser le mode d'édition si on change de sélection
         self.editing_constraint_index = None
-        if self.view and hasattr(self.view, 'properties_dock') and hasattr(self.view.properties_dock, 'btn_add_constraint'):
-            self.view.properties_dock.btn_add_constraint.setText("Ajouter")
+        if self.view and hasattr(self.view, 'properties_dock') and hasattr(self.view.properties_dock, 'btn_add_guard'):
+            self.view.properties_dock.btn_add_guard.setText("+")
             
         if self.view and hasattr(self.view, 'properties_dock'):
             # Trouver les données de la transition
@@ -256,8 +256,8 @@ class MainController:
         if self.editing_constraint_index is not None:
             self.model.remove_node_invariant(node_id, self.editing_constraint_index)
             self.editing_constraint_index = None
-            if hasattr(self.view.properties_dock, 'btn_add_constraint'):
-                self.view.properties_dock.btn_add_constraint.setText("Ajouter")
+            if hasattr(self.view.properties_dock, 'btn_add_inv'):
+                self.view.properties_dock.btn_add_inv.setText("+")
                 
         self.model.add_node_invariant(node_id, clock, operator, target_type, target_value, offset)
         # Rafraîchir la vue en simulant une nouvelle sélection
@@ -289,8 +289,8 @@ class MainController:
         if self.editing_constraint_index is not None:
             self.model.remove_transition_guard(source_id, target_id, self.editing_constraint_index)
             self.editing_constraint_index = None
-            if hasattr(self.view.properties_dock, 'btn_add_constraint'):
-                self.view.properties_dock.btn_add_constraint.setText("Ajouter")
+            if hasattr(self.view.properties_dock, 'btn_add_guard'):
+                self.view.properties_dock.btn_add_guard.setText("+")
                 
         self.model.add_transition_guard(source_id, target_id, clock, operator, target_type, target_value, offset)
         # Rafraîchir la vue en simulant une nouvelle sélection de la flèche
@@ -308,47 +308,58 @@ class MainController:
             return
             
         dock = self.view.properties_dock
-        idx = dock.list_constraints.currentRow()
-        if idx < 0:
-            return
-            
+        is_node = dock.stacked_widget.currentWidget() == dock.node_panel
+        is_trans = dock.stacked_widget.currentWidget() == dock.trans_panel
+        
         constraint_data = None
+        idx = -1
         
         # 1. Trouver les données (Localité ou Transition)
-        if hasattr(dock, 'current_node_id') and dock.current_node_id:
-            node_data = self.model.data["locations"].get(dock.current_node_id, {})
-            invariants = node_data.get("invariants", [])
-            if idx < len(invariants):
-                constraint_data = invariants[idx]
-                
-        elif hasattr(dock, 'current_source_id') and getattr(dock, 'current_source_id', None):
-            src, tgt = dock.current_source_id, dock.current_target_id
-            trans_data = next((t for t in self.model.data["transitions"] if t["source"] == src and t["target"] == tgt), {})
-            guards = trans_data.get("guards", [])
-            if idx < len(guards):
-                constraint_data = guards[idx]
+        if is_node:
+            idx = dock.inv_list_widget.currentRow()
+            if idx >= 0:
+                node_data = self.model.data["locations"].get(dock.node_id_field.text(), {})
+                invariants = node_data.get("invariants", [])
+                if idx < len(invariants):
+                    constraint_data = invariants[idx]
+        elif is_trans:
+            idx = dock.guard_list_widget.currentRow()
+            if idx >= 0:
+                src, tgt = dock.trans_source_field.text(), dock.trans_target_field.text()
+                trans_data = next((t for t in self.model.data["transitions"] if t["source"] == src and t["target"] == tgt), {})
+                guards = trans_data.get("guards", [])
+                if idx < len(guards):
+                    constraint_data = guards[idx]
                 
         if not constraint_data:
             return
             
         # 2. Réinjecter les valeurs dans les widgets
-        dock.combo_clock1.setCurrentText(constraint_data["clock"])
-        dock.combo_operator.setCurrentText(constraint_data["operator"])
-        
-        # Gestion robuste selon le type de line_value (QLineEdit ou QSpinBox)
-        is_spinbox = hasattr(dock.line_value, 'setValue')
-        
-        if constraint_data["type"] == "value":
-            dock.combo_clock2.setCurrentIndex(0) # Index 0 => "---"
-            dock.line_value.setValue(int(constraint_data["value"])) if is_spinbox else dock.line_value.setText(str(constraint_data["value"]))
-        elif constraint_data["type"] == "clock":
-            dock.combo_clock2.setCurrentText(constraint_data["value"])
-            dock.line_value.setValue(int(constraint_data.get("offset", 0))) if is_spinbox else dock.line_value.setText(str(constraint_data.get("offset", 0)))
+        if is_node:
+            dock.node_inv_clock.setCurrentText(constraint_data["clock"])
+            dock.node_inv_op.setCurrentText(constraint_data["operator"])
+            if constraint_data["type"] == "value":
+                dock.node_inv_clock_target.setCurrentIndex(0)
+                dock.node_inv_value.setText(str(constraint_data["value"]))
+            else:
+                dock.node_inv_clock_target.setCurrentText(constraint_data["value"])
+                dock.node_inv_value.setText(str(constraint_data.get("offset", 0)))
+        elif is_trans:
+            dock.trans_guard_clock.setCurrentText(constraint_data["clock"])
+            dock.trans_guard_op.setCurrentText(constraint_data["operator"])
+            if constraint_data["type"] == "value":
+                dock.trans_guard_clock_target.setCurrentIndex(0)
+                dock.trans_guard_value.setText(str(constraint_data["value"]))
+            else:
+                dock.trans_guard_clock_target.setCurrentText(constraint_data["value"])
+                dock.trans_guard_value.setText(str(constraint_data.get("offset", 0)))
                 
         # 3. Mettre à jour l'état du contrôleur et l'UI
         self.editing_constraint_index = idx
-        if hasattr(dock, 'btn_add_constraint'):
-            dock.btn_add_constraint.setText("Modifier")
+        if is_node and hasattr(dock, 'btn_add_inv'):
+            dock.btn_add_inv.setText("Modif")
+        elif is_trans and hasattr(dock, 'btn_add_guard'):
+            dock.btn_add_guard.setText("Modif")
 
     def handle_delete_transition(self, source_id, target_id):
         print(f"[Controller] Demande de suppression de la transition {source_id}->{target_id}")

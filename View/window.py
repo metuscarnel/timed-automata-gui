@@ -255,15 +255,66 @@ class MainWindow(QMainWindow):
         
         action = menu.exec(label.mapToGlobal(pos))
         
+        # --- Style partagé pour les popups (modification et confirmation) ---
+        popup_style = """
+            QDialog, QMessageBox, QInputDialog {
+                background-color: #FAFAFA;
+            }
+            QLabel {
+                color: #2C2C2C;
+                font-family: 'IBM Plex Mono';
+                font-size: 12pt;
+            }
+            QLineEdit {
+                background-color: #FFFFFF;
+                color: #000000;
+                border: 1px solid #CCCCCC;
+                border-radius: 4px;
+                padding: 6px;
+                font-family: 'IBM Plex Mono';
+                font-size: 12pt;
+            }
+            QLineEdit:focus {
+                border: 1px solid #0D99FF;
+            }
+            QPushButton {
+                background-color: #EBEBEB;
+                border: 1px solid #CCCCCC;
+                border-radius: 4px;
+                padding: 6px 16px;
+                color: #2C2C2C;
+                font-family: 'IBM Plex Mono';
+            }
+            QPushButton:hover {
+                background-color: #E0E0E0;
+            }
+        """
+        
         if action == mod_action:
-            new_name, ok = QInputDialog.getText(self, f"Modifier {item_type}", "Nouveau nom :", text=label.text())
+            dialog = QInputDialog(self)
+            dialog.setWindowTitle(f"Modifier {item_type}")
+            dialog.setLabelText("Nouveau nom :")
+            dialog.setTextValue(label.text())
+            dialog.setStyleSheet(popup_style)
+            
+            ok = dialog.exec()
+            new_name = dialog.textValue()
+            
             if ok and new_name.strip() and new_name.strip() != label.text():
                 if item_type == "action":
                     self.controller.handle_modify_action(label.text(), new_name.strip())
                 else:
                     self.controller.handle_modify_clock(label.text(), new_name.strip())
         elif action == del_action:
-            reply = QMessageBox.question(self, "Confirmation", f"Voulez-vous vraiment supprimer '{label.text()}' (et toutes les contraintes associées) ?", QMessageBox.Yes | QMessageBox.No)
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("Confirmation")
+            msg_box.setText(f"Voulez-vous vraiment supprimer '{label.text()}' (et toutes les contraintes associées) ?")
+            msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            msg_box.setDefaultButton(QMessageBox.No)
+            msg_box.setStyleSheet(popup_style)
+            
+            reply = msg_box.exec()
+            
             if reply == QMessageBox.Yes:
                 if item_type == "action":
                     self.controller.handle_delete_action(label.text())

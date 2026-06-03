@@ -176,6 +176,7 @@ class PropertiesDock(QDockWidget):
         self.btn_remove_inv.clicked.connect(self._on_remove_invariant)
 
         
+        self.node_inv_clock.currentIndexChanged.connect(self._validate_inv_add_btn)
         self.node_inv_clock_target.currentIndexChanged.connect(self._validate_inv_add_btn)
         
         self.btn_delete_node.clicked.connect(self._on_delete_node)
@@ -338,7 +339,7 @@ class PropertiesDock(QDockWidget):
             self.controller.update_transition_action(source_id, target_id, new_action)
 
 
-    def _on_add_invariant(self):
+    def _on_add_invariant(self, *args):
         node_id = self.node_id_field.text()
         clock1 = self.node_inv_clock.currentText()
         op = self.node_inv_op.currentText()
@@ -363,7 +364,7 @@ class PropertiesDock(QDockWidget):
             
         self.controller.add_node_invariant(node_id, clock1, op, t_type, t_val, offset)
 
-    def _on_add_guard(self):
+    def _on_add_guard(self, *args):
         source_id = self.trans_source_field.text()
         target_id = self.trans_target_field.text()
         clock1 = self.trans_guard_clock.currentText()
@@ -389,7 +390,7 @@ class PropertiesDock(QDockWidget):
             
         self.controller.add_transition_guard(source_id, target_id, clock1, op, t_type, t_val, offset)
 
-    def _on_remove_guard(self):
+    def _on_remove_guard(self, *args):
         source_id = self.trans_source_field.text()
         target_id = self.trans_target_field.text()
         current_row = self.guard_list_widget.currentRow()
@@ -397,19 +398,19 @@ class PropertiesDock(QDockWidget):
         if source_id and target_id and current_row >= 0:
             self.controller.remove_transition_guard(source_id, target_id, current_row)
 
-    def _on_remove_invariant(self):
+    def _on_remove_invariant(self, *args):
         node_id = self.node_id_field.text()
         current_row = self.inv_list_widget.currentRow()
         
         if node_id and current_row >= 0:
             self.controller.remove_node_invariant(node_id, current_row)
 
-    def _on_delete_node(self):
+    def _on_delete_node(self, *args):
         node_id = self.node_id_field.text()
         if node_id:
             self.controller.handle_delete_node(node_id)
 
-    def _on_delete_trans(self):
+    def _on_delete_trans(self, *args):
         source_id = self.trans_source_field.text()
         target_id = self.trans_target_field.text()
         if source_id and target_id:
@@ -417,11 +418,10 @@ class PropertiesDock(QDockWidget):
    
 
     def _on_edit_invariant(self, item):
-        print("Invariant edit")
-        self.btn_add_guard.setText("v")
-        print(self.btn_add_guard.text())
+        self.controller.handle_constraint_double_click(item)
+
     def _on_edit_guard(self, item):
-        print("Guard editing")
+        self.controller.handle_constraint_double_click(item)
 
     def update_clock_list(self,clocks, source_id, target_id):
         print("Mise à jour des listes de clocks dans les propriétés...")
