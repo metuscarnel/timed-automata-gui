@@ -15,37 +15,27 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.controller = controller
         self.resize(1000, 600)
-        
-        # Le Canvas au centre
         self.canvas = AutomataView()
         self.setCentralWidget(self.canvas)
         
-        # --- NOUVEAU : Connexion du clic de la zone de dessin au contrôleur ---
         self.canvas.canvas_clicked.connect(self.controller.handle_canvas_click)
         self.canvas.transition_created.connect(self.controller.handle_transition_created)
         
-        # --- NOUVEAU : Connexion des signaux de sélection au contrôleur ---
         self.canvas.selection_cleared.connect(self.controller.handle_selection_cleared)
         self.canvas.node_selected.connect(self.controller.handle_node_selected)
         self.canvas.transition_selected.connect(self.controller.handle_transition_selected)
         
-        # --- NOUVEAU : Connexion des signaux de déplacement au contrôleur ---
         self.canvas.node_moved.connect(self.controller.update_node_position)
         self.canvas.nail_moved.connect(self.controller.update_nail_position)
         
-        # --- NOUVEAU : Instanciation du Panneau Latéral (Dock) ---
+        self.canvas.mode_cleared.connect(self.clear_toolbar_modes)
+        
         self.properties_dock = PropertiesDock(self.controller)
         self.addDockWidget(Qt.RightDockWidgetArea, self.properties_dock)
-        self.properties_dock.hide() # Masqué par défaut
-        
-        # --- NOUVEAU : Appel de la création du menu ---
+        self.properties_dock.hide()
         self._setup_menubar()
-        
-        # (Ton code précédent pour la Toolbar avec le bouton + Nouvelle Localité...)
         toolbar = QToolBar()
         self.addToolBar(toolbar)
- 
-        # --- NOUVEAU : Groupe d'actions pour n'avoir qu'un seul mode actif à la fois ---
         self.action_group = QActionGroup(self)
         self.action_group.setExclusionPolicy(QActionGroup.ExclusionPolicy.ExclusiveOptional)
 
@@ -56,7 +46,6 @@ class MainWindow(QMainWindow):
         btn_add.triggered.connect(self.controller.handle_add_location)
         toolbar.addAction(btn_add)
         
-        # Bouton Transition
         btn_transition = QAction(get_icons()["transition"], "Nouvelle Transition", self)
         btn_transition.setToolTip("Ajouter une nouvelle transition")
         btn_transition.setCheckable(True)
@@ -65,8 +54,6 @@ class MainWindow(QMainWindow):
         toolbar.addAction(btn_transition)
         
         toolbar.addSeparator()
-        
-        # --- NOUVEAU : Section État initial ---
         self.init_state_widget = QWidget()
         init_layout = QHBoxLayout(self.init_state_widget)
         init_layout.setContentsMargins(4, 0, 4, 0)
@@ -81,39 +68,35 @@ class MainWindow(QMainWindow):
         init_layout.addWidget(init_label)
         init_layout.addWidget(self.init_state_combo)
         toolbar.addWidget(self.init_state_widget)
-
-        # --- NOUVEAU : Section Actions ---
-        self.actions_widget, self.actions_layout = self._create_declaration_widget(
-            get_icons()["action"], 
-            self._show_add_action_popup
-        )
-        toolbar.addWidget(self.actions_widget)
-
         toolbar.addSeparator()
-
-        # --- NOUVEAU : Section Horloges ---
         self.clocks_widget, self.clocks_layout = self._create_declaration_widget(
             get_icons()["clock"], 
             self._show_add_clock_popup
         )
         toolbar.addWidget(self.clocks_widget)
-
         toolbar.addSeparator()
-
-        # --- NOUVEAU : Bouton Éditeur de Données ---
+        self.actions_widget, self.actions_layout = self._create_declaration_widget(
+            get_icons()["action"], 
+            self._show_add_action_popup
+        )
+        toolbar.addWidget(self.actions_widget)
+        toolbar.addSeparator()
         btn_data = QToolButton(self)
-        btn_data.setText("Datas")
+        btn_data.setText("Data")
         btn_data.setToolTip("Ouvrir l'éditeur de variables et de données")
-        
-        # On grossit le texte et on utilise le font IBM Plex Mono avec un bleu électrique
         btn_data.setStyleSheet("""
-            font-family: 'IBM Plex Mono'; font-size: 14pt; font-weight: bold; color: #0D99FF;
+            font-family: 'IBM Plex Mono'; font-size: 14pt; font-weight: bold; color:  #2C2C2C;
         """)
         btn_data.clicked.connect(self.open_data_editor)
         toolbar.addWidget(btn_data)
 
+    def clear_toolbar_modes(self):
+        """Décoche le bouton actif dans la toolbar quand le canvas quitte un mode."""
+        checked_action = self.action_group.checkedAction()
+        if checked_action:
+            checked_action.setChecked(False)
+
     def _create_declaration_widget(self, icon: QIcon, on_add_clicked):
-        """Crée un widget composite pour la toolbar (Icon, Label, Bouton +)."""
         widget = QWidget()
         layout = QHBoxLayout(widget)
         layout.setContentsMargins(4, 0, 4, 0)
@@ -138,7 +121,6 @@ class MainWindow(QMainWindow):
         return widget, items_layout
 
     def _show_add_action_popup(self):
-        """Affiche la popup pour ajouter une action."""
         add_btn = self.actions_widget.findChild(QToolButton)
         popup = InlineAddPopup(self)
         popup.validated.connect(self.controller.submit_action)
@@ -148,7 +130,6 @@ class MainWindow(QMainWindow):
         popup.show_at(btn_pos)
 
     def _show_add_clock_popup(self):
-        """Affiche la popup pour ajouter une horloge."""
         add_btn = self.clocks_widget.findChild(QToolButton)
         popup = InlineAddPopup(self)
         popup.validated.connect(self.controller.submit_clock)
@@ -158,36 +139,22 @@ class MainWindow(QMainWindow):
         popup.show_at(btn_pos)
 
     def _setup_menubar(self):
-        """Configure la barre de menus"""
         menubar = self.menuBar()
-        
-        # --- LA LIGNE MAGIQUE POUR MAC ---
         menubar.setNativeMenuBar(False) 
         
-        # 1. Création du menu "Fichier"
         menu_fichier = menubar.addMenu("Fichier")
-        
-        # Action Nouveau
         action_new = QAction("Nouveau", self)
         action_new.setShortcut(QKeySequence.New)
         action_new.triggered.connect(self.controller.handle_new_file)
-        
-        # Action Ouvrir
         action_open = QAction("Ouvrir", self)
         action_open.setShortcut(QKeySequence.StandardKey.Open)
         action_open.triggered.connect(self.controller.trigger_open_dialog)
-        
-        # Action Sauvegarder
         action_save = QAction("Sauvegarder", self)
         action_save.setShortcut(QKeySequence.StandardKey.Save)
         action_save.triggered.connect(self.controller.trigger_save_dialog)
-        
-        # Action Debug (Afficher l'instance)
         action_debug = QAction("Afficher l'instance Modèle", self)
         action_debug.setShortcut("Ctrl+D")
         action_debug.triggered.connect(self.controller.debug_print_model_instance)
-        
-        # Ajout des actions au menu
         menu_fichier.addAction(action_new)
         menu_fichier.addAction(action_open)
         menu_fichier.addAction(action_save)
@@ -195,15 +162,12 @@ class MainWindow(QMainWindow):
         menu_fichier.addSeparator()
         menu_fichier.addAction(action_debug)
         menu_fichier.addSeparator()
-        
-        # Action Quitter
         action_quit = QAction("Quitter", self)
         action_quit.setShortcut(QKeySequence.Quit)
         action_quit.triggered.connect(self.close)
         menu_fichier.addAction(action_quit)
 
     def update_actions_display(self, actions: list):
-        """Met à jour le layout des actions dans la toolbar."""
         self._clear_layout(self.actions_layout)
         if not actions:
             lbl = QLabel("Aucune")
@@ -219,7 +183,6 @@ class MainWindow(QMainWindow):
                     self.actions_layout.addWidget(sep)
 
     def update_clocks_display(self, clocks: list):
-        """Met à jour le layout des horloges dans la toolbar."""
         self._clear_layout(self.clocks_layout)
         if not clocks:
             lbl = QLabel("Aucune")
@@ -252,10 +215,7 @@ class MainWindow(QMainWindow):
         menu = QMenu(self)
         mod_action = menu.addAction("Modifier")
         del_action = menu.addAction("Supprimer")
-        
         action = menu.exec(label.mapToGlobal(pos))
-        
-        # --- Style partagé pour les popups (modification et confirmation) ---
         popup_style = """
             QDialog, QMessageBox, QInputDialog {
                 background-color: #FAFAFA;
@@ -322,8 +282,7 @@ class MainWindow(QMainWindow):
                     self.controller.handle_delete_clock(label.text())
 
     def update_locations_list(self, locations: list, current_init: str):
-        """Met à jour le menu déroulant des localités pour l'état initial."""
-        self.init_state_combo.blockSignals(True) # Évite un appel circulaire lors du nettoyage de la liste
+        self.init_state_combo.blockSignals(True)
         self.init_state_combo.clear()
         self.init_state_combo.addItems(locations)
         if current_init in locations:
@@ -331,13 +290,9 @@ class MainWindow(QMainWindow):
         self.init_state_combo.blockSignals(False)
 
     def refresh_graph_display(self):
-        """Rafraîchit l'affichage du graphe (Étape 1 : Localités)."""
-        print("[Vue] Rafraîchissement de l'affichage demandé après chargement du modèle.")
-        
-        # 1. Nettoyage : Vider complètement la scène graphique et les dictionnaires internes
         self.canvas.scene.clear()
-        self.canvas.nodes.clear() # Vide le dictionnaire des références visuelles
-        self.canvas._cleanup_temp_transition() # Au cas où une création était en cours
+        self.canvas.nodes.clear()
+        self.canvas._cleanup_temp_transition()
         
         # Récupération des données depuis le Modèle
         data = self.controller.model.data

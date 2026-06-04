@@ -22,6 +22,9 @@ class AutomataView(QGraphicsView):
     node_delete_requested = Signal(str)
     transition_delete_requested = Signal(str, str)
 
+    # Signal émis lorsque le mode de création est annulé
+    mode_cleared = Signal()
+
     def __init__(self):
         super().__init__()
         self.scene = QGraphicsScene()
@@ -50,12 +53,15 @@ class AutomataView(QGraphicsView):
 
     def set_creation_mode(self, mode):
         """Change le mode de création et modifie le curseur."""
+        if self.creation_mode == mode:
+            return
         self._cleanup_temp_transition()
         self.creation_mode = mode
         if mode in ["location", "transition"]:
             self.setCursor(Qt.CrossCursor)
         else:
             self.setCursor(Qt.ArrowCursor)
+            self.mode_cleared.emit()
 
     def _cleanup_temp_transition(self):
         """Nettoie les variables de dessin en cours."""
@@ -107,6 +113,15 @@ class AutomataView(QGraphicsView):
             for nail in transition.nails:
                 self.scene.addItem(nail)
             transition.update_position() # Force le calcul d'esquive avec la scène active
+
+    def keyPressEvent(self, event):
+        """Gère l'appui sur la touche Échap pour annuler le mode en cours."""
+        if event.key() == Qt.Key_Escape:
+            if self.creation_mode == "transition" and self.drag_source_id:
+                self._cleanup_temp_transition()
+            elif self.creation_mode is not None:
+                self.set_creation_mode(None)
+        super().keyPressEvent(event)
 
     def mousePressEvent(self, event):
         """Capture le clic pour la création selon le mode actif"""

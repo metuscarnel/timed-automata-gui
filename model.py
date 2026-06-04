@@ -1,8 +1,31 @@
 from serial import generate_and_save_engine_json
 from util import dbm_to_string_constraints as convert_dbm_to_constraints
 import pprint
+import re
 class AutomatonModel:
-    def __init__(self):
+    def __init__(self): 
+         self.clear()
+         self.data = {
+            "locations": {},
+            "init": "",
+            "transitions": [],
+            "actions": [],
+            "clocks": [],
+            "variables": {
+                "definition": {
+                    "define": [],
+                    "typedef": {
+                        "structure": {},
+                        "alias": {}
+                    }
+                },
+                "init_variables": [],
+                "update_functions": {},
+                "constraints": {}
+            }
+        }
+    def clear(self):
+        """Réinitialise complètement le modèle à son état vide (nouveau fichier)."""
         self.data = {
             "locations": {},
             "init": "",
@@ -14,7 +37,7 @@ class AutomatonModel:
                     "define": [],
                     "typedef": {
                         "structure": {},
-                        "alias": []
+                        "alias": {}
                     }
                 },
                 "init_variables": [],
@@ -210,7 +233,7 @@ class AutomatonModel:
                     "define": [],
                     "typedef": {
                         "structure": {},
-                        "alias": []
+                        "alias": {}
                     }
                 },
                 "init_variables": [],

@@ -79,7 +79,9 @@ class MainController:
 
     def handle_new_file(self):
         print("[Controller] Fichier -> Nouveau : Réinitialisation du Buffer.")
-        # Plus tard : vider le self.model.data et effacer la scène graphique
+        self.model.clear()
+        if self.view:
+            self.view.refresh_graph_display()
 
     def trigger_open_dialog(self):
         print("[Controller] Fichier -> Ouvrir : Ouverture de la boîte de dialogue.")

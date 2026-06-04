@@ -1,12 +1,12 @@
 {
   "actions": ["a", "b", "c"],
   "clocks": ["x", "y", "z"],
-  "locations": ["l0", "l1", "l2"],
-  "init": "l1",
+  "locations": ["l0", "l1", "l2", "l3"],
+  "init": "l0",
   "l0": {
     "node_pos": {
-      "x": 416.0,
-      "y": 137.0
+      "x": 322.0,
+      "y": 337.0
     },
     "name_pos": {
       "x": 0,
@@ -32,37 +32,15 @@
           ["infty", "infty", "infty", 0]
         ],
         [],
-        "l2"
-      ],
-      [
-        "",
-        [
-          [0, "infty", "infty", "infty"],
-          ["infty", 0, "infty", "infty"],
-          ["infty", "infty", 0, "infty"],
-          ["infty", "infty", "infty", 0]
-        ],
-        [],
-        "l1"
-      ],
-      [
-        "",
-        [
-          [0, "infty", "infty", "infty"],
-          ["infty", 0, "infty", "infty"],
-          ["infty", "infty", 0, "infty"],
-          ["infty", "infty", "infty", 0]
-        ],
-        [],
-        "l2"
+        "l3"
       ]
     ],
-    "transitions_layout": [[], [], []]
+    "transitions_layout": [[]]
   },
   "l1": {
     "node_pos": {
-      "x": 253.0,
-      "y": 200.0
+      "x": 337.0,
+      "y": 185.0
     },
     "name_pos": {
       "x": 0,
@@ -79,6 +57,17 @@
       "y": 0
     },
     "transitions": [
+      [
+        "",
+        [
+          [0, "infty", "infty", "infty"],
+          ["infty", 0, "infty", "infty"],
+          ["infty", "infty", 0, "infty"],
+          ["infty", "infty", "infty", 0]
+        ],
+        [],
+        "l2"
+      ],
       [
         "",
         [
@@ -89,25 +78,14 @@
         ],
         [],
         "l0"
-      ],
-      [
-        "",
-        [
-          [0, "infty", "infty", "infty"],
-          ["infty", 0, "infty", "infty"],
-          ["infty", "infty", 0, "infty"],
-          ["infty", "infty", "infty", 0]
-        ],
-        [],
-        "l2"
       ]
     ],
     "transitions_layout": [[], []]
   },
   "l2": {
     "node_pos": {
-      "x": 583.0,
-      "y": 245.0
+      "x": 552.0,
+      "y": 112.0
     },
     "name_pos": {
       "x": 0,
@@ -115,7 +93,7 @@
     },
     "invariant": [
       [0, "infty", "infty", "infty"],
-      ["infty", 0, "infty", "infty"],
+      ["infty", 0, "infty", 0],
       ["infty", "infty", 0, "infty"],
       ["infty", "infty", "infty", 0]
     ],
@@ -133,53 +111,45 @@
           ["infty", "infty", "infty", 0]
         ],
         [],
-        "l0"
+        "l3"
       ]
     ],
     "transitions_layout": [[]]
   },
+  "l3": {
+    "node_pos": {
+      "x": 642.0,
+      "y": 231.0
+    },
+    "name_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "invariant": [
+      [0, "infty", "infty", "infty"],
+      ["infty", 0, "infty", "infty"],
+      ["infty", "infty", 0, "infty"],
+      ["infty", "infty", "infty", 0]
+    ],
+    "invariant_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "transitions": [],
+    "transitions_layout": []
+  },
   "variables": {
     "definition": {
-      "define": ["papapapdefi endne"],
+      "define": [],
       "typedef": {
-        "structure": {
-          "Variable": [
-            "papapapapapapapapa",
-            "âpapapapapapaa",
-            "apapapapapapapa",
-            "apapapapapapapapa",
-            "apapapapapapapapa",
-            "apapapapapapapapa"
-          ],
-          "struct1": []
-        },
-        "alias": [
-          "dihdeoizoheizoiejozie",
-          "eoziepozpoeizpiepoz",
-          "ezeipozipeoizpoiez",
-          "epzoeipoziepozipeie",
-          "zeuzpepzpoeipzez",
-          "ezoepozpeozoez",
-          "ezoepzoiepze",
-          "zeozpieoze",
-          "zeozpeize",
-          "zeozipez"
-        ]
+        "structure": {},
+        "alias": ["{}"]
       }
     },
-    "init_variables": [
-      "papapapapapapa",
-      "aopapappaappapa",
-      "papapapapapapap",
-      "papapapapapapapapa",
-      "papapapapapapapapapa",
-      "apapapapapapapapapapapa"
-    ],
+    "init_variables": [],
     "update_functions": {
-      "a": ["apiex"]
+      "a": ["aaaaa"]
     },
-    "constraints": {
-      "a": ["apiexapiexapiexapiexapiexapiex", "apiexapiexapiexapiexapiex"]
-    }
+    "constraints": {}
   }
 }
