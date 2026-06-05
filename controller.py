@@ -8,6 +8,26 @@ class MainController:
         self.view = None
         self.editing_constraint_index = None # Stocke l'index de la contrainte en cours de modification
 
+    def _get_active_transition_index(self, source_id, target_id):
+        """Trouve l'index (multi-edges) de la transition actuellement sélectionnée."""
+        if not self.view or not hasattr(self.view, 'canvas'): return 0
+        selected = self.view.canvas.scene.selectedItems()
+        if not selected: return 0
+        
+        item = selected[0]
+        # Si c'est un clou (NailItem), remonter à la transition
+        if hasattr(item, 'transition'):
+            item = item.transition
+            
+        if hasattr(item, 'source') and hasattr(item, 'target'):
+            if item.source.id == source_id and item.target.id == target_id:
+                same_dir = [t for t in item.source.transitions if t.target.id == target_id]
+                try:
+                    return same_dir.index(item)
+                except ValueError:
+                    pass
+        return 0
+
     def set_view(self, view):
         self.view = view
         # Connexion dynamique aux signaux de suppression de la scène graphique
@@ -16,7 +36,7 @@ class MainController:
             self.view.canvas.transition_delete_requested.connect(self.handle_delete_transition)
 
     def handle_add_location(self, checked=False):
-        print(f"[Controller] Bouton Localité cliqué (Actif: {checked})")
+        print(f"Bouton Localité cliqué (Actif: {checked})")
         if self.view:
             if checked:
                 self.view.canvas.set_creation_mode("location")
@@ -29,7 +49,7 @@ class MainController:
             # 1. Enregistrer dans le Buffer/Model (génère un ID genre "L1")
             loc_id = self.model.add_location(x, y)
             is_initial = (self.model.data.get("init") == loc_id)
-            print(f"[Controller] Création de la localité {loc_id} en ({x}, {y})")
+            print(f"Création de la localité {loc_id} en ({x}, {y})")
             # 2. Ordonner à la Vue de dessiner la localité
             self.view.canvas.draw_node(loc_id, x, y, is_initial)
             # 3. Mettre à jour la liste des états initiaux dans la barre d'outils
@@ -39,10 +59,10 @@ class MainController:
         """Gère la création effective d'une transition après validation par la Vue."""
         self.model.add_transition(source_id, target_id, nails_pos)
         self.view.canvas.draw_transition(source_id, target_id, nails_pos)
-        print(f"[Controller] Transition créée de {source_id} à {target_id} avec {len(nails_pos)} clous")
+        print(f"Transition créée de {source_id} à {target_id} avec {len(nails_pos)} clous")
 
     def handle_add_transition(self, checked=False):
-        print(f"[Controller] Bouton Transition cliqué (Actif: {checked})")
+        print(f"Bouton Transition cliqué (Actif: {checked})")
         if self.view:
             if checked:
                 self.view.canvas.set_creation_mode("transition")
@@ -50,14 +70,14 @@ class MainController:
                 self.view.canvas.set_creation_mode(None)
 
     def submit_action(self, action_name):
-        print(f"[Controller] Réception de l'action : {action_name}")
+        print(f"Réception de l'action : {action_name}")
         self.model.add_action(action_name)
         # --- NOUVEAU : Rafraîchir la vue ---
         if self.view:
             self.view.update_actions_display(self.model.data["actions"])
 
     def submit_clock(self, clock_name):
-        print(f"[Controller] Réception de l'horloge : {clock_name}")
+        print(f"Réception de l'horloge : {clock_name}")
         self.model.add_clock(clock_name)
         # --- NOUVEAU : Rafraîchir la vue ---
         if self.view:
@@ -66,25 +86,25 @@ class MainController:
     def handle_initial_state_changed(self, new_init_state):
         """Gère le changement d'état initial depuis la barre d'outils."""
         if new_init_state:
-            print(f"[Controller] Changement de l'état initial vers : {new_init_state}")
+            print(f"Changement de l'état initial vers : {new_init_state}")
             self.model.set_initial_state(new_init_state)
             if self.view:
                 self.view.refresh_graph_display() # Rafraîchit pour appliquer la double bordure au bon endroit
 
     def update_variables_data(self, variables_data):
-        print("[Controller] Mise à jour des variables de données depuis l'éditeur.")
+        print("Mise à jour des variables de données depuis l'éditeur.")
         self.model.update_variables(variables_data)
 
     # --- NOUVELLES MÉTHODES POUR LE MENU ---
 
     def handle_new_file(self):
-        print("[Controller] Fichier -> Nouveau : Réinitialisation du Buffer.")
+        print("Réinitialisation de buffer : Nouveau modèle vide créé.")
         self.model.clear()
         if self.view:
             self.view.refresh_graph_display()
 
     def trigger_open_dialog(self):
-        print("[Controller] Fichier -> Ouvrir : Ouverture de la boîte de dialogue.")
+        print("Ouverture de la boîte de dialogue.")
         if self.view:
             filepath, _ = QFileDialog.getOpenFileName(
                 self.view,
@@ -111,7 +131,7 @@ class MainController:
                     )
 
     def trigger_save_dialog(self):
-        print("[Controller] Fichier -> Sauvegarder : Ouverture de la boîte de dialogue.")
+        print("Fichier -> Sauvegarder : Ouverture de la boîte de dialogue.")
         if self.view:
             filepath, _ = QFileDialog.getSaveFileName(
                 self.view,
@@ -140,7 +160,7 @@ class MainController:
             self.view.properties_dock.hide()
 
     def handle_node_selected(self, node_id):
-        print(f"[Controller] Nœud sélectionné : {node_id}")
+        print(f"Nœud sélectionné : {node_id}")
         # Réinitialiser le mode d'édition si on change de sélection
         self.editing_constraint_index = None
         if self.view and hasattr(self.view, 'properties_dock') and hasattr(self.view.properties_dock, 'btn_add_inv'):
@@ -152,7 +172,8 @@ class MainController:
             self.view.properties_dock.show_node_props(node_id, node_data, available_clocks)
 
     def handle_transition_selected(self, source_id, target_id):
-        print(f"[Controller] Transition sélectionnée : {source_id} -> {target_id}")
+        print(f"Transition sélectionnée : {source_id} -> {target_id}")
+        trans_index = self._get_active_transition_index(source_id, target_id)
         # Réinitialiser le mode d'édition si on change de sélection
         self.editing_constraint_index = None
         if self.view and hasattr(self.view, 'properties_dock') and hasattr(self.view.properties_dock, 'btn_add_guard'):
@@ -160,8 +181,8 @@ class MainController:
             
         if self.view and hasattr(self.view, 'properties_dock'):
             # Trouver les données de la transition
-            trans_data = next((t for t in self.model.data["transitions"] 
-                               if t["source"] == source_id and t["target"] == target_id), {})
+            matching = [t for t in self.model.data["transitions"] if t["source"] == source_id and t["target"] == target_id]
+            trans_data = matching[trans_index] if trans_index < len(matching) else {}
             available_actions = self.model.data.get("actions", [])
             available_clocks = self.model.data.get("clocks", [])
             
@@ -186,6 +207,7 @@ class MainController:
 
     # 2. Étape 2 : Méthode appelée lors de la validation/sauvegarde de la transition (ou instantanément)
     def update_transition_resets(self, source_id, target_id):
+        trans_index = self._get_active_transition_index(source_id, target_id)
         # Initialisation de la liste vide
         selected_resets = []
         
@@ -196,23 +218,23 @@ class MainController:
                 if cb.isChecked():
                     selected_resets.append(cb.text())
                     
-        # Assignation de la liste à la clé 'resets' dans le dictionnaire de la transition
-        for t in self.model.data["transitions"]:
-            if t["source"] == source_id and t["target"] == target_id:
-                t["resets"] = selected_resets
-                break
+        matching = [t for t in self.model.data["transitions"] if t["source"] == source_id and t["target"] == target_id]
+        if trans_index < len(matching):
+            matching[trans_index]["resets"] = selected_resets
 
     def update_transition_action(self, source_id, target_id, new_action):
-        print(f"[Controller] Action {new_action} assignée à la transition {source_id}->{target_id}")
-        self.model.update_transition_action(source_id, target_id, new_action)
+        print(f"Action {new_action} assignée à la transition {source_id}->{target_id}")
+        trans_index = self._get_active_transition_index(source_id, target_id)
+        self.model.update_transition_action(source_id, target_id, new_action, trans_index)
 
     def update_node_position(self, node_id, x, y):
-        print(f"[Controller] Localité {node_id} déplacée en ({x}, {y})")
+        print(f"Localité {node_id} déplacée en ({x}, {y})")
         self.model.update_node_position(node_id, x, y)
 
     def update_nail_position(self, source_id, target_id, nail_index, x, y):
-        print(f"[Controller] Clou n°{nail_index} de {source_id}->{target_id} déplacé en ({x}, {y})")
-        self.model.update_nail_position(source_id, target_id, nail_index, x, y)
+        print(f"Clou n°{nail_index} de {source_id}->{target_id} déplacé en ({x}, {y})")
+        trans_index = self._get_active_transition_index(source_id, target_id)
+        self.model.update_nail_position(source_id, target_id, nail_index, x, y, trans_index)
 
     @staticmethod
     def is_constraint_equivalent(new_c, existing_c):
@@ -239,7 +261,7 @@ class MainController:
         return False
 
     def add_node_invariant(self, node_id, clock, operator, target_type, target_value, offset=0):
-        print(f"[Controller] Ajout de l'invariant {clock} {operator} {target_value} ({target_type}, offset={offset}) à {node_id}")
+        print(f"Ajout de l'invariant {clock} {operator} {target_value} ({target_type}, offset={offset}) à {node_id}")
         
         # --- Validation anti-doublon logique ---
         new_c = {'clock': clock, 'operator': operator, 'type': target_type, 'value': target_value, 'offset': offset}
@@ -250,7 +272,7 @@ class MainController:
             if self.editing_constraint_index == i:
                 continue # On ignore la comparaison avec la contrainte en cours d'édition
             if self.is_constraint_equivalent(new_c, existing_c):
-                print("[Controller] ⚠️ La contrainte existe déjà ou est mathématiquement équivalente. Ajout ignoré.")
+                print("⚠️ La contrainte existe déjà ou est mathématiquement équivalente. Ajout ignoré.")
                 return # On bloque l'ajout
         # ----------------------------------------
 
@@ -266,41 +288,44 @@ class MainController:
         self.handle_node_selected(node_id)
 
     def remove_node_invariant(self, node_id, index):
-        print(f"[Controller] Suppression de l'invariant index {index} pour {node_id}")
+        print(f"Suppression de l'invariant index {index} pour {node_id}")
         self.model.remove_node_invariant(node_id, index)
         # Rafraîchir la vue en simulant une nouvelle sélection
         self.handle_node_selected(node_id)
 
     def add_transition_guard(self, source_id, target_id, clock, operator, target_type, target_value, offset=0):
-        print(f"[Controller] Ajout de la garde {clock} {operator} {target_value} ({target_type}, offset={offset}) à la transition {source_id}->{target_id}")
+        trans_index = self._get_active_transition_index(source_id, target_id)
+        print(f"Ajout de la garde {clock} {operator} {target_value} ({target_type}, offset={offset}) à la transition {source_id}->{target_id}")
         
         # --- Validation anti-doublon logique ---
         new_c = {'clock': clock, 'operator': operator, 'type': target_type, 'value': target_value, 'offset': offset}
-        trans_data = next((t for t in self.model.data["transitions"] if t["source"] == source_id and t["target"] == target_id), {})
+        matching = [t for t in self.model.data["transitions"] if t["source"] == source_id and t["target"] == target_id]
+        trans_data = matching[trans_index] if trans_index < len(matching) else {}
         existing_guards = trans_data.get("guards", [])
         
         for i, existing_c in enumerate(existing_guards):
             if self.editing_constraint_index == i:
                 continue # On ignore la comparaison avec la garde en cours d'édition
             if self.is_constraint_equivalent(new_c, existing_c):
-                print("[Controller] ⚠️ La garde existe déjà ou est mathématiquement équivalente. Ajout ignoré.")
+                print("⚠️ La garde existe déjà ou est mathématiquement équivalente. Ajout ignoré.")
                 return # On bloque l'ajout
         # ----------------------------------------
 
         # Si on est en mode édition, on supprime l'ancienne contrainte d'abord
         if self.editing_constraint_index is not None:
-            self.model.remove_transition_guard(source_id, target_id, self.editing_constraint_index)
+            self.model.remove_transition_guard(source_id, target_id, self.editing_constraint_index, trans_index)
             self.editing_constraint_index = None
             if hasattr(self.view.properties_dock, 'btn_add_guard'):
                 self.view.properties_dock.btn_add_guard.setText("+")
                 
-        self.model.add_transition_guard(source_id, target_id, clock, operator, target_type, target_value, offset)
+        self.model.add_transition_guard(source_id, target_id, clock, operator, target_type, target_value, offset, trans_index)
         # Rafraîchir la vue en simulant une nouvelle sélection de la flèche
         self.handle_transition_selected(source_id, target_id)
 
     def remove_transition_guard(self, source_id, target_id, index):
         print(f"[Controller] Suppression de la garde index {index} pour la transition {source_id}->{target_id}")
-        self.model.remove_transition_guard(source_id, target_id, index)
+        trans_index = self._get_active_transition_index(source_id, target_id)
+        self.model.remove_transition_guard(source_id, target_id, index, trans_index)
         # Rafraîchir la vue en simulant une nouvelle sélection
         self.handle_transition_selected(source_id, target_id)
         
@@ -328,7 +353,9 @@ class MainController:
             idx = dock.guard_list_widget.currentRow()
             if idx >= 0:
                 src, tgt = dock.trans_source_field.text(), dock.trans_target_field.text()
-                trans_data = next((t for t in self.model.data["transitions"] if t["source"] == src and t["target"] == tgt), {})
+                trans_index = self._get_active_transition_index(src, tgt)
+                matching = [t for t in self.model.data["transitions"] if t["source"] == src and t["target"] == tgt]
+                trans_data = matching[trans_index] if trans_index < len(matching) else {}
                 guards = trans_data.get("guards", [])
                 if idx < len(guards):
                     constraint_data = guards[idx]
@@ -364,14 +391,15 @@ class MainController:
             dock.btn_add_guard.setText("Modif")
 
     def handle_delete_transition(self, source_id, target_id):
-        print(f"[Controller] Demande de suppression de la transition {source_id}->{target_id}")
-        self.model.remove_transition(source_id, target_id)
+        trans_index = self._get_active_transition_index(source_id, target_id)
+        print(f"Demande de suppression de la transition {source_id}->{target_id}")
+        self.model.remove_transition(source_id, target_id, trans_index)
         if self.view:
-            self.view.canvas.remove_transition_visual(source_id, target_id)
+            self.view.canvas.remove_transition_visual(source_id, target_id, trans_index)
             self.handle_selection_cleared()
 
     def handle_delete_node(self, node_id):
-        print(f"[Controller] Demande de suppression de la localité {node_id} (Cascade activée)")
+        print(f"Demande de suppression de la localité {node_id} (Cascade activée)")
         # 1. Identifier et supprimer en cascade les transitions liées
         transitions_to_delete = [
             (t["source"], t["target"]) for t in self.model.data["transitions"]
@@ -386,35 +414,35 @@ class MainController:
             self.view.canvas.remove_node_visual(node_id)
             self.handle_selection_cleared()
     def handle_edit_inv(self,node_id):
-        print(f"[Controller] demande de modification d'un invariant de {node_id}")
+        print(f"demande de modification d'un invariant de {node_id}")
     
     def get_available_clocks(self):
         """Retourne la liste des horloges disponibles dans le modèle."""
         return self.model.data.get("clocks", [])
 
     def handle_modify_clock(self, old_name, new_name):
-        print(f"[Controller] Modification horloge : {old_name} -> {new_name}")
+        print(f"Modification horloge : {old_name} -> {new_name}")
         self.model.modify_clock(old_name, new_name)
         if self.view:
             self.view.update_clocks_display(self.model.data["clocks"])
             self._refresh_properties_dock()
 
     def handle_delete_clock(self, clock_name):
-        print(f"[Controller] Suppression horloge : {clock_name}")
+        print(f"Suppression horloge : {clock_name}")
         self.model.delete_clock(clock_name)
         if self.view:
             self.view.update_clocks_display(self.model.data["clocks"])
             self._refresh_properties_dock()
 
     def handle_modify_action(self, old_name, new_name):
-        print(f"[Controller] Modification action : {old_name} -> {new_name}")
+        print(f"Modification action : {old_name} -> {new_name}")
         self.model.modify_action(old_name, new_name)
         if self.view:
             self.view.update_actions_display(self.model.data["actions"])
             self._refresh_properties_dock()
 
     def handle_delete_action(self, action_name):
-        print(f"[Controller] Suppression action : {action_name}")
+        print(f"Suppression action : {action_name}")
         self.model.delete_action(action_name)
         if self.view:
             self.view.update_actions_display(self.model.data["actions"])

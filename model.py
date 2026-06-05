@@ -81,25 +81,24 @@ class AutomatonModel:
         if clock_name and clock_name not in self.data["clocks"]:
             self.data["clocks"].append(clock_name)
 
-    def update_transition_action(self, source_id, target_id, action_name):
+    def update_transition_action(self, source_id, target_id, action_name, trans_index=0):
         """Met à jour l'action associée à une transition."""
-        for t in self.data["transitions"]:
-            if t["source"] == source_id and t["target"] == target_id:
-                t["action"] = action_name if action_name != "Aucune" else ""
-                break
+        matching = [t for t in self.data["transitions"] if t["source"] == source_id and t["target"] == target_id]
+        if trans_index < len(matching):
+            matching[trans_index]["action"] = action_name if action_name != "Aucune" else ""
 
     def update_node_position(self, node_id, x, y):
         """Met à jour les coordonnées d'une localité après un déplacement."""
         if node_id in self.data["locations"]:
             self.data["locations"][node_id]["node_pos"] = {"x": x, "y": y}
 
-    def update_nail_position(self, source_id, target_id, nail_index, x, y):
+    def update_nail_position(self, source_id, target_id, nail_index, x, y, trans_index=0):
         """Met à jour les coordonnées d'un clou spécifique sur une transition après déplacement."""
-        for t in self.data["transitions"]:
-            if t["source"] == source_id and t["target"] == target_id:
-                if 0 <= nail_index < len(t["nails"]):
-                    t["nails"][nail_index] = (x, y)
-                break
+        matching = [t for t in self.data["transitions"] if t["source"] == source_id and t["target"] == target_id]
+        if trans_index < len(matching):
+            t = matching[trans_index]
+            if 0 <= nail_index < len(t["nails"]):
+                t["nails"][nail_index] = (x, y)
 
     def add_node_invariant(
         self, node_id, clock, operator, target_type="value", target_value="0", offset=0
@@ -137,41 +136,35 @@ class AutomatonModel:
         operator,
         target_type="value",
         target_value="0",
-        offset=0,
+        offset=0, trans_index=0
     ):
         """Ajoute une condition de garde pour une horloge sur une transition."""
-        for t in self.data["transitions"]:
-            if t["source"] == source_id and t["target"] == target_id:
-                if "guards" not in t:
-                    t["guards"] = []
+        matching = [t for t in self.data["transitions"] if t["source"] == source_id and t["target"] == target_id]
+        if trans_index < len(matching):
+            t = matching[trans_index]
+            if "guards" not in t: t["guards"] = []
+            new_guard = {
+                "clock": clock,
+                "operator": operator,
+                "type": target_type,
+                "value": target_value,
+            }
+            if target_type == "clock": new_guard["offset"] = offset
+            t["guards"].append(new_guard)
 
-                guards = t["guards"]
-                new_guard = {
-                    "clock": clock,
-                    "operator": operator,
-                    "type": target_type,
-                    "value": target_value,
-                }
-                if target_type == "clock":
-                    new_guard["offset"] = offset
-                guards.append(new_guard)
-                break
-
-    def remove_transition_guard(self, source_id, target_id, index):
+    def remove_transition_guard(self, source_id, target_id, index, trans_index=0):
         """Supprime une garde spécifique d'une transition via son index."""
-        for t in self.data["transitions"]:
-            if t["source"] == source_id and t["target"] == target_id:
-                if "guards" in t and 0 <= index < len(t["guards"]):
-                    t["guards"].pop(index)
-                break
+        matching = [t for t in self.data["transitions"] if t["source"] == source_id and t["target"] == target_id]
+        if trans_index < len(matching):
+            t = matching[trans_index]
+            if "guards" in t and 0 <= index < len(t["guards"]):
+                t["guards"].pop(index)
 
-    def remove_transition(self, source_id, target_id):
+    def remove_transition(self, source_id, target_id, trans_index=0):
         """Supprime une transition de la liste du modèle."""
-        self.data["transitions"] = [
-            t
-            for t in self.data["transitions"]
-            if not (t["source"] == source_id and t["target"] == target_id)
-        ]
+        matching = [t for t in self.data["transitions"] if t["source"] == source_id and t["target"] == target_id]
+        if trans_index < len(matching):
+            self.data["transitions"].remove(matching[trans_index])
 
     def set_initial_state(self, loc_id):
         """Définit la localité initiale si elle existe."""
@@ -259,21 +252,29 @@ class AutomatonModel:
                     return {"clock": c1, "operator": op, "type": "value", "value": val}
             return {"clock": str(c_str), "operator": "<=", "type": "value", "value": "0"}
 
+        def safe_pos(pos_dict):
+            """Extrait et garantit que les coordonnées (x,y) sont de type float, sinon renvoie 0.0"""
+            if not isinstance(pos_dict, dict): return {"x": 0.0, "y": 0.0}
+            try: x = float(pos_dict.get("x", 0.0))
+            except (ValueError, TypeError): x = 0.0
+            try: y = float(pos_dict.get("y", 0.0))
+            except (ValueError, TypeError): y = 0.0
+            return {"x": x, "y": y}
+
         # 2. Parcours du JSON pour extraire et traduire les données
         for key, value in json_data.items():
-            if key not in meta_keys and isinstance(value, dict) and "node_pos" in value:
+            if key not in meta_keys and isinstance(value, dict):
                 
                 # Traduction immédiate de la matrice d'invariant en dictionnaires UI
                 raw_inv = value.get("invariant", [])
-                invariants_textuels = convert_dbm_to_constraints(raw_inv, clock_map) if raw_inv else []
                 invariants_textuels = [parse_to_dict(c) for c in convert_dbm_to_constraints(raw_inv, clock_map)] if raw_inv else []
                 
                 # Stockage exclusif des données nettoyées
                 self.data["locations"][key] = {
                     "invariants": invariants_textuels,
-                    "node_pos": value.get("node_pos", {"x": 0.0, "y": 0.0}),
-                    "name_pos": value.get("name_pos", {"x": 0.0, "y": 0.0}),
-                    "invariant_pos": value.get("invariant_pos", {"x": 0.0, "y": 0.0})
+                    "node_pos": safe_pos(value.get("node_pos")),
+                    "name_pos": safe_pos(value.get("name_pos")),
+                    "invariant_pos": safe_pos(value.get("invariant_pos"))
                 }
 
                 # Traitement des transitions sortantes de cette localité
@@ -283,13 +284,24 @@ class AutomatonModel:
                 for idx, t in enumerate(transitions_du_noeud):
                     # Traduction immédiate de la matrice de garde en dictionnaires UI
                     raw_guard = t[1]
-                    gardes_textuelles = convert_dbm_to_constraints(raw_guard, clock_map) if raw_guard else []
                     gardes_textuelles = [parse_to_dict(c) for c in convert_dbm_to_constraints(raw_guard, clock_map)] if raw_guard else []
                     
+                    raw_nails = layouts_des_transitions[idx] if idx < len(layouts_des_transitions) else []
+                    clean_nails = []
+                    if isinstance(raw_nails, list):
+                        for n in raw_nails:
+                            try:
+                                if isinstance(n, dict): # Format Cosmos
+                                    clean_nails.append([float(n.get("x", 0.0)), float(n.get("y", 0.0))])
+                                elif isinstance(n, (list, tuple)) and len(n) >= 2: # Format Array strict
+                                    clean_nails.append([float(n[0]), float(n[1])])
+                            except (ValueError, TypeError):
+                                pass
+
                     # Reconstruction de la transition selon la structure exacte du modèle
                     transition_dict = {
                         "guards": gardes_textuelles,
-                        "nails": layouts_des_transitions[idx] if idx < len(layouts_des_transitions) else [],
+                        "nails": clean_nails,
                         "resets": t[2] if t[2] else [],
                         "source": key,
                         "target": t[3],
@@ -310,14 +322,13 @@ class AutomatonModel:
         pprint.pprint({"data": self.data, "loc_counter": self.loc_counter}, sort_dicts=False)
         print("=" * 60 + "\n")
     
-    def add_reset(self, clock, source_id, target_id):
+    def add_reset(self, clock, source_id, target_id, trans_index=0):
        #ajout d'un reset
-        for t in self.data["transitions"]:
-            if t["source"] == source_id and t["target"] == target_id:
-                if "resets" not in t:
-                    t["resets"] = []
-                if clock not in t["resets"]:
-                    t["resets"].append(clock)
+        matching = [t for t in self.data["transitions"] if t["source"] == source_id and t["target"] == target_id]
+        if trans_index < len(matching):
+            t = matching[trans_index]
+            if "resets" not in t: t["resets"] = []
+            if clock not in t["resets"]: t["resets"].append(clock)
 
     def modify_clock(self, old_name, new_name):
         """Modifie le nom d'une horloge partout où elle est utilisée."""

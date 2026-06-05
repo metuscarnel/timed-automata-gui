@@ -180,6 +180,31 @@ class TransitionItem(QGraphicsPathItem):
             self.ctrl_x = last_nail_pos.x()
             self.ctrl_y = last_nail_pos.y()
             return
+            
+        # --- NOUVEAU : Gestion des flèches multiples (multi-edges) ---
+        same_dir = [t for t in self.source.transitions if t.target == self.target]
+        try:
+            idx = same_dir.index(self)
+        except ValueError:
+            idx = len(same_dir)
+            
+        # --- NOUVEAU : Gestion de l'auto-boucle (self-loop) ---
+        if self.source == self.target:
+            offset_x = 40 + (idx * 20)
+            offset_y = 80 + (idx * 30)
+            cp1x = p1.x() - offset_x
+            cp1y = p1.y() - offset_y
+            cp2x = p1.x() + offset_x
+            cp2y = p1.y() - offset_y
+            
+            path = QPainterPath(p1)
+            path.cubicTo(cp1x, cp1y, cp2x, cp2y, p2.x(), p2.y())
+            self.setPath(path)
+            
+            # Point de contrôle final pour le calcul de l'angle de la pointe de la flèche
+            self.ctrl_x = cp2x
+            self.ctrl_y = cp2y
+            return
 
         dx, dy = p2.x() - p1.x(), p2.y() - p1.y()
         length = math.hypot(dx, dy)
@@ -188,12 +213,17 @@ class TransitionItem(QGraphicsPathItem):
             
         curve_offset = 0
         
-        # 1. Esquive si transition réciproque (A->B et B->A)
+        # 1. Esquive si transition réciproque et multi-transitions
         has_reciprocal = any(t.source == self.target and t.target == self.source for t in self.source.transitions)
         if has_reciprocal:
-            curve_offset = 40
+            curve_offset = 40 + (40 * idx)
+        elif idx > 0:
+            # Alternance : 1=40, 2=-40, 3=80, 4=-80...
+            step = 40 * ((idx + 1) // 2)
+            sign = 1 if idx % 2 != 0 else -1
+            curve_offset = step * sign
         else:
-            # 2. Esquive dynamique des noeuds au milieu du chemin
+            # 2. Esquive dynamique (uniquement pour la ligne centrale)
             if self.scene():
                 for item in self.scene().items():
                     if isinstance(item, NodeItem) and item != self.source and item != self.target:

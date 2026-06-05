@@ -85,23 +85,28 @@ class AutomataView(QGraphicsView):
             if node in self.scene.items():
                 self.scene.removeItem(node)
 
-    def remove_transition_visual(self, source_id, target_id):
+    def remove_transition_visual(self, source_id, target_id, trans_index=0):
         """Supprime visuellement la transition de la scène."""
         source_node = self.nodes.get(source_id)
         if source_node:
-            for t in list(source_node.transitions):
-                if t.target.id == target_id:
-                    # Détache des références
-                    t.source.transitions.remove(t)
-                    t.target.transitions.remove(t)
-                    # Retire les clous visuels
-                    for nail in t.nails:
-                        if nail in self.scene.items():
-                            self.scene.removeItem(nail)
-                    # Retire la ligne
-                    if t in self.scene.items():
-                        self.scene.removeItem(t)
-                    break
+            same_dir = [t for t in source_node.transitions if t.target.id == target_id]
+            if trans_index < len(same_dir):
+                t = same_dir[trans_index]
+                # Détache des références
+                t.source.transitions.remove(t)
+                t.target.transitions.remove(t)
+                # Retire les clous visuels
+                for nail in t.nails:
+                    if nail in self.scene.items():
+                        self.scene.removeItem(nail)
+                # Retire la ligne
+                if t in self.scene.items():
+                    self.scene.removeItem(t)
+                    
+                # Mettre à jour les autres transitions pour qu'elles se resserrent
+                same_dir.remove(t)
+                for other_t in same_dir:
+                    other_t.update_position()
 
     def draw_transition(self, source_id, target_id, nails_pos=None):
         """Crée visuellement une flèche entre deux noeuds existants"""
@@ -112,7 +117,11 @@ class AutomataView(QGraphicsView):
             self.scene.addItem(transition)
             for nail in transition.nails:
                 self.scene.addItem(nail)
-            transition.update_position() # Force le calcul d'esquive avec la scène active
+                
+            # Mettre à jour TOUTES les transitions entre ces noeuds pour gérer les décalages (multi-edges)
+            same_dir = [t for t in source_node.transitions if t.target == target_node]
+            for t in same_dir:
+                t.update_position()
 
     def keyPressEvent(self, event):
         """Gère l'appui sur la touche Échap pour annuler le mode en cours."""
@@ -188,9 +197,8 @@ class AutomataView(QGraphicsView):
                 if item and hasattr(item, 'id'):
                     # Fin : Clic sur une cible
                     target_id = item.id
-                    if target_id != self.drag_source_id:
-                        self.transition_created.emit(self.drag_source_id, target_id, self.transition_nails_pos)
-                        self._cleanup_temp_transition()
+                    self.transition_created.emit(self.drag_source_id, target_id, self.transition_nails_pos)
+                    self._cleanup_temp_transition()
                     return
                 else:
                     # Milieu : Poser un clou

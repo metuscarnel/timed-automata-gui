@@ -1,0 +1,76 @@
+{
+  "actions": [],
+  "clocks": [],
+  "locations": ["l0", "l1", "l2"],
+  "init": "l0",
+  "l0": {
+    "node_pos": {
+      "x": 243.0,
+      "y": 257.0
+    },
+    "name_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "invariant": [[0]],
+    "invariant_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "transitions": [
+      ["", [[0]], [], "l0"],
+      ["", [[0]], [], "l1"],
+      ["", [[0]], [], "l2"]
+    ],
+    "transitions_layout": [[], [], []]
+  },
+  "l1": {
+    "node_pos": {
+      "x": 479.0,
+      "y": 187.0
+    },
+    "name_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "invariant": [[0]],
+    "invariant_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "transitions": [
+      ["", [[0]], [], "l2"],
+      ["", [[0]], [], "l1"]
+    ],
+    "transitions_layout": [[], []]
+  },
+  "l2": {
+    "node_pos": {
+      "x": 775.0,
+      "y": 311.0
+    },
+    "name_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "invariant": [[0]],
+    "invariant_pos": {
+      "x": 0,
+      "y": 0
+    },
+    "transitions": [["", [[0]], [], "l2"]],
+    "transitions_layout": [[]]
+  },
+  "variables": {
+    "definition": {
+      "define": [],
+      "typedef": {
+        "structure": {},
+        "alias": {}
+      }
+    },
+    "init_variables": [],
+    "update_functions": {},
+    "constraints": {}
+  }
+}

@@ -1,6 +1,7 @@
+import os
 from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QLabel, QToolButton, QHBoxLayout, QVBoxLayout, QGroupBox, QGraphicsPathItem, QGraphicsPolygonItem, QGraphicsTextItem, QComboBox, QMenu, QInputDialog, QMessageBox
-from PySide6.QtGui import QAction, QKeySequence, QActionGroup, QIcon, QFont, QPainterPath, QPolygonF, QPen, QBrush
-from PySide6.QtCore import Signal, Qt, QPoint, QPointF
+from PySide6.QtGui import QAction, QKeySequence, QActionGroup, QIcon, QFont, QPainterPath, QPolygonF, QPen, QBrush, QDesktopServices
+from PySide6.QtCore import Signal, Qt, QPoint, QPointF, QUrl
 import math
 
 from .canvas import AutomataView
@@ -15,6 +16,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.controller = controller
         self.resize(1000, 600)
+        
         self.canvas = AutomataView()
         self.setCentralWidget(self.canvas)
         
@@ -166,6 +168,13 @@ class MainWindow(QMainWindow):
         action_quit.setShortcut(QKeySequence.Quit)
         action_quit.triggered.connect(self.close)
         menu_fichier.addAction(action_quit)
+        
+        # --- NOUVEAU : Menu Aide ---
+        menu_aide = menubar.addMenu("Aide")
+        
+        action_about = QAction("À propos", self)
+        action_about.triggered.connect(self.show_about)
+        menu_aide.addAction(action_about)
 
     def update_actions_display(self, actions: list):
         self._clear_layout(self.actions_layout)
@@ -310,11 +319,16 @@ class MainWindow(QMainWindow):
         # 2. Dessin des Nœuds (Localités)
         for node_id, node_data in locations.items():
             # Extraire les coordonnées
-            pos = node_data.get("node_pos", {"x": 0.0, "y": 0.0})
+            pos = node_data.get("node_pos", {})
+            try:
+                x_val = float(pos.get("x", 0.0))
+                y_val = float(pos.get("y", 0.0))
+            except (ValueError, TypeError):
+                x_val, y_val = 0.0, 0.0
             is_initial = (node_id == init_node)
             
             # Instancier le nœud graphique (Utilisation de la méthode existante draw_node qui gère le NodeItem)
-            self.canvas.draw_node(node_id, pos.get("x", 0.0), pos.get("y", 0.0), is_initial)
+            self.canvas.draw_node(node_id, x_val, y_val, is_initial)
             
         # 3. Dessin des Transitions
         transitions = data.get("transitions", [])
@@ -323,8 +337,19 @@ class MainWindow(QMainWindow):
             target_id = t.get("target")
             nails_pos = t.get("nails", [])
             
+            clean_nails = []
+            if isinstance(nails_pos, list):
+                for n in nails_pos:
+                    try:
+                        if isinstance(n, dict):
+                            clean_nails.append((float(n.get("x", 0.0)), float(n.get("y", 0.0))))
+                        elif isinstance(n, (list, tuple)) and len(n) >= 2:
+                            clean_nails.append((float(n[0]), float(n[1])))
+                    except (ValueError, TypeError):
+                        pass
+
             # Déléguer la création à la logique MVC existante du Canvas
-            self.canvas.draw_transition(source_id, target_id, nails_pos)
+            self.canvas.draw_transition(source_id, target_id, clean_nails)
 
     def open_data_editor(self):
         """Instancie et affiche la fenêtre de l'éditeur de données."""
@@ -340,3 +365,12 @@ class MainWindow(QMainWindow):
         if dialog.exec():
             new_variables_data = dialog.get_data()
             self.controller.update_variables_data(new_variables_data)
+
+    def show_about(self):
+        QMessageBox.about(
+            self,
+            "À propos",
+            "<h3>Interface de Dessin d'Automates Temporisés étendus par la donnée</h3>"
+            "<p>Projet COSMO - CILS 2025.</p>"
+            "<p>Interface graphique pour modéliser, éditer et exporter des automates temporisés au format JSON.</p>"
+        )

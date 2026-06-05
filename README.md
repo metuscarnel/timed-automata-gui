@@ -10,13 +10,13 @@
 
 ## 📑 Table des Matières
 
-1. [🎯 Vue d'Ensemble](#vue-densemble)
-2. [✨ Fonctionnalités](#fonctionnalités)
-3. [🚀 Démarrage Rapide](#démarrage-rapide)
-4. [📖 Manuel d'Utilisation](#manuel-dutilisation)
-5. [🏗️ Documentation Technique](#documentation-technique)
-6. [⌨️ Raccourcis & Références](#raccourcis--références)
-7. [🐛 Débogage & Troubleshooting](#débogage--troubleshooting)
+1. [Vue d'Ensemble](#vue-densemble)
+2. [Fonctionnalités](#fonctionnalités)
+3. [Démarrage Rapide](#démarrage-rapide)
+4. [Manuel d'Utilisation](#manuel-dutilisation)
+5. [Documentation Technique](#documentation-technique)
+6. [Raccourcis & Références](#raccourcis--références)
+7. [Débogage & Troubleshooting](#débogage--troubleshooting)
 
 ---
 
@@ -26,7 +26,7 @@ Cet outil offre une interface graphique intuitive et moderne pour concevoir des 
 
 ### Cas d'Usage
 - **Modélisation** de systèmes temps-réel
-- **Vérification** de propriétés avec outils comme UPPAAL
+- **Vérification** de propriétés 
 - **Prototypage** rapide d'automates complexes
 - **Éducation** en informatique théorique
 

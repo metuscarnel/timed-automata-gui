@@ -1,0 +1,123 @@
+Un bon manuel d'utilisation répond à une question simple : **"Comment un utilisateur réalise-t-il une tâche avec mon outil ?"**
+
+Pour un outil informatique, je te conseille cette structure :
+
+# 1. Présentation de l'outil
+
+* Nom de l'application
+* Objectif
+* Public visé
+* Fonctionnalités principales
+
+Exemple :
+
+> Cet outil permet de créer, modifier et analyser des automates temporisés à travers une interface graphique intuitive.
+
+---
+
+# 2. Installation
+
+Prérequis :
+
+* Windows, Linux ou macOS
+* Python 3.12
+* Mémoire minimale recommandée
+
+Procédure :
+
+1. Télécharger l'application
+2. Lancer l'installateur
+3. Suivre les étapes affichées
+
+---
+
+# 3. Prise en main rapide
+
+Une section très appréciée.
+
+Exemple :
+
+Pour créer un premier automate :
+
+1. Cliquer sur **Fichier → Nouveau**
+2. Ajouter un état
+3. Ajouter une transition
+4. Sauvegarder au format JSON
+
+---
+
+# 4. Description de l'interface
+
+Ajouter des captures d'écran.
+
+Décrire :
+
+| Élément         | Description                     |
+| --------------- | ------------------------------- |
+| Barre de menus  | Accès aux fonctions principales |
+| Zone de dessin  | Création des automates          |
+| Panneau latéral | Édition des propriétés          |
+| Barre d'état    | Informations sur le projet      |
+
+---
+
+# 5. Fonctionnalités détaillées
+
+Une sous-section par fonctionnalité.
+
+## Créer un automate
+
+1. Cliquer sur « Nouveau »
+2. Ajouter les états
+3. Définir l'état initial
+
+## Modifier un automate
+
+1. Sélectionner un élément
+2. Modifier ses propriétés
+
+## Exporter
+
+1. Cliquer sur « Exporter »
+2. Choisir le format JSON
+
+---
+
+# 6. Formats de données
+
+Si ton application utilise du JSON :
+
+```json
+{
+  "states": [],
+  "transitions": []
+}
+```
+
+Expliquer chaque champ.
+
+---
+
+# 7. Résolution des problèmes
+
+| Problème                       | Solution                 |
+| ------------------------------ | ------------------------ |
+| L'application ne démarre pas   | Vérifier Python          |
+| Impossible d'ouvrir un fichier | Vérifier le format JSON  |
+| Erreur de sauvegarde           | Vérifier les permissions |
+
+---
+
+# 8. Glossaire (facultatif)
+
+Très utile pour un outil de recherche.
+
+Exemple :
+
+* **Automate temporisé** : automate muni d'horloges.
+* **Transition** : passage entre deux états.
+* **Horloge** : variable représentant le temps écoulé.
+
+---
+
+Pour un projet universitaire comme celui que tu développes à l'IBISC, un manuel de **10 à 15 pages avec captures d'écran annotées** est généralement largement suffisant et donne une impression très professionnelle. Le plus important est de décrire des **scénarios d'utilisation concrets** plutôt que de détailler l'implémentation technique.
