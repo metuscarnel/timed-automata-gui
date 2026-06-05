@@ -1,0 +1,105 @@
+{
+    "actions": ["a", "b", "c"],
+    "clocks": ["x", "y"],
+    "locations": ["l0", "l1", "l2", "l3"],
+    "l0": {
+        "invariant": [[0,0,0], [64,0,"infty"], [64,"infty",0]],
+        "transitions": [
+            ["a", [[0,0,-1], ["infty",0,"infty"], ["infty","infty",0]], [], "l1"],
+            ["c", [[0,-1,0], ["infty",0,"infty"], ["infty","infty",0]], [], "l2"]
+        ]
+    },
+    "l1": {
+        "invariant": [[0,0,0], [64,0,"infty"], [64,"infty",0]],
+        "transitions": [["c", [[0,-1,0], ["infty",0,"infty"], ["infty","infty",0]], [], "l3"]]
+    },
+    "l2": {
+        "invariant": [[0,0,0], [64,0,"infty"], [64,"infty",0]],
+        "transitions": [["a", [[0,0,-1], ["infty",0,"infty"], ["infty","infty",0]], [], "l3"]]
+    },
+    "l3": {
+        "invariant": [[0,0,0], [64,0,"infty"], [64,"infty",0]],
+        "transitions": [["b", [[0,0,-1], ["infty",0,"infty"], ["infty","infty",0]], ["x", "y"], "l0"]]
+    },
+    "init": "l0",
+    "variables": {
+        "definition": {
+            "define" : [
+                "#define TABLE_SIZE 3",
+                "#define NAME_SIZE 50"
+            ],
+            "typedef": {
+                "structure": {
+                    "Variable": [
+                        "    int v;",
+                        "    int x;",
+                        "    int table[TABLE_SIZE];   // tableau d'int",
+                        "    int table_size;          // nombre d'éléments utilisés",
+                        "    char name[NAME_SIZE];    // string",
+                        "    bool active;             // booléen"
+                    ]
+                },
+                "alias": {}
+            }
+        },
+        "init_variables": [
+            "    variable.v = 0;",
+            "    variable.x = 0;",
+            "    variable.active=false;",
+            "    variable.table_size = 3;",
+            "    variable.table[0] = 0;",
+            "    variable.table[1] = 0;",
+            "    variable.table[2] = 0;",
+            "    strcpy(variable.name, \"start\");"
+        ],
+        "update_functions": {
+            "a": [
+                "     if (variable.v + 2 <= 9000 && variable.v + 2 >= -10){",
+                "        variable.v += 2;",
+                "        // variable.x += 1;",
+                "        // variable.active = true;",
+                "        // variable.table[0]++;",
+                "        // variable.table[1] = variable.v;",
+                "        // variable.table[2] = variable.v;",
+                "        // snprintf(variable.name, NAME_SIZE, \"transition a\");",
+                "    }",
+                "    return variable;"
+            ],
+            "b": [
+                "    if (variable.v *2 <= 9000 && variable.v + 1 >= -10){",
+                "        variable.v *= 2;",
+                "        // variable.x += 1;",
+                "        // variable.active = true;",
+                "        // variable.table[0]++;",
+                "        // variable.table[1] = variable.v;",
+                "        // variable.table[2] = variable.v;",
+                "        // snprintf(variable.name, NAME_SIZE, \"transition b\");",
+                "    }",
+                "    return variable;"
+            ],
+            "c": [
+                "    if (variable.v + 1 <= 9000 && variable.v * 2 >= -10) {",
+                "        variable.v += 1;",
+                "        // variable.x += 1;",
+                "        //   variable.active = false;",
+                "        //   variable.table[0]++;",
+                "        //   variable.table[1] = variable.v;",
+                "        //   variable.table[2] = variable.v;",
+                "        //   snprintf(variable.name, NAME_SIZE, \"transition c\");",
+                "    }",
+                "    return variable;"
+            ]
+        },
+        "constraints": {
+            "a": [
+                "return true;"
+            ],
+            "b": [
+                "return true;"
+            ],
+            "c": [
+                "return true;"
+            ]
+        }
+    }
+}
