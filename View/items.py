@@ -281,7 +281,8 @@ class TransitionItem(QGraphicsPathItem):
         p2 = self.target.scenePos()
         vx, vy = p2.x() - self.ctrl_x, p2.y() - self.ctrl_y
         v_len = math.hypot(vx, vy)
-        if v_len == 0: return
+        if v_len == 0: 
+            return
         
         tx, ty = vx / v_len, vy / v_len
         

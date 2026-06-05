@@ -1,14 +1,23 @@
 # 📘 Interface de Dessin d'Automates Temporisés
+# Interface de Conception d'Automates Temporisés
 
 **Outil complet pour créer, éditer et manipuler des automates temporisés (Timed Automata)** avec support avancé des horloges, invariants, gardes et actions.
+## 1. Présentation de l'outil
 
 ![Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue)
 ![PySide6](https://img.shields.io/badge/PySide6-Latest-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
+Cet outil offre une interface graphique pour créer, éditer, analyser et exporter des automates temporisés étendus par des données (modèle COSMO). Il s'adresse principalement aux acteurs de la recherche et de l'ingénierie travaillant sur la modélisation et la vérification de systèmes temps-réel.
 
 ---
+**Fonctionnalités principales :**
+* Édition graphique intuitive de localités et de transitions.
+* Déclaration et gestion des horloges, actions et variables globales.
+* Édition avancée des contraintes (invariants, gardes) et des réinitialisations (resets).
+* Import et export au format JSON avec compilation DBM intégrée.
 
 ## 📑 Table des Matières
+## 2. Installation
 
 1. [Vue d'Ensemble](#vue-densemble)
 2. [Fonctionnalités](#fonctionnalités)
@@ -17,25 +26,43 @@
 5. [Documentation Technique](#documentation-technique)
 6. [Raccourcis & Références](#raccourcis--références)
 7. [Débogage & Troubleshooting](#débogage--troubleshooting)
+**Prérequis :**
+* Python 3.10 ou supérieur
+* Environnement macOS, Linux ou Windows
 
 ---
+**Procédure :**
+1. Ouvrez un terminal dans le répertoire `interface`.
+2. Créez un environnement virtuel : `python3 -m venv venv`
+3. Activez l'environnement :
+   * macOS / Linux : `source venv/bin/activate`
+   * Windows : `venv\Scripts\activate`
+4. Installez les dépendances : `pip install -r requirements.txt`
 
 ## Vue d'Ensemble
+## 3. Prise en main rapide
 
 Cet outil offre une interface graphique intuitive et moderne pour concevoir des automates temporisés, un modèle formel utilisé en vérification de systèmes temps-réel, planification d'ordonnancement et synthèse de contrôleurs.
+Pour lancer l'application : `python main.py`
 
 ### Cas d'Usage
 - **Modélisation** de systèmes temps-réel
 - **Vérification** de propriétés 
 - **Prototypage** rapide d'automates complexes
 - **Éducation** en informatique théorique
+**Créer un premier automate :**
+1. Cliquez sur l'outil **Nouvelle Localité** dans la barre d'outils et cliquez sur la zone de dessin pour créer deux états.
+2. Cliquez sur l'outil **Nouvelle Transition**, puis reliez le premier état (source) au second (cible).
+3. Cliquez sur **Fichier → Sauvegarder** pour exporter votre modèle au format JSON.
 
 ---
+## 4. Description de l'interface
 
 ## ✨ Fonctionnalités
 
 ### 🎨 Édition Graphique Interactive
 | Fonctionnalité | Description |
+| Élément | Description |
 |---|---|
 | **Création de localités** | Clic sur le canvas → génère automatiquement `l0`, `l1`, `l2`, etc. |
 | **Création de transitions** | Cliquer source → cliquer cible = transition avec flèche courbe |
@@ -44,6 +71,10 @@ Cet outil offre une interface graphique intuitive et moderne pour concevoir des 
 | **Points de pliage (Nails)** | Contrôle fin des trajectoires de transitions via points intermédiaires |
 | **Suppression intelligente** | Supprimer un nœud → supprime aussi ses transitions connectées |
 | **Menu contextuel** | Clic droit pour actions rapides (suppression, etc.) |
+| **Barre de menus** | Accès aux actions globales (Nouveau, Ouvrir, Sauvegarder, Quitter) et à l'Aide. |
+| **Barre d'outils** | Sélection des outils de dessin (Localités, Transitions), choix de l'état initial, et gestion des listes globales (Horloges, Actions, Data). |
+| **Zone de dessin** | Espace de travail interactif pour modéliser visuellement le graphe de l'automate. |
+| **Panneau latéral** | S'affiche automatiquement lors de la sélection d'un élément pour en éditer les propriétés (Invariants, Gardes, Resets). |
 
 ### ⏱️ Gestion Temporelle Avancée
 | Fonctionnalité | Description |
@@ -53,6 +84,7 @@ Cet outil offre une interface graphique intuitive et moderne pour concevoir des 
 | **Gardes sur transitions** | Conditions avant franchissement (ex: `x > 3 AND y < 10`) |
 | **Resets d'horloges** | Réinitialisation lors du franchissement |
 | **Actions/Événements** | Étiquettes de transitions pour synchronisation |
+## 5. Fonctionnalités détaillées
 
 ### 💾 Persistance & Formats
 | Fonctionnalité | Description |
@@ -61,6 +93,10 @@ Cet outil offre une interface graphique intuitive et moderne pour concevoir des 
 | **Import JSON** | Charger et reconvertir automatiquement DBM → texte lisible |
 | **Validation interne** | Vérifications cohérence données avant/après I/O |
 | **Format portable** | JSON standard (git-friendly, interopérable) |
+* **Manipulation graphique** : Les états peuvent être déplacés librement à la souris. Les transitions disposent de points de pliage modifiables pour ajuster la trajectoire. Supprimer une localité supprime automatiquement les transitions associées.
+* **Édition des contraintes** : La sélection d'une localité permet de lui ajouter des invariants temporels. La sélection d'une transition permet de définir ses gardes, ses actions associées et ses remises à zéro d'horloge.
+* **Gestion des variables étendues** : Le bouton **Data** de la barre d'outils ouvre un éditeur complet pour définir des types (structures, alias), initialiser des variables et déclarer des fonctions de mise à jour spécifiques.
+* **Mode Débogage** : Le raccourci `Ctrl+D` (ou `Cmd+D` sur macOS) affiche l'état interne complet du modèle dans la console du terminal à des fins de vérification.
 
 ### 🔧 Outils Développeur
 | Fonctionnalité | Description |
@@ -68,17 +104,27 @@ Cet outil offre une interface graphique intuitive et moderne pour concevoir des 
 | **Débogage visuel** | `Cmd+D` → affiche l'état complet du modèle en console |
 | **Traces détaillées** | Logs de toutes opérations MVC pour audit |
 | **Thème unifié** | Flat design minimaliste (blanc/noir, cohérent) |
+## 6. Formats de données
 
 ---
+L'outil utilise un format JSON standardisé pour assurer la persistance et l'interopérabilité des modèles. 
+Lors de la sauvegarde, les contraintes textuelles lisibles saisies dans l'interface sont automatiquement compilées sous forme de matrices DBM (Difference Bound Matrix), adaptées aux moteurs d'analyse formelle. Le chargement effectue l'opération inverse pour restituer un affichage textuel des contraintes.
 
 ## 🚀 Démarrage Rapide
+## 7. Résolution des problèmes
 
 ### Prérequis
 - Python 3.10+
 - pip ou conda
 - macOS, Linux ou Windows
+| Problème | Solution |
+|---|---|
+| **L'application ne démarre pas** | Vérifiez que vous utilisez une version de Python supportée et que le module `PySide6` est bien installé via `requirements.txt`. |
+| **Impossible de dessiner** | Assurez-vous d'avoir cliqué sur l'outil approprié (Localité ou Transition) dans la barre d'outils, son bouton doit apparaître surligné. Utilisez Échap pour quitter le mode. |
+| **Erreur de chargement JSON** | Vérifiez que le fichier a bien été généré par l'outil ou qu'il respecte strictement la syntaxe attendue. |
 
 ### Installation
+## 8. Glossaire
 
 ```bash
 # 1. Aller au répertoire du projet
@@ -585,3 +631,10 @@ Développé dans le cadre du projet **COSMO - CILS 2025**.
 ---
 
 **Questions ?** Consultez la console en mode débogage (`Cmd+D`) ou les fichiers `FEATURES_TRACKING.md`.
+* **Automate temporisé** : Automate à états finis enrichi de variables temporelles (horloges) réelles.
+* **Localité** : Nœud ou état de l'automate.
+* **Transition** : Arc reliant deux localités, conditionnant le changement d'état.
+* **Horloge** : Variable globale mesurant le temps écoulé de manière continue.
+* **Invariant** : Condition sur une horloge qui doit rester vraie tant que l'automate est dans une localité donnée.
+* **Garde** : Condition sur une horloge devant être satisfaite pour qu'une transition puisse être franchie.
+* **Reset** : Action remettant la valeur d'une horloge à zéro lors du franchissement d'une transition.

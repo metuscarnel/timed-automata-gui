@@ -1,8 +1,6 @@
-import os
-from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QLabel, QToolButton, QHBoxLayout, QVBoxLayout, QGroupBox, QGraphicsPathItem, QGraphicsPolygonItem, QGraphicsTextItem, QComboBox, QMenu, QInputDialog, QMessageBox
-from PySide6.QtGui import QAction, QKeySequence, QActionGroup, QIcon, QFont, QPainterPath, QPolygonF, QPen, QBrush, QDesktopServices
-from PySide6.QtCore import Signal, Qt, QPoint, QPointF, QUrl
-import math
+from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QLabel, QToolButton, QHBoxLayout, QComboBox, QMenu, QInputDialog, QMessageBox
+from PySide6.QtGui import QAction, QKeySequence, QActionGroup, QIcon
+from PySide6.QtCore import Qt, QPoint
 
 from .canvas import AutomataView
 from resources.icons import get_icons
@@ -217,7 +215,7 @@ class MainWindow(QMainWindow):
         lbl.setStyleSheet("color: #0D99FF; font-family: 'IBM Plex Mono'; font-size: 12pt; font-style: italic;")
         lbl.setCursor(Qt.PointingHandCursor)
         lbl.setContextMenuPolicy(Qt.CustomContextMenu)
-        lbl.customContextMenuRequested.connect(lambda pos, l=lbl, t=item_type: self._show_item_context_menu(l, pos, t))
+        lbl.customContextMenuRequested.connect(lambda pos, label=lbl, t=item_type: self._show_item_context_menu(label, pos, t))
         return lbl
 
     def _show_item_context_menu(self, label, pos, item_type):

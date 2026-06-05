@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QWidget, QLineEdit, QVBoxLayout
 from PySide6.QtCore import Signal, Qt, QEvent
-from PySide6.QtGui import QFocusEvent, QFont
+from PySide6.QtGui import QFocusEvent
 
 class InlineAddPopup(QWidget):
     """

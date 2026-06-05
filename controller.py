@@ -10,9 +10,11 @@ class MainController:
 
     def _get_active_transition_index(self, source_id, target_id):
         """Trouve l'index (multi-edges) de la transition actuellement sélectionnée."""
-        if not self.view or not hasattr(self.view, 'canvas'): return 0
+        if not self.view or not hasattr(self.view, 'canvas'):
+            return 0
         selected = self.view.canvas.scene.selectedItems()
-        if not selected: return 0
+        if not selected: 
+            return 0
         
         item = selected[0]
         # Si c'est un clou (NailItem), remonter à la transition
@@ -452,7 +454,8 @@ class MainController:
         """Recharge les propriétés affichées dans le Dock si celui-ci est visible"""
         if self.view and hasattr(self.view, 'properties_dock') and self.view.properties_dock.isVisible():
             selected_items = self.view.canvas.scene.selectedItems()
-            if not selected_items: return
+            if not selected_items: 
+                return
             item = selected_items[0]
             
             if hasattr(item, 'id'):

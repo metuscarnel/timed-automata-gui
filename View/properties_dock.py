@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QDockWidget, QWidget, QFormLayout, QLineEdit, QComboBox, QVBoxLayout, QStackedWidget, QHBoxLayout, QListWidget, QPushButton, QGroupBox, QCheckBox
-from PySide6.QtGui import QDoubleValidator, QIntValidator
+from PySide6.QtGui import QIntValidator
 from PySide6.QtCore import Qt
 
 class PropertiesDock(QDockWidget):

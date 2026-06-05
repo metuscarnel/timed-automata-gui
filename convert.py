@@ -1,3 +1,4 @@
+import re
 def convert_to_constraint_string(dbm_matrix):
     constraints = []
     visited_pairs = set()
@@ -62,7 +63,6 @@ def convert_to_constraint_string(dbm_matrix):
                             visited_pairs.add((i, j))
     return constraints
 
-import re
 
 def build_dbm_from_constraints(constraints, num_clocks):
     # 1. Initialisation de la matrice avec 9999 (infini) et 0 sur la diagonale

@@ -1,5 +1,4 @@
-from PySide6.QtWidgets import (QDialog, QVBoxLayout, QTabWidget,
-                               QWidget, QDialogButtonBox, QTextEdit, QHBoxLayout, QLabel, QToolButton, QListWidget, QComboBox, QLineEdit, QPushButton, QScrollArea)
+from PySide6.QtWidgets import (QDialog, QVBoxLayout, QTabWidget, QWidget, QDialogButtonBox, QTextEdit, QHBoxLayout, QLabel, QToolButton, QScrollArea)
 from PySide6.QtCore import QPoint, Qt
 
 from .popups import InlineAddPopup
@@ -190,7 +189,8 @@ class DataEditorDialog(QDialog):
 
     def load_data(self, data, actions=None):
         """Remplit les onglets avec les données existantes du modèle."""
-        if actions is None: actions = []
+        if actions is None: 
+            actions = []
         # 1. Données Additionelles (Define / Alias)
         define_list = data.get("definition", {}).get("define", [])
         self.content_define.setText("\n".join(define_list))
@@ -282,7 +282,8 @@ class DataEditorDialog(QDialog):
 
     def _add_structure_to_list(self, struct_name, content_text=""):
         """Ajoute une structure et sa zone de texte associée."""
-        if struct_name in self.structure_widgets: return
+        if struct_name in self.structure_widgets: 
+            return
         
         struct_widget = QWidget()
         struct_layout = QVBoxLayout(struct_widget)
