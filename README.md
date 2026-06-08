@@ -103,4 +103,3 @@ Les modèles sont exportés en JSON. Les contraintes saisies humainement (ex: `x
 | **Erreur lors du chargement JSON** | Assurez-vous que le fichier a été généré par cet outil. Les matrices DBM mal formées ou les fichiers altérés manuellement peuvent bloquer l'importation. |
 
 ---
-*Projet développé dans le cadre du projet **COSMO - CILS 2025**.*
