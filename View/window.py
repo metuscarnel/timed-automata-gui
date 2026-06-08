@@ -13,7 +13,10 @@ class MainWindow(QMainWindow):
     def __init__(self, controller):
         super().__init__()
         self.controller = controller
-        self.resize(1000, 600)
+        
+        # Taille dynamique : 80% de la résolution de l'écran disponible
+        screen_geom = self.screen().availableGeometry()
+        self.resize(int(screen_geom.width() * 0.8), int(screen_geom.height() * 0.8))
         
         self.canvas = AutomataView()
         self.setCentralWidget(self.canvas)
