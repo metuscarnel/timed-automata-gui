@@ -187,6 +187,7 @@ class MainController:
             trans_data = matching[trans_index] if trans_index < len(matching) else {}
             available_actions = self.model.data.get("actions", [])
             available_clocks = self.model.data.get("clocks", [])
+            available_locations = list(self.model.data["locations"].keys())
             
             # (Étape 1 & 3) Mise à jour dynamique des cases à cocher pour les resets
             self.view.properties_dock.update_resets_list(available_clocks)
@@ -205,7 +206,7 @@ class MainController:
                 # Connexion à l'étape 2 pour que le modèle soit mis à jour instantanément au clic
                 cb.stateChanged.connect(lambda state, s=source_id, t=target_id: self.update_transition_resets(s, t))
                 
-            self.view.properties_dock.show_transition_props(source_id, target_id, trans_data, available_actions, available_clocks)
+            self.view.properties_dock.show_transition_props(source_id, target_id, trans_data, available_actions, available_clocks, available_locations)
 
     # 2. Étape 2 : Méthode appelée lors de la validation/sauvegarde de la transition (ou instantanément)
     def update_transition_resets(self, source_id, target_id):
@@ -354,7 +355,7 @@ class MainController:
         elif is_trans:
             idx = dock.guard_list_widget.currentRow()
             if idx >= 0:
-                src, tgt = dock.trans_source_field.text(), dock.trans_target_field.text()
+                src, tgt = dock.current_trans_source, dock.current_trans_target
                 trans_index = self._get_active_transition_index(src, tgt)
                 matching = [t for t in self.model.data["transitions"] if t["source"] == src and t["target"] == tgt]
                 trans_data = matching[trans_index] if trans_index < len(matching) else {}
@@ -415,6 +416,19 @@ class MainController:
         if self.view:
             self.view.canvas.remove_node_visual(node_id)
             self.handle_selection_cleared()
+
+    def change_transition_endpoint(self, old_source, old_target, new_source, new_target):
+        trans_index = self._get_active_transition_index(old_source, old_target)
+        print(f"Modification de la transition: {old_source}->{old_target} vers {new_source}->{new_target}")
+        
+        # 1. Update Model
+        self.model.change_transition_endpoint(old_source, old_target, new_source, new_target, trans_index)
+
+        # 2. Update View (Canvas)
+        if self.view:
+            self.view.canvas.change_transition_endpoints_visual(old_source, old_target, trans_index, new_source, new_target)
+            self.handle_transition_selected(new_source, new_target)
+
     def handle_edit_inv(self,node_id):
         print(f"demande de modification d'un invariant de {node_id}")
     

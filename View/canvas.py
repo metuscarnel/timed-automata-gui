@@ -123,6 +123,45 @@ class AutomataView(QGraphicsView):
             for t in same_dir:
                 t.update_position()
 
+    def change_transition_endpoints_visual(self, old_source_id, old_target_id, trans_index, new_source_id, new_target_id):
+        """Change visuellement les extrémités d'une transition existante."""
+        source_node = self.nodes.get(old_source_id)
+        if not source_node: return
+
+        same_dir = [t for t in source_node.transitions if t.target.id == old_target_id]
+        if trans_index >= len(same_dir): return
+        t = same_dir[trans_index]
+
+        new_source_node = self.nodes.get(new_source_id)
+        new_target_node = self.nodes.get(new_target_id)
+        if not new_source_node or not new_target_node: return
+
+        old_target_node = t.target
+
+        # 1. Détacher la transition des anciens nœuds
+        while t in source_node.transitions:
+            source_node.transitions.remove(t)
+        while t in old_target_node.transitions:
+            old_target_node.transitions.remove(t)
+
+        # 2. Assigner les nouveaux nœuds
+        t.source = new_source_node
+        t.target = new_target_node
+
+        # 3. Attacher la transition aux nouveaux nœuds
+        t.source.add_transition(t)
+        t.target.add_transition(t)
+
+        # 4. Mettre à jour la géométrie de la transition modifiée et des autres transitions affectées
+        nodes_to_update = {source_node, old_target_node, new_source_node, new_target_node}
+        for node in nodes_to_update:
+            for other_t in node.transitions:
+                other_t.update_position()
+
+        # 5. Resélectionner la transition pour maintenir l'état actif dans l'UI
+        self.scene.clearSelection()
+        t.setSelected(True)
+
     def keyPressEvent(self, event):
         """Gère l'appui sur la touche Échap pour annuler le mode en cours."""
         if event.key() == Qt.Key_Escape:

@@ -1,46 +1,43 @@
-# 📘 COSMO - Interface de Conception d'Automates Temporisés
+# Interface de Conception d'Automates Temporisés
 
-!Python 3.10+
-!PySide6
-!License
 
-**Outil graphique complet pour modéliser, éditer, analyser et exporter des automates temporisés étendus par des données (modèle COSMO).**
 
-Cet outil s'adresse principalement aux acteurs de la recherche et de l'ingénierie travaillant sur la modélisation formelle, la vérification de systèmes temps-réel, et la synthèse de contrôleurs.
+**Outil graphique complet pour modéliser, éditer et exporter des automates temporisés étendus par des données.**
 
-## 📑 Table des Matières
+Cet outil s'adresse principalement à la modélisation pour la vérification formelle.
 
-- ✨ Fonctionnalités
-- 🚀 Démarrage Rapide
-- 📖 Manuel d'Utilisation
-- 🏗️ Architecture et Formats
-- ⌨️ Raccourcis Clavier
-- 🐛 Dépannage
+## Table des Matières
 
-## ✨ Fonctionnalités
+- Fonctionnalités
+- Démarrage Rapide
+- Manuel d'Utilisation
+- Architecture et Formats
+- Raccourcis Clavier
+- Dépannage
 
-### 🎨 Édition Graphique Interactive
+## Fonctionnalités
+
+### Édition Graphique Interactive
 - **Modélisation visuelle** : Création de localités et de transitions par pointer-cliquer.
-- **Glisser-déposer** : Déplacement fluide des nœuds avec recalcul géométrique des transitions en temps réel.
 - **Trajectoires personnalisées** : Contrôle fin des flèches via des points de pliage (nails).
-- **Sélection intelligente** : Le panneau latéral s'adapte automatiquement à l'élément sélectionné (Localité ou Transition).
 
-### ⏱️ Gestion Temporelle & Contraintes
+
+### Gestion Temporelle & Contraintes
 - **Horloges globales** : Déclaration centralisée des variables temporelles via la barre d'outils.
 - **Invariants** : Ajout de contraintes de séjour sur les localités (ex: `x <= 5`).
 - **Gardes & Actions** : Définition de conditions de franchissement et d'événements de synchronisation sur les transitions.
 - **Resets** : Remise à zéro sélective des horloges lors des franchissements.
 
-### 💾 Persistance & Interopérabilité
-- **Import / Export JSON** : Format standardisé pour assurer la portabilité (git-friendly).
-- **Compilation DBM** : Conversion automatique des contraintes textuelles en matrices DBM (Difference Bound Matrix) lors de la sauvegarde, prêtes pour les moteurs d'analyse formelle (comme UPPAAL ou TiNA).
-- **Éditeur de données étendu** : Interface dédiée ("Data") pour définir des structures, alias, variables initiales et fonctions de mise à jour.
+### Persistance & Interopérabilité
+- **Import / Export JSON** : Format standardisé pour assurer la portabilité et la comptabilité avec d'autres outils comme UPPAL.
 
-## 🚀 Démarrage Rapide
+- **Éditeur de données étendues** : Interface dédiée ("Data") pour définir des structures, alias, variables initiales et fonctions de mise à jour.
+
+## Démarrage Rapide
 
 ### Prérequis
 - Python 3.10 ou supérieur
-- macOS, Linux ou Windows
+- Linux
 
 ### Installation
 
@@ -68,11 +65,11 @@ L'interface graphique s'ouvrira, vous présentant une zone de travail vierge pr�
 ## 📖 Manuel d'Utilisation
 
 ### Créer votre premier automate
-1. **Ajouter un état** : Cliquez sur l'outil **"📍 Nouvelle Localité"** dans la barre d'outils, puis cliquez sur le canvas. Le premier état créé est automatiquement défini comme état initial (double bordure).
+1. **Ajouter un état** : Cliquez le petit cercle sur la barre d'outils **"Nouvelle Localité"** puis cliquez sur le canvas. Le premier état créé est automatiquement défini comme état initial (double bordure).
 2. **Ajouter une transition** : Cliquez sur **"➔ Nouvelle Transition"**, puis reliez un état source à un état cible.
 3. **Définir des horloges** : Utilisez l'icône 🕒 dans la barre d'outils pour ajouter de nouvelles horloges (ex: `x`, `y`).
-4. **Éditer les contraintes** : Sélectionnez une localité ou une transition avec le clic gauche (ou clic droit pour forcer la sélection). Le **panneau de droite** s'ouvre pour vous permettre d'ajouter des invariants, des gardes, ou des actions.
-5. **Sauvegarder** : Allez dans **Fichier > Sauvegarder** pour générer votre modèle au format JSON compilé.
+4. **Éditer les contraintes** : Sélectionnez une localité ou une transition avec le clic  droit. Le **panneau de droite** s'ouvre pour vous permettre d'ajouter des invariants, des gardes, ou des actions.
+5. **Sauvegarder** : Allez dans **Fichier > Sauvegarder** ou faite " Ctrl + S" pour sauvegarder modèle sous JSON.
 
 *💡 Astuce : Vous pouvez annuler l'outil en cours d'utilisation en appuyant sur la touche `Échap`.*
 

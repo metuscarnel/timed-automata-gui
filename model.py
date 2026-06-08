@@ -71,6 +71,14 @@ class AutomatonModel:
         }
         self.data["transitions"].append(transition)
 
+    def change_transition_endpoint(self, old_source, old_target, new_source, new_target, trans_index=0):
+        """Modifie les points de départ ou d'arrivée d'une transition."""
+        matching = [t for t in self.data["transitions"] if t["source"] == old_source and t["target"] == old_target]
+        if trans_index < len(matching):
+            t = matching[trans_index]
+            t["source"] = new_source
+            t["target"] = new_target
+
     def add_action(self, action_name):
         """Ajoute une action si elle n'existe pas déjà (ignore les doublons)."""
         if action_name and action_name not in self.data["actions"]:

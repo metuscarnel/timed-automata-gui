@@ -6,6 +6,8 @@ class PropertiesDock(QDockWidget):
     def __init__(self, controller):
         super().__init__("Propriétés de l'élément")
         self.controller = controller
+        self.current_trans_source = None
+        self.current_trans_target = None
         self.setAllowedAreas(Qt.RightDockWidgetArea)
         
         # On définit une largeur minimale correcte, sans bloquer le redimensionnement
@@ -110,10 +112,8 @@ class PropertiesDock(QDockWidget):
         self.trans_panel = QWidget()
         self.trans_layout = QFormLayout(self.trans_panel)
         
-        self.trans_source_field = QLineEdit()
-        self.trans_source_field.setReadOnly(True)
-        self.trans_target_field = QLineEdit()
-        self.trans_target_field.setReadOnly(True)
+        self.trans_source_combo = QComboBox()
+        self.trans_target_combo = QComboBox()
         self.trans_action_combo = QComboBox()
         
         # --- NOUVEAU : Éditeur de garde (Horloge, Opérateur, Valeur) ---
@@ -150,8 +150,8 @@ class PropertiesDock(QDockWidget):
         
         
         #self.trans_layout.addRow("Resets", self.resets)
-        self.trans_layout.addRow("Source :", self.trans_source_field)
-        self.trans_layout.addRow("Cible :", self.trans_target_field)
+        self.trans_layout.addRow("Source :", self.trans_source_combo)
+        self.trans_layout.addRow("Cible :", self.trans_target_combo)
         self.trans_layout.addRow("Action :", self.trans_action_combo)
         self.trans_layout.addRow("Nouv. Garde :", self.trans_guard_layout)
         self.trans_layout.addRow("Gardes :", self.guard_list_widget)
@@ -161,6 +161,8 @@ class PropertiesDock(QDockWidget):
         self.stacked_widget.addWidget(self.trans_panel)
 
         # Signaux
+        self.trans_source_combo.activated.connect(self._on_source_changed)
+        self.trans_target_combo.activated.connect(self._on_target_changed)
         self.trans_action_combo.currentTextChanged.connect(self._on_action_changed)
         
         # Signaux pour la transition (Gardes)
@@ -237,9 +239,21 @@ class PropertiesDock(QDockWidget):
         self.stacked_widget.setCurrentWidget(self.node_panel)
         self.show()
 
-    def show_transition_props(self, source_id, target_id, data, available_actions, available_clocks):
-        self.trans_source_field.setText(source_id)
-        self.trans_target_field.setText(target_id)
+    def show_transition_props(self, source_id, target_id, data, available_actions, available_clocks, available_locations):
+        self.current_trans_source = source_id
+        self.current_trans_target = target_id
+
+        self.trans_source_combo.blockSignals(True)
+        self.trans_source_combo.clear()
+        self.trans_source_combo.addItems(available_locations)
+        self.trans_source_combo.setCurrentText(source_id)
+        self.trans_source_combo.blockSignals(False)
+
+        self.trans_target_combo.blockSignals(True)
+        self.trans_target_combo.clear()
+        self.trans_target_combo.addItems(available_locations)
+        self.trans_target_combo.setCurrentText(target_id)
+        self.trans_target_combo.blockSignals(False)
         
         # On bloque les signaux pendant le rafraîchissement du menu déroulant
         self.trans_action_combo.blockSignals(True)
@@ -332,9 +346,23 @@ class PropertiesDock(QDockWidget):
             self.resets_layout.addWidget(cb)
             self.checkboxes_resets.append(cb)
 
+    def _on_source_changed(self, index):
+        new_source = self.trans_source_combo.currentText()
+        old_source = self.current_trans_source
+        target = self.current_trans_target
+        if new_source != old_source and new_source:
+            self.controller.change_transition_endpoint(old_source, target, new_source, target)
+
+    def _on_target_changed(self, index):
+        new_target = self.trans_target_combo.currentText()
+        source = self.current_trans_source
+        old_target = self.current_trans_target
+        if new_target != old_target and new_target:
+            self.controller.change_transition_endpoint(source, old_target, source, new_target)
+
     def _on_action_changed(self, new_action):
-        source_id = self.trans_source_field.text()
-        target_id = self.trans_target_field.text()
+        source_id = self.current_trans_source
+        target_id = self.current_trans_target
         if source_id and target_id:
             self.controller.update_transition_action(source_id, target_id, new_action)
 
@@ -365,8 +393,8 @@ class PropertiesDock(QDockWidget):
         self.controller.add_node_invariant(node_id, clock1, op, t_type, t_val, offset)
 
     def _on_add_guard(self, *args):
-        source_id = self.trans_source_field.text()
-        target_id = self.trans_target_field.text()
+        source_id = self.current_trans_source
+        target_id = self.current_trans_target
         clock1 = self.trans_guard_clock.currentText()
         op = self.trans_guard_op.currentText()
         clock2 = self.trans_guard_clock_target.currentText()
@@ -391,8 +419,8 @@ class PropertiesDock(QDockWidget):
         self.controller.add_transition_guard(source_id, target_id, clock1, op, t_type, t_val, offset)
 
     def _on_remove_guard(self, *args):
-        source_id = self.trans_source_field.text()
-        target_id = self.trans_target_field.text()
+        source_id = self.current_trans_source
+        target_id = self.current_trans_target
         current_row = self.guard_list_widget.currentRow()
         
         if source_id and target_id and current_row >= 0:
@@ -411,8 +439,8 @@ class PropertiesDock(QDockWidget):
             self.controller.handle_delete_node(node_id)
 
     def _on_delete_trans(self, *args):
-        source_id = self.trans_source_field.text()
-        target_id = self.trans_target_field.text()
+        source_id = self.current_trans_source
+        target_id = self.current_trans_target
         if source_id and target_id:
             self.controller.handle_delete_transition(source_id, target_id)
    
