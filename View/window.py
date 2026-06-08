@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QLabel, QToolButton, QHBoxLayout, QComboBox, QMenu, QInputDialog, QMessageBox
+from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QLabel, QToolButton, QHBoxLayout, QComboBox, QMenu, QInputDialog, QMessageBox, QDialog, QVBoxLayout, QTextBrowser, QPushButton
 from PySide6.QtGui import QAction, QKeySequence, QActionGroup, QIcon, QGuiApplication
 from PySide6.QtCore import Qt, QPoint
 
@@ -182,6 +182,9 @@ class MainWindow(QMainWindow):
         action_about = QAction("À propos", self)
         action_about.triggered.connect(self.show_about)
         menu_aide.addAction(action_about)
+        action_manual = QAction("Manuel d'utilisation", self)
+        action_manual.triggered.connect(self.show_user_manual)
+        menu_aide.addAction(action_manual)
 
     def update_actions_display(self, actions: list):
         self._clear_layout(self.actions_layout)
@@ -381,3 +384,96 @@ class MainWindow(QMainWindow):
             "<p>Projet COSMO - CILS 2025.</p>"
             "<p>Interface graphique pour modéliser, éditer et exporter des automates temporisés au format JSON.</p>"
         )
+
+    def show_user_manual(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Manuel d'Utilisation Détaillé - COSMO")
+        dialog.resize(800, 650)
+        
+        layout = QVBoxLayout(dialog)
+        
+        text_browser = QTextBrowser(dialog)
+        text_browser.setOpenExternalLinks(True)
+        
+        html_content = """
+        <style>
+            h2 { color: #0D99FF; border-bottom: 1px solid #CCCCCC; padding-bottom: 5px; }
+            h3 { color: #2C2C2C; margin-top: 15px; }
+            ul { margin-top: 5px; }
+            li { margin-bottom: 8px; }
+            .screenshot-placeholder { background-color: #E5F3FF; padding: 15px; border-left: 4px solid #0D99FF; margin: 15px 0; color: #0D99FF; font-style: italic; font-weight: bold; text-align: center;}
+        </style>
+
+        <h1>Manuel d'Utilisation - COSMO Editor</h1>
+        <p>Bienvenue dans l'éditeur graphique d'automates temporisés étendus par la donnée.</p>
+        
+        <div class="screenshot-placeholder">[Insérer capture d'écran 1 : Interface Globale (Toolbar, Canvas, Dock)]</div>
+
+        <h2>1. Modélisation Graphique</h2>
+        
+        <h3>1.1. Les Localités (États)</h3>
+        <ul>
+            <li><b>Création :</b> Activez l'outil <b>Nouvelle Localité</b> dans la barre d'outils, puis cliquez n'importe où sur l'espace de travail.</li>
+            <li><b>État Initial :</b> La première localité créée est automatiquement définie comme état initial (double bordure). Vous pouvez modifier l'état initial via le menu déroulant <b>Init :</b> situé dans la barre d'outils.</li>
+            <li><b>Déplacement & Suppression :</b> Cliquez et glissez pour déplacer. Pour supprimer, faites un clic droit (qui ouvre le panneau latéral) puis cliquez sur le bouton rouge <b>Supprimer la localité</b>.</li>
+        </ul>
+        <div class="screenshot-placeholder">[Insérer capture d'écran 2 : Création d'une localité et Menu Init]</div>
+
+        <h3>1.2. Les Transitions (Flèches)</h3>
+        <ul>
+            <li><b>Création :</b> Activez l'outil <b>Nouvelle Transition</b>. Cliquez sur la localité source.</li>
+            <li><b>Points de courbure (Clous) :</b> Avant de cliquer sur la cible, vous pouvez cliquer dans l'espace vide pour créer des trajectoires complexes en ajoutant des clous. Cliquez enfin sur la cible pour terminer.</li>
+            <li><b>Modification d'Extrémités :</b> Ouvrez les propriétés (clic droit sur la flèche) pour réassigner la source ou la cible via les menus déroulants.</li>
+            <li><b>Annulation :</b> Appuyez sur la touche <b>Échap</b> pendant la création pour annuler.</li>
+        </ul>
+        <div class="screenshot-placeholder">[Insérer capture d'écran 3 : Tracé d'une transition avec clous multiples]</div>
+
+        <h2>2. Déclarations et Propriétés</h2>
+
+        <h3>2.1. Déclaration Globale (Horloges & Actions)</h3>
+        <p>Dans la barre d'outils, cliquez sur le petit bouton <b>+</b> à côté de l'icône Horloge ou Action pour afficher la popup de saisie. Renseignez le nom et appuyez sur Entrée. Un <b>clic droit</b> sur le nom déclaré permet de le renommer ou de le supprimer.</p>
+        <div class="screenshot-placeholder">[Insérer capture d'écran 4 : Barre d'outils avec Horloges, Actions et la popup d'ajout]</div>
+
+        <h3>2.2. Ajout de Contraintes (Invariants & Gardes)</h3>
+        <p>Faites un <b>clic droit</b> sur un élément pour ouvrir le panneau latéral de propriétés à droite.</p>
+        <ul>
+            <li><b>Invariants (Localité) :</b> Sélectionnez l'horloge, l'opérateur (<=, >=, ==), puis choisissez de comparer avec une valeur constante (ex: <i>5</i>) ou une autre horloge (ex: <i>y + 2</i>). Cliquez sur le bouton <b>+</b> pour valider.</li>
+            <li><b>Gardes (Transition) :</b> Fonctionne exactement comme les invariants, mais s'applique à une transition.</li>
+            <li><b>Édition :</b> Double-cliquez sur une contrainte dans la liste pour réinjecter ses valeurs dans le formulaire et la modifier.</li>
+        </ul>
+        <div class="screenshot-placeholder">[Insérer capture d'écran 5 : Panneau latéral avec définition d'invariants et gardes]</div>
+
+        <h3>2.3. Resets et Actions de Transition</h3>
+        <ul>
+            <li><b>Action :</b> Dans les propriétés de la transition, associez une action déclarée via le menu déroulant "Action".</li>
+            <li><b>Resets :</b> Cochez simplement les horloges qui doivent être remises à zéro au franchissement de la transition. Le modèle s'actualise en temps réel.</li>
+        </ul>
+
+        <h2>3. L'Éditeur de Données Avancé (Bouton "Data")</h2>
+        <p>Cliquez sur le bouton <b>Data</b> pour ouvrir la fenêtre de configuration étendue.</p>
+        
+        <h3>3.1. Variable et Initialisation</h3>
+        <p>Dans le premier onglet, tapez librement vos déclarations de variables globales (ex: <i>int timer;</i>) et l'initialisation de l'automate (ex: <i>timer = 0;</i>).</p>
+        
+        <h3>3.2. Données Additionnelles (Alias & Structures)</h3>
+        <ul>
+            <li><b>Alias :</b> Cliquez sur le bouton <b>+</b> de la ligne Alias. Entrez le nom (ex: <i>MAX_VAL</i>) et validez. Remplissez ensuite sa valeur dans le champ dédié.</li>
+            <li><b>Structures :</b> Cliquez sur le <b>+</b> pour générer un bloc de définition de structure et y taper votre code C/C++.</li>
+        </ul>
+        <div class="screenshot-placeholder">[Insérer capture d'écran 6 : Fenêtre Data Editor ouverte sur l'onglet Alias et Structures]</div>
+
+        <h3>3.3. Actions (Update-functions & Contraintes DBM)</h3>
+        <p>L'onglet "Actions" crée automatiquement un sous-onglet pour chaque action déclarée dans le projet. Vous pouvez y associer des fonctions de mise à jour spécifiques (Update-functions) et écrire des contraintes matricielles manuelles.</p>
+        <div class="screenshot-placeholder">[Insérer capture d'écran 7 : Onglet Actions de la fenêtre Data Editor]</div>
+
+        """
+        
+        text_browser.setHtml(html_content)
+        
+        btn_close = QPushButton("Fermer")
+        btn_close.clicked.connect(dialog.accept)
+        
+        layout.addWidget(text_browser)
+        layout.addWidget(btn_close)
+        
+        dialog.exec()
