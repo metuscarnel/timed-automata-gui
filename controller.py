@@ -7,6 +7,7 @@ class MainController:
         self.model = model
         self.view = None
         self.editing_constraint_index = None # Stocke l'index de la contrainte en cours de modification
+        self.current_filepath = None
 
     def _get_active_transition_index(self, source_id, target_id):
         """Trouve l'index (multi-edges) de la transition actuellement sélectionnée."""
@@ -102,8 +103,10 @@ class MainController:
     def handle_new_file(self):
         print("Réinitialisation de buffer : Nouveau modèle vide créé.")
         self.model.clear()
+        self.current_filepath = None
         if self.view:
             self.view.refresh_graph_display()
+            self.view.update_window_title(self.current_filepath)
 
     def trigger_open_dialog(self):
         print("Ouverture de la boîte de dialogue.")
@@ -125,6 +128,8 @@ class MainController:
                     
                     # Rafraîchir la vue
                     self.view.refresh_graph_display()
+                    self.current_filepath = filepath
+                    self.view.update_window_title(self.current_filepath)
                 except Exception as e:
                     QMessageBox.critical(
                         self.view,
@@ -148,6 +153,8 @@ class MainController:
                 
                 self.model.export_to_json(filepath)
                 print(f"-> Automate sauvegardé avec succès dans : {filepath}")
+                self.current_filepath = filepath
+                self.view.update_window_title(self.current_filepath)
 
     def debug_print_model_instance(self):
         """Affiche les attributs de l'instance du modèle (loc_counter, data, etc.)"""

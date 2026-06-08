@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QLabel, QToolButton, QHBoxLayout, QComboBox, QMenu, QInputDialog, QMessageBox, QDialog, QVBoxLayout, QTextBrowser, QPushButton
 from PySide6.QtGui import QAction, QKeySequence, QActionGroup, QIcon, QGuiApplication
-from PySide6.QtCore import Qt, QPoint
+from PySide6.QtCore import Qt, QPoint, QFileInfo
 
 from .canvas import AutomataView
 from resources.icons import get_icons
@@ -14,6 +14,8 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.controller = controller
         
+        self.update_window_title(None)
+
         # Taille dynamique : 80% de l'écran principal et centrage automatique (Fiable sous Linux)
         screen = QGuiApplication.primaryScreen()
         screen_geom = screen.availableGeometry()
@@ -375,6 +377,13 @@ class MainWindow(QMainWindow):
         if dialog.exec():
             new_variables_data = dialog.get_data()
             self.controller.update_variables_data(new_variables_data)
+            
+    def update_window_title(self, filepath=None):
+        if filepath:
+            filename = QFileInfo(filepath).fileName()
+            self.setWindowTitle(f"{filename}")
+        else:
+            self.setWindowTitle("Untitled")
 
     def show_about(self):
         QMessageBox.about(
