@@ -9,7 +9,7 @@ class DataEditorDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Éditeur de Données")
         if parent:
-            self.resize(parent.size())
+            self.resize(int(parent.width() * 0.7), int(parent.height() * 0.7))
         else:
             self.resize(1000, 600)
 
