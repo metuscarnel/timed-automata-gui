@@ -8,12 +8,38 @@ Cet outil s'adresse principalement à la modélisation pour la vérification for
 
 ## Table des Matières
 
-- Fonctionnalités
 - Démarrage Rapide
+- Fonctionnalités
 - Manuel d'Utilisation
 - Architecture et Formats
 - Raccourcis Clavier
 - Dépannage
+
+## Démarrage Rapide
+
+### Prérequis
+- Python 3.10 ou supérieur
+- Unix
+
+### Installation
+
+
+1. **Créer un environnement virtuel** :
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate  # Sur Windows : venv\Scripts\activate
+   ```
+2. **Installer les dépendances** :
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### Lancer l'Application
+
+```bash
+python main.py
+```
+L'interface graphique s'ouvrira, vous présentant une zone de travail vierge prête à l'emploi.
 
 ## Fonctionnalités
 
@@ -33,35 +59,6 @@ Cet outil s'adresse principalement à la modélisation pour la vérification for
 
 - **Éditeur de données étendues** : Interface dédiée ("Data") pour définir des structures, alias, variables initiales et fonctions de mise à jour.
 
-## Démarrage Rapide
-
-### Prérequis
-- Python 3.10 ou supérieur
-- Linux
-
-### Installation
-
-1. **Cloner ou télécharger le dépôt** et se placer dans le répertoire `interface` :
-   ```bash
-   cd interface
-   ```
-2. **Créer un environnement virtuel** :
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # Sur Windows : venv\Scripts\activate
-   ```
-3. **Installer les dépendances** :
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-### Lancer l'Application
-
-```bash
-python main.py
-```
-L'interface graphique s'ouvrira, vous présentant une zone de travail vierge prête à l'emploi.
-
 ## 📖 Manuel d'Utilisation
 
 ### Créer votre premier automate
@@ -76,9 +73,9 @@ L'interface graphique s'ouvrira, vous présentant une zone de travail vierge pr�
 ## Architecture et Formats
 
 Le projet respecte scrupuleusement le patron de conception **MVC (Model-View-Controller)**, garantissant un code découplé et maintenable :
-- **Model** (`model.py`) : Gère les données de l'automate indépendamment de l'interface (CRUD).
+- **Model** (`model.py`) : Gère les données de l'automate indépendamment de l'interface.
 - **View** (`View/`) : Composants PySide6 gérant exclusivement l'affichage et les interactions utilisateur.
-- **Controller** (`controller.py`) : Orchestre les événements entre la vue et le modèle de manière stricte.
+- **Controller** (`controller.py`) : Orchestre les événements entre la vue et le modèle.
 
 ### Format de Données (JSON & DBM)
 Les modèles sont exportés en JSON. Les contraintes saisies humainement (ex: `x <= 5`) sont compilées en matrices **DBM** (`serial.py`) pour une compatibilité directe avec les outils de vérification formelle. À l'ouverture d'un fichier, l'opération inverse est effectuée pour restaurer l'affichage textuel dans l'interface de manière transparente.
