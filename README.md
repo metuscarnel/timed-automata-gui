@@ -73,7 +73,7 @@ L'interface graphique s'ouvrira, vous présentant une zone de travail vierge pr�
 
 *💡 Astuce : Vous pouvez annuler l'outil en cours d'utilisation en appuyant sur la touche `Échap`.*
 
-## 🏗️ Architecture et Formats
+## Architecture et Formats
 
 Le projet respecte scrupuleusement le patron de conception **MVC (Model-View-Controller)**, garantissant un code découplé et maintenable :
 - **Model** (`model.py`) : Gère les données de l'automate indépendamment de l'interface (CRUD).
@@ -83,7 +83,7 @@ Le projet respecte scrupuleusement le patron de conception **MVC (Model-View-Con
 ### Format de Données (JSON & DBM)
 Les modèles sont exportés en JSON. Les contraintes saisies humainement (ex: `x <= 5`) sont compilées en matrices **DBM** (`serial.py`) pour une compatibilité directe avec les outils de vérification formelle. À l'ouverture d'un fichier, l'opération inverse est effectuée pour restaurer l'affichage textuel dans l'interface de manière transparente.
 
-## ⌨️ Raccourcis Clavier
+## Raccourcis Clavier
 
 | Raccourci | Action |
 |---|---|
@@ -94,7 +94,7 @@ Les modèles sont exportés en JSON. Les contraintes saisies humainement (ex: `x
 | `Échap` | Annuler le mode de création en cours ou l'action en cours |
 | `Clic Droit` | Menu contextuel sur les labels ou forcer la sélection d'un élément graphique |
 
-## 🐛 Dépannage
+## Dépannage
 
 | Problème | Solution |
 |---|---|
