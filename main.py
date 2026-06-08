@@ -79,6 +79,11 @@ def main():
             background-color: #E0E0E0;
             border: 1px solid #CCCCCC;
         }
+        QToolButton#miniAddBtn {
+            padding: 2px;
+            font-size: 16px;
+            font-weight: bold;
+        }
         
         /* --- QComboBox (Menus déroulants Flat Design) --- */
         QComboBox {

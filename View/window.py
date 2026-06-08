@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QLabel, QToolButton, QHBoxLayout, QComboBox, QMenu, QInputDialog, QMessageBox
-from PySide6.QtGui import QAction, QKeySequence, QActionGroup, QIcon
+from PySide6.QtGui import QAction, QKeySequence, QActionGroup, QIcon, QGuiApplication
 from PySide6.QtCore import Qt, QPoint
 
 from .canvas import AutomataView
@@ -14,9 +14,14 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.controller = controller
         
-        # Taille dynamique : 80% de la résolution de l'écran disponible
-        screen_geom = self.screen().availableGeometry()
-        self.resize(int(screen_geom.width() * 0.8), int(screen_geom.height() * 0.8))
+        # Taille dynamique : 80% de l'écran principal et centrage automatique (Fiable sous Linux)
+        screen = QGuiApplication.primaryScreen()
+        screen_geom = screen.availableGeometry()
+        w = int(screen_geom.width() * 0.8)
+        h = int(screen_geom.height() * 0.8)
+        x = int(screen_geom.x() + (screen_geom.width() - w) / 2) #au milieu de l'écran
+        y = int(screen_geom.y() + (screen_geom.height() - h) / 2)
+        self.setGeometry(x, y, w, h)
         
         self.canvas = AutomataView()
         self.setCentralWidget(self.canvas)
@@ -117,7 +122,8 @@ class MainWindow(QMainWindow):
 
         add_btn = QToolButton()
         add_btn.setText("+")
-        add_btn.setFixedSize(24, 24)
+        add_btn.setFixedSize(28, 28)
+        add_btn.setObjectName("miniAddBtn")
         add_btn.clicked.connect(on_add_clicked)
         layout.addWidget(add_btn)
         

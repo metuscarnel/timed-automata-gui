@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import (QDialog, QVBoxLayout, QTabWidget, QWidget, QDialogButtonBox, QTextEdit, QHBoxLayout, QLabel, QToolButton, QScrollArea)
+from PySide6.QtWidgets import (QDialog, QVBoxLayout, QTabWidget, QWidget, QDialogButtonBox, QTextEdit, QHBoxLayout, QLabel, QToolButton, QScrollArea, QLineEdit, QComboBox)
 from PySide6.QtCore import QPoint, Qt
 
 from .popups import InlineAddPopup
@@ -76,6 +76,7 @@ class DataEditorDialog(QDialog):
         # --- Dictionnaires pour référencer les champs de textes dynamiques ---
         self.action_widgets = {}
         self.structure_widgets = {}
+        self.alias_widgets = {}
 
         # Layout principal de la boîte de dialogue
         main_layout = QVBoxLayout(self)
@@ -130,21 +131,31 @@ class DataEditorDialog(QDialog):
         self.layout_additional_data.addLayout(self.layout_define)
         
         # Section Alias
-        self.layout_alias = QVBoxLayout()
+        self.header_alias = QHBoxLayout()
         self.label_alias = QLabel("Alias")
-        self.content_alias = QTextEdit()
-        self.content_alias.setPlaceholderText("Alias...")
-        self.content_alias.setMinimumHeight(200)
-        self.layout_alias.addWidget(self.label_alias)
-        self.layout_alias.addWidget(self.content_alias)
-        self.layout_additional_data.addLayout(self.layout_alias)
+        self.btn_add_alias = QToolButton()
+        self.btn_add_alias.setText("+")
+        self.btn_add_alias.setFixedSize(28, 28)
+        self.btn_add_alias.setObjectName("miniAddBtn")
+        self.btn_add_alias.setToolTip("Ajouter un nouvel alias")
+        self.btn_add_alias.clicked.connect(self._show_add_alias_popup)
+        
+        self.header_alias.addWidget(self.label_alias)
+        self.header_alias.addStretch()
+        self.header_alias.addWidget(self.btn_add_alias)
+        self.layout_additional_data.addLayout(self.header_alias)
+        
+        self.layout_aliases_list = QVBoxLayout()
+        self.layout_aliases_list.setAlignment(Qt.AlignTop)
+        self.layout_additional_data.addLayout(self.layout_aliases_list)
 
         # Section Structures
         self.header_structures = QHBoxLayout()
         self.label_structures = QLabel("Structures")
         self.btn_add_structure = QToolButton()
         self.btn_add_structure.setText("+")
-        self.btn_add_structure.setFixedSize(24, 24)
+        self.btn_add_structure.setFixedSize(28, 28)
+        self.btn_add_structure.setObjectName("miniAddBtn")
         self.btn_add_structure.setToolTip("Ajouter une nouvelle structure")
         self.btn_add_structure.clicked.connect(self._show_add_structure_popup)
         
@@ -184,6 +195,16 @@ class DataEditorDialog(QDialog):
         btn_pos = self.btn_add_structure.mapToGlobal(QPoint(0, self.btn_add_structure.height()))
         popup.show_at(btn_pos)
 
+    def _show_add_alias_popup(self):
+        """Affiche la popup pour ajouter un alias."""
+        popup = InlineAddPopup(self)
+        popup.validated.connect(self._on_alias_added_from_popup)
+        btn_pos = self.btn_add_alias.mapToGlobal(QPoint(0, self.btn_add_alias.height()))
+        popup.show_at(btn_pos)
+
+    def _on_alias_added_from_popup(self, alias_name):
+        self._add_alias_to_list(alias_name)
+
     def _on_structure_added_from_popup(self, struct_name):
         self._add_structure_to_list(struct_name)
 
@@ -195,8 +216,14 @@ class DataEditorDialog(QDialog):
         define_list = data.get("definition", {}).get("define", [])
         self.content_define.setText("\n".join(define_list))
         
-        alias_data = data.get("definition", {}).get("typedef", {}).get("alias", [])
-        self.content_alias.setText("\n".join(alias_data) if isinstance(alias_data, list) else str(alias_data))
+        alias_data = data.get("definition", {}).get("typedef", {}).get("alias", {})
+        if isinstance(alias_data, dict):
+            for a_name, a_val in alias_data.items():
+                self._add_alias_to_list(a_name, str(a_val))
+        elif isinstance(alias_data, list):
+            # Rétrocompatibilité avec d'anciens fichiers où les alias auraient pu être une liste
+            for i, a_val in enumerate(alias_data):
+                self._add_alias_to_list(f"alias_{i}", str(a_val))
         
         structure_data = data.get("definition", {}).get("typedef", {}).get("structure", {})
         for struct_name, struct_content in structure_data.items():
@@ -247,8 +274,13 @@ class DataEditorDialog(QDialog):
     def get_data(self):
         """Extrait toutes les données saisies sous forme de dictionnaire."""
         define_text = self.content_define.toPlainText().strip()
-        alias_text = self.content_alias.toPlainText().strip()
         
+        alias_dict = {}
+        for a_name, a_widget in self.alias_widgets.items():
+            a_text = a_widget.text().strip()
+            if a_text:
+                alias_dict[a_name] = a_text
+
         variable_text = self.content_variable.toPlainText().strip()
         initialisation_text = self.content_initialisation.toPlainText().strip()
         
@@ -273,7 +305,7 @@ class DataEditorDialog(QDialog):
         return {
             "definition": {
                 "define": define_text.split('\n') if define_text else [],
-                "typedef": { "structure": structures_dict, "alias": alias_text.split('\n') if alias_text else [] }
+                "typedef": { "structure": structures_dict, "alias": alias_dict }
             },
             "init_variables": initialisation_text.split('\n') if initialisation_text else [],
             "update_functions": update_functions_dict,
@@ -300,3 +332,23 @@ class DataEditorDialog(QDialog):
         
         self.layout_structures_list.addWidget(struct_widget)
         self.structure_widgets[struct_name] = struct_textedit
+
+    def _add_alias_to_list(self, alias_name, content_text=""):
+        """Ajoute un alias sous forme clé-valeur sur une seule ligne."""
+        if alias_name in self.alias_widgets: 
+            return
+        
+        alias_widget = QWidget()
+        alias_layout = QHBoxLayout(alias_widget)
+        alias_layout.setContentsMargins(0, 0, 0, 0)
+        
+        alias_label = QLabel(f"{alias_name} :")
+        alias_lineedit = QLineEdit(self)
+        alias_lineedit.setPlaceholderText(f"Valeur pour {alias_name}...")
+        alias_lineedit.setText(content_text)
+        
+        alias_layout.addWidget(alias_label)
+        alias_layout.addWidget(alias_lineedit)
+        
+        self.layout_aliases_list.addWidget(alias_widget)
+        self.alias_widgets[alias_name] = alias_lineedit
