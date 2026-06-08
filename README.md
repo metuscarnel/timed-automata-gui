@@ -20,14 +20,13 @@ Cet outil s'adresse principalement à la modélisation pour la vérification for
 ### Prérequis
 - Python 3.10 ou supérieur
 - Unix
-
 ### Installation
 
 
 1. **Créer un environnement virtuel** :
    ```bash
    python3 -m venv venv
-   source venv/bin/activate  # Sur Windows : venv\Scripts\activate
+   source venv/bin/activate  
    ```
 2. **Installer les dépendances** :
    ```bash
