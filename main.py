@@ -61,14 +61,15 @@ def main():
         QToolBar {
             background-color: #FAFAFA;
             border-bottom: 1px solid #E5E5E5;
-            spacing: 8px;
-            padding: 4px;
+            spacing: 10px;
+            padding: 8px;
+            min-height: 40px;
         }
         QToolButton {
             background-color: transparent;
             border: 1px solid transparent;
             border-radius: 4px;
-            padding: 6px;
+            padding: 8px 12px;
         }
         QToolButton:hover {
             background-color: #EBEBEB;
