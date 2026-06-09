@@ -396,8 +396,30 @@ class MainWindow(QMainWindow):
 
     def show_user_manual(self):
         dialog = QDialog(self)
-        dialog.setWindowTitle("Manuel d'Utilisation Détaillé - COSMO")
+        dialog.setWindowTitle("Guide d'utilisation")
         dialog.resize(800, 650)
+        
+        dialog.setStyleSheet("""
+            QTextBrowser {
+                background-color: #FFFFFF;
+                color: #2C2C2C;
+                border: 1px solid #CCCCCC;
+                border-radius: 4px;
+                padding: 10px;
+            }
+            QPushButton {
+                background-color: #EBEBEB;
+                border: 1px solid #CCCCCC;
+                border-radius: 4px;
+                padding: 6px 16px;
+                color: #2C2C2C;
+                font-family: 'IBM Plex Mono';
+            }
+            QPushButton:hover {
+                background-color: #E0E0E0;
+                border: 1px solid #AAAAAA;
+            }
+        """)
         
         layout = QVBoxLayout(dialog)
         
@@ -406,74 +428,64 @@ class MainWindow(QMainWindow):
         
         html_content = """
         <style>
-            h2 { color: #0D99FF; border-bottom: 1px solid #CCCCCC; padding-bottom: 5px; }
+            body { font-family: 'IBM Plex Mono', monospace; font-size: 11pt; }
+            h2 { color: #2C2C2C; border-bottom: 1px solid #CCCCCC; padding-bottom: 5px; margin-top: 20px; }
             h3 { color: #2C2C2C; margin-top: 15px; }
             ul { margin-top: 5px; }
             li { margin-bottom: 8px; }
-            .screenshot-placeholder { background-color: #E5F3FF; padding: 15px; border-left: 4px solid #0D99FF; margin: 15px 0; color: #0D99FF; font-style: italic; font-weight: bold; text-align: center;}
+            .screenshot-placeholder { background-color: #EBEBEB; padding: 15px; border-left: 4px solid #AAAAAA; margin: 15px 0; color: #555555; font-style: italic; font-weight: bold; text-align: center;}
         </style>
 
-        <h1>Manuel d'Utilisation - COSMO Editor</h1>
+        <h1>Guide d'Utilisation</h1>
         <p>Bienvenue dans l'éditeur graphique d'automates temporisés étendus par la donnée.</p>
         
-        <div class="screenshot-placeholder">[Insérer capture d'écran 1 : Interface Globale (Toolbar, Canvas, Dock)]</div>
+        <div align="center"><img src="docs/main-window.png" width="700"></div>
 
-        <h2>1. Modélisation Graphique</h2>
+        <h2>1. Modélisation Graphique & Propriétés</h2>
         
-        <h3>1.1. Les Localités (États)</h3>
+        <h3>1.1. Les Localités (États) et Invariants</h3>
         <ul>
             <li><b>Création :</b> Activez l'outil <b>Nouvelle Localité</b> dans la barre d'outils, puis cliquez n'importe où sur l'espace de travail.</li>
             <li><b>État Initial :</b> La première localité créée est automatiquement définie comme état initial (double bordure). Vous pouvez modifier l'état initial via le menu déroulant <b>Init :</b> situé dans la barre d'outils.</li>
+            <li><b>Invariants :</b> Faites un <b>clic droit</b> sur la localité pour ouvrir le panneau latéral de propriétés. Choisissez l'horloge, l'opérateur (<=, >=, ==), puis choisissez de comparer avec une valeur constante ou une autre horloge. Cliquez sur le bouton <b>+</b> pour valider. Double-cliquez sur un invariant existant pour le modifier.</li>
             <li><b>Déplacement & Suppression :</b> Cliquez et glissez pour déplacer. Pour supprimer, faites un clic droit (qui ouvre le panneau latéral) puis cliquez sur le bouton rouge <b>Supprimer la localité</b>.</li>
         </ul>
-        <div class="screenshot-placeholder">[Insérer capture d'écran 2 : Création d'une localité et Menu Init]</div>
+        <div align="center"><img src="docs/node.png" width="700" alt="Localité et Invariants"></div>
 
-        <h3>1.2. Les Transitions (Flèches)</h3>
+        <h3>1.2. Les Transitions, Gardes et Actions</h3>
         <ul>
-            <li><b>Création :</b> Activez l'outil <b>Nouvelle Transition</b>. Cliquez sur la localité source.</li>
-            <li><b>Points de courbure (Clous) :</b> Avant de cliquer sur la cible, vous pouvez cliquer dans l'espace vide pour créer des trajectoires complexes en ajoutant des clous. Cliquez enfin sur la cible pour terminer.</li>
-            <li><b>Modification d'Extrémités :</b> Ouvrez les propriétés (clic droit sur la flèche) pour réassigner la source ou la cible via les menus déroulants.</li>
+            <li><b>Création :</b> Activez l'outil <b>Nouvelle Transition</b>. Cliquez sur la source, ajoutez des points de courbure (clous) en cliquant dans le vide si besoin, puis cliquez sur la cible.</li>
+            <li><b>Gardes :</b> Faites un <b>clic droit</b> sur la flèche pour ouvrir le panneau de propriétés. Ajoutez des conditions de franchissement (gardes) de la même manière que les invariants.</li>
+            <li><b>Actions & Resets :</b> Toujours dans les propriétés, associez une <b>Action</b> déclarée via le menu déroulant, et cochez les horloges à remettre à zéro (<b>Resets</b>) lors du franchissement.</li>
+            <li><b>Modification :</b> Réassignez facilement la source ou la cible via les menus déroulants en haut du panneau de propriétés.</li>
             <li><b>Annulation :</b> Appuyez sur la touche <b>Échap</b> pendant la création pour annuler.</li>
         </ul>
-        <div class="screenshot-placeholder">[Insérer capture d'écran 3 : Tracé d'une transition avec clous multiples]</div>
+        <div align="center"><img src="docs/transition.png" width="700" alt="Transition et Propriétés"></div>
 
-        <h2>2. Déclarations et Propriétés</h2>
-
-        <h3>2.1. Déclaration Globale (Horloges & Actions)</h3>
+        <h2>2. Déclarations Globales (Barre d'outils)</h2>
         <p>Dans la barre d'outils, cliquez sur le petit bouton <b>+</b> à côté de l'icône Horloge ou Action pour afficher la popup de saisie. Renseignez le nom et appuyez sur Entrée. Un <b>clic droit</b> sur le nom déclaré permet de le renommer ou de le supprimer.</p>
-        <div class="screenshot-placeholder">[Insérer capture d'écran 4 : Barre d'outils avec Horloges, Actions et la popup d'ajout]</div>
-
-        <h3>2.2. Ajout de Contraintes (Invariants & Gardes)</h3>
-        <p>Faites un <b>clic droit</b> sur un élément pour ouvrir le panneau latéral de propriétés à droite.</p>
-        <ul>
-            <li><b>Invariants (Localité) :</b> Sélectionnez l'horloge, l'opérateur (<=, >=, ==), puis choisissez de comparer avec une valeur constante (ex: <i>5</i>) ou une autre horloge (ex: <i>y + 2</i>). Cliquez sur le bouton <b>+</b> pour valider.</li>
-            <li><b>Gardes (Transition) :</b> Fonctionne exactement comme les invariants, mais s'applique à une transition.</li>
-            <li><b>Édition :</b> Double-cliquez sur une contrainte dans la liste pour réinjecter ses valeurs dans le formulaire et la modifier.</li>
-        </ul>
-        <div class="screenshot-placeholder">[Insérer capture d'écran 5 : Panneau latéral avec définition d'invariants et gardes]</div>
-
-        <h3>2.3. Resets et Actions de Transition</h3>
-        <ul>
-            <li><b>Action :</b> Dans les propriétés de la transition, associez une action déclarée via le menu déroulant "Action".</li>
-            <li><b>Resets :</b> Cochez simplement les horloges qui doivent être remises à zéro au franchissement de la transition. Le modèle s'actualise en temps réel.</li>
-        </ul>
+        <div align="center"><img src="docs/add-action.png" width="700" alt="Barre d'outils (Horloges et Actions)"></div>
+        <div align="center"><img src="docs/delete-action.png" width="700" alt="Barre d'outils (Horloges et Actions)"></div>
 
         <h2>3. L'Éditeur de Données Avancé (Bouton "Data")</h2>
         <p>Cliquez sur le bouton <b>Data</b> pour ouvrir la fenêtre de configuration étendue.</p>
         
         <h3>3.1. Variable et Initialisation</h3>
         <p>Dans le premier onglet, tapez librement vos déclarations de variables globales (ex: <i>int timer;</i>) et l'initialisation de l'automate (ex: <i>timer = 0;</i>).</p>
-        
-        <h3>3.2. Données Additionnelles (Alias & Structures)</h3>
-        <ul>
-            <li><b>Alias :</b> Cliquez sur le bouton <b>+</b> de la ligne Alias. Entrez le nom (ex: <i>MAX_VAL</i>) et validez. Remplissez ensuite sa valeur dans le champ dédié.</li>
-            <li><b>Structures :</b> Cliquez sur le <b>+</b> pour générer un bloc de définition de structure et y taper votre code C/C++.</li>
-        </ul>
-        <div class="screenshot-placeholder">[Insérer capture d'écran 6 : Fenêtre Data Editor ouverte sur l'onglet Alias et Structures]</div>
+        <div align="center"><img src="docs/data-variable.png" width="700" alt="Éditeur de données"></div>
 
-        <h3>3.3. Actions (Update-functions & Contraintes DBM)</h3>
+        <h3>3.2. Données Additionnelles (Define, Alias & Structures)</h3>
+        <p>Cet onglet centralise les définitions de types et macros C/C++ nécessaires à la logique de votre modèle :</p>
+        <ul>
+            <li><b>Define :</b> Un éditeur de texte libre pour saisir vos directives de préprocesseur et constantes globales (ex: <code>#define MAX_SIZE 100</code>).</li>
+            <li><b>Alias :</b> Cliquez sur le bouton <b>+</b> de la ligne Alias pour déclarer des équivalences de types (<i>typedef</i>) ou de valeurs. Entrez le nom (ex: <i>uint8</i>) puis sa définition dans le champ apparu.</li>
+            <li><b>Structures :</b> Cliquez sur le <b>+</b> pour nommer et générer un nouveau bloc de définition de structure de données (<code>struct</code>). Vous pouvez ensuite y taper le code C/C++ définissant ses champs internes.</li>
+        </ul>
+        <div align="center"><img src="docs/data-addi.png" width="700" alt="Éditeur de données"></div>
+
+        <h3>3.3. Actions (Update-functions & Contraintes)</h3>
         <p>L'onglet "Actions" crée automatiquement un sous-onglet pour chaque action déclarée dans le projet. Vous pouvez y associer des fonctions de mise à jour spécifiques (Update-functions) et écrire des contraintes matricielles manuelles.</p>
-        <div class="screenshot-placeholder">[Insérer capture d'écran 7 : Onglet Actions de la fenêtre Data Editor]</div>
+        <div align="center"><img src="docs/data-actions.png" width="700" alt="Actions Data Editor"></div>
 
         """
         
