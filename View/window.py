@@ -452,7 +452,7 @@ class MainWindow(QMainWindow):
         <ul>
             <li><b>Création :</b> Activez l'outil <b>Nouvelle Localité</b> dans la barre d'outils, puis cliquez n'importe où sur l'espace de travail.</li>
             <li><b>État Initial :</b> La première localité créée est automatiquement définie comme état initial (double bordure). Vous pouvez modifier l'état initial via le menu déroulant <b>Init :</b> situé dans la barre d'outils.</li>
-            <li><b>Invariants :</b> Faites un <b>clic droit</b> sur la localité pour ouvrir le panneau latéral de propriétés. Choisissez l'horloge, l'opérateur (<=, >=, ==), puis choisissez de comparer avec une valeur constante ou une autre horloge. Cliquez sur le bouton <b>+</b> pour valider. Double-cliquez sur un invariant existant pour le modifier.</li>
+            <li><b>Invariants :</b> Faites un <b>clic droit</b> sur la localité pour ouvrir le panneau latéral de propriétés. Choisissez l'horloge, l'opérateur (<=, >=, ==), une horloge et/ou une valeur constante. Cliquez sur le bouton <b>+</b> pour valider. Double-cliquez sur un invariant existant pour le modifier.</li>
             <li><b>Déplacement & Suppression :</b> Cliquez et glissez pour déplacer. Pour supprimer, faites un clic droit (qui ouvre le panneau latéral) puis cliquez sur le bouton rouge <b>Supprimer la localité</b>.</li>
         </ul>
         <p align="center"><img src="docs/node.png" alt="Localité et Invariants"></p>
@@ -472,24 +472,24 @@ class MainWindow(QMainWindow):
         <p align="center"><img src="docs/add-action.png" alt="Barre d'outils (Horloges et Actions)"></p>
         <p align="center"><img src="docs/delete-action.png"  alt="Barre d'outils (Horloges et Actions)"></p>
 
-        <h2>3. L'Éditeur de Données Avancé (Bouton "Data")</h2>
-        <p>Cliquez sur le bouton <b>Data</b> pour ouvrir la fenêtre de configuration étendue.</p>
+        <h2>3. L'Éditeur de Données (Bouton "Data")</h2>
+        <p>Cliquez sur le bouton <b>Data</b> pour ouvrir la fenêtre</p>
         
         <h3>3.1. Variable et Initialisation</h3>
-        <p>Dans le premier onglet, tapez librement vos déclarations de variables globales (ex: <i>int timer;</i>) et l'initialisation de l'automate (ex: <i>timer = 0;</i>).</p>
+        <p>Dans le premier onglet, tapez librement vos déclarations de variables globales (ex: <i>int timer;</i>) et l'initialisation de ces variables (ex: <i>timer = 0;</i>).</p>
         <p align="center"><img src="docs/data-variable.png"  alt="Éditeur de données"></p>
 
         <h3>3.2. Données Additionnelles (Define, Alias & Structures)</h3>
-        <p>Cet onglet centralise les définitions de types et macros C/C++ nécessaires à la logique de votre modèle :</p>
+        <p>Cet onglet centralise les définitions de types et macros C/C++</p>
         <ul>
             <li><b>Define :</b> Un éditeur de texte libre pour saisir vos directives de préprocesseur et constantes globales (ex: <code>#define MAX_SIZE 100</code>).</li>
-            <li><b>Alias :</b> Cliquez sur le bouton <b>+</b> de la ligne Alias pour déclarer des équivalences de types (<i>typedef</i>) ou de valeurs. Entrez le nom (ex: <i>uint8</i>) puis sa définition dans le champ apparu.</li>
-            <li><b>Structures :</b> Cliquez sur le <b>+</b> pour nommer et générer un nouveau bloc de définition de structure de données (<code>struct</code>). Vous pouvez ensuite y taper le code C/C++ définissant ses champs internes.</li>
+            <li><b>Alias :</b> Cliquez sur le bouton <b>+</b> de la ligne Alias pour ajouter un nouvel alias. Entrez le nom (ex: <i>uint8</i>) puis sa définition dans le champ apparu.</li>
+            <li><b>Structures :</b> Cliquez sur le <b>+</b> pour nommer et générer un nouveau bloc de définition de structure de structure (<code>struct</code>). Vous pouvez ensuite y taper le code C/C++ correspondant.</li>
         </ul>
         <p align="center"><img src="docs/data-addi.png" alt="Éditeur de données additionnelles"></p>
 
-        <h3>3.3. Actions (Update-functions & Contraintes)</h3>
-        <p>L'onglet "Actions" crée automatiquement un sous-onglet pour chaque action déclarée dans le projet. Vous pouvez y associer des fonctions de mise à jour spécifiques (Update-functions) et écrire des contraintes matricielles manuelles.</p>
+        <h3>3.3. Actions (Update functions & Contraintes)</h3>
+        <p>L'onglet "Actions" crée automatiquement un sous-onglet pour chaque action du modèle. Vous pouvez y associer des fonctions de mise à jour spécifiques (Update functions) et écrire des contraintes.</p>
         <p align="center"><img src="docs/data-actions.png" width="70%" alt="Actions Data Editor"></p>
 
         <h2>4. Menus et Raccourcis Clavier</h2>
