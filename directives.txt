@@ -1,5 +1,0 @@
-Pouvoir modifier la source et la cible d'une transition dans le properties_dock afficher donc un lenu deroulant 
-au niveau des localités source et cibles et permettre d'en selectionner d'autres et modifier la vue en consequence, ainsi que le contenu du modele. 
-
-
-Manger

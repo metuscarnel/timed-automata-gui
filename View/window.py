@@ -171,7 +171,7 @@ class MainWindow(QMainWindow):
         menu_fichier.addAction(action_save)
         
         menu_fichier.addSeparator()
-        menu_fichier.addAction(action_debug)
+        #menu_fichier.addAction(action_debug)
         menu_fichier.addSeparator()
         action_quit = QAction("Quitter", self)
         action_quit.setShortcut(QKeySequence.Quit)
@@ -397,7 +397,8 @@ class MainWindow(QMainWindow):
     def show_user_manual(self):
         dialog = QDialog(self)
         dialog.setWindowTitle("Guide d'utilisation")
-        dialog.resize(800, 650)
+        dialog.resize(super().width() * 0.8, super().height() * 0.8)  # Taille initiale de la fenêtre (70% de la taille du parent)
+        
         
         dialog.setStyleSheet("""
             QTextBrowser {
@@ -433,13 +434,17 @@ class MainWindow(QMainWindow):
             h3 { color: #2C2C2C; margin-top: 15px; }
             ul { margin-top: 5px; }
             li { margin-bottom: 8px; }
+            img {
+                max-width: 100%;
+                height: auto;
+            }
             .screenshot-placeholder { background-color: #EBEBEB; padding: 15px; border-left: 4px solid #AAAAAA; margin: 15px 0; color: #555555; font-style: italic; font-weight: bold; text-align: center;}
         </style>
 
         <h1>Guide d'Utilisation</h1>
         <p>Bienvenue dans l'éditeur graphique d'automates temporisés étendus par la donnée.</p>
         
-        <div align="center"><img src="docs/main-window.png" width="700"></div>
+        <p align="center"><img src="docs/main-window.png"></p>
 
         <h2>1. Modélisation Graphique & Propriétés</h2>
         
@@ -450,7 +455,7 @@ class MainWindow(QMainWindow):
             <li><b>Invariants :</b> Faites un <b>clic droit</b> sur la localité pour ouvrir le panneau latéral de propriétés. Choisissez l'horloge, l'opérateur (<=, >=, ==), puis choisissez de comparer avec une valeur constante ou une autre horloge. Cliquez sur le bouton <b>+</b> pour valider. Double-cliquez sur un invariant existant pour le modifier.</li>
             <li><b>Déplacement & Suppression :</b> Cliquez et glissez pour déplacer. Pour supprimer, faites un clic droit (qui ouvre le panneau latéral) puis cliquez sur le bouton rouge <b>Supprimer la localité</b>.</li>
         </ul>
-        <div align="center"><img src="docs/node.png" width="700" alt="Localité et Invariants"></div>
+        <p align="center"><img src="docs/node.png" alt="Localité et Invariants"></p>
 
         <h3>1.2. Les Transitions, Gardes et Actions</h3>
         <ul>
@@ -460,19 +465,19 @@ class MainWindow(QMainWindow):
             <li><b>Modification :</b> Réassignez facilement la source ou la cible via les menus déroulants en haut du panneau de propriétés.</li>
             <li><b>Annulation :</b> Appuyez sur la touche <b>Échap</b> pendant la création pour annuler.</li>
         </ul>
-        <div align="center"><img src="docs/transition.png" width="700" alt="Transition et Propriétés"></div>
+        <p align="center"><img src="docs/transition.png" alt="Transition et Propriétés"></p>
 
         <h2>2. Déclarations Globales (Barre d'outils)</h2>
         <p>Dans la barre d'outils, cliquez sur le petit bouton <b>+</b> à côté de l'icône Horloge ou Action pour afficher la popup de saisie. Renseignez le nom et appuyez sur Entrée. Un <b>clic droit</b> sur le nom déclaré permet de le renommer ou de le supprimer.</p>
-        <div align="center"><img src="docs/add-action.png" width="700" alt="Barre d'outils (Horloges et Actions)"></div>
-        <div align="center"><img src="docs/delete-action.png" width="700" alt="Barre d'outils (Horloges et Actions)"></div>
+        <p align="center"><img src="docs/add-action.png" alt="Barre d'outils (Horloges et Actions)"></p>
+        <p align="center"><img src="docs/delete-action.png"  alt="Barre d'outils (Horloges et Actions)"></p>
 
         <h2>3. L'Éditeur de Données Avancé (Bouton "Data")</h2>
         <p>Cliquez sur le bouton <b>Data</b> pour ouvrir la fenêtre de configuration étendue.</p>
         
         <h3>3.1. Variable et Initialisation</h3>
         <p>Dans le premier onglet, tapez librement vos déclarations de variables globales (ex: <i>int timer;</i>) et l'initialisation de l'automate (ex: <i>timer = 0;</i>).</p>
-        <div align="center"><img src="docs/data-variable.png" width="700" alt="Éditeur de données"></div>
+        <p align="center"><img src="docs/data-variable.png"  alt="Éditeur de données"></p>
 
         <h3>3.2. Données Additionnelles (Define, Alias & Structures)</h3>
         <p>Cet onglet centralise les définitions de types et macros C/C++ nécessaires à la logique de votre modèle :</p>
@@ -481,11 +486,37 @@ class MainWindow(QMainWindow):
             <li><b>Alias :</b> Cliquez sur le bouton <b>+</b> de la ligne Alias pour déclarer des équivalences de types (<i>typedef</i>) ou de valeurs. Entrez le nom (ex: <i>uint8</i>) puis sa définition dans le champ apparu.</li>
             <li><b>Structures :</b> Cliquez sur le <b>+</b> pour nommer et générer un nouveau bloc de définition de structure de données (<code>struct</code>). Vous pouvez ensuite y taper le code C/C++ définissant ses champs internes.</li>
         </ul>
-        <div align="center"><img src="docs/data-addi.png" width="700" alt="Éditeur de données"></div>
+        <p align="center"><img src="docs/data-addi.png" alt="Éditeur de données additionnelles"></p>
 
         <h3>3.3. Actions (Update-functions & Contraintes)</h3>
         <p>L'onglet "Actions" crée automatiquement un sous-onglet pour chaque action déclarée dans le projet. Vous pouvez y associer des fonctions de mise à jour spécifiques (Update-functions) et écrire des contraintes matricielles manuelles.</p>
-        <div align="center"><img src="docs/data-actions.png" width="700" alt="Actions Data Editor"></div>
+        <p align="center"><img src="docs/data-actions.png" width="70%" alt="Actions Data Editor"></p>
+
+        <h2>4. Menus et Raccourcis Clavier</h2>
+        
+        <h3>4.1. Menu Fichier</h3>
+        <p align="center"><img src="docs/menu-file.png" alt="Menu Fichier"></p>
+        
+        <ul>
+            <li><b>Nouveau (Ctrl+N / Cmd+N) :</b> Crée un nouveau modèle vierge.</li>
+            <li><b>Ouvrir (Ctrl+O / Cmd+O) :</b> Charge un modèle existant au format JSON.</li>
+            <li><b>Sauvegarder (Ctrl+S / Cmd+S) :</b> Enregistre votre modèle actuel au format JSON.</li>
+            <li><b>Quitter (Ctrl+Q / Cmd+Q) :</b> Ferme l'application.</li>
+        </ul>
+
+        <h3>4.2. Menu Aide</h3>
+        <p align="center"><img src="docs/menu-help.png" alt="Menu Aide"></p>
+
+        <ul>
+            <li><b>À propos :</b> Affiche une brève description de l'outil.</li>
+            <li><b>Manuel d'utilisation :</b> Ouvre ce guide d'utilisation.</li>
+        </ul>
+
+            <h3>4.3. Autres Actions</h3>
+            <ul>
+                <li><b>Échap :</b> Annule le mode de création en cours (utile si vous avez commencé à tracer une transition et souhaitez l'annuler).</li>
+                <li><b>Clic Droit :</b> Ouvre le panneau des propriétés de l'élément survolé (Localité ou Transition) ou annule l'outil de création en cours.</li>
+            </ul>
 
         """
         

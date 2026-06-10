@@ -96,6 +96,6 @@ Les modèles sont exportés en JSON. Les contraintes saisies humainement (ex: `x
 |---|---|
 | **L'application ne démarre pas** | Vérifiez que le module `PySide6` est bien installé (`pip install -r requirements.txt`) et que votre version de Python est ≥ 3.10. |
 | **Impossible d'ajouter un nœud/flèche** | Vérifiez que l'outil correspondant est bien en surbrillance dans la barre d'outils en haut de la fenêtre. |
-| **Erreur lors du chargement JSON** | Assurez-vous que le fichier a été généré par cet outil. Les matrices DBM mal formées ou les fichiers altérés manuellement peuvent bloquer l'importation. |
+
 
 ---
