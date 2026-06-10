@@ -93,7 +93,8 @@ class AutomataView(QGraphicsView):
                 if trans.id == trans_id:
                     t = trans
                     break
-            if t: break
+            if t: 
+                break
             
         if t:
             # Détache des références
@@ -141,7 +142,8 @@ class AutomataView(QGraphicsView):
 
         new_source_node = self.nodes.get(new_source_id)
         new_target_node = self.nodes.get(new_target_id)
-        if not new_source_node or not new_target_node: return
+        if not new_source_node or not new_target_node: 
+            return
 
         old_target_node = t.target
         source_node = t.source

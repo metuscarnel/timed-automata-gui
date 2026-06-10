@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import (QDialog, QVBoxLayout, QTabWidget, QWidget, QDialogButtonBox, QTextEdit, QHBoxLayout, QLabel, QToolButton, QScrollArea, QLineEdit, QComboBox)
+from PySide6.QtWidgets import QDialog, QVBoxLayout, QTabWidget, QWidget, QDialogButtonBox, QTextEdit, QHBoxLayout, QLabel, QToolButton, QScrollArea, QLineEdit
 from PySide6.QtCore import QPoint, Qt
 
 from .popups import InlineAddPopup
