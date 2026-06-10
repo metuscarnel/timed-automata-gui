@@ -9,28 +9,6 @@ class MainController:
         self.editing_constraint_index = None # Stocke l'index de la contrainte en cours de modification
         self.current_filepath = None
 
-    def _get_active_transition_index(self, source_id, target_id):
-        """Trouve l'index (multi-edges) de la transition actuellement sélectionnée."""
-        if not self.view or not hasattr(self.view, 'canvas'):
-            return 0
-        selected = self.view.canvas.scene.selectedItems()
-        if not selected: 
-            return 0
-        
-        item = selected[0]
-        # Si c'est un clou (NailItem), remonter à la transition
-        if hasattr(item, 'transition'):
-            item = item.transition
-            
-        if hasattr(item, 'source') and hasattr(item, 'target'):
-            if item.source.id == source_id and item.target.id == target_id:
-                same_dir = [t for t in item.source.transitions if t.target.id == target_id]
-                try:
-                    return same_dir.index(item)
-                except ValueError:
-                    pass
-        return 0
-
     def set_view(self, view):
         self.view = view
         # Connexion dynamique aux signaux de suppression de la scène graphique
@@ -60,9 +38,9 @@ class MainController:
 
     def handle_transition_created(self, source_id, target_id, nails_pos):
         """Gère la création effective d'une transition après validation par la Vue."""
-        self.model.add_transition(source_id, target_id, nails_pos)
-        self.view.canvas.draw_transition(source_id, target_id, nails_pos)
-        print(f"Transition créée de {source_id} à {target_id} avec {len(nails_pos)} clous")
+        trans_id = self.model.add_transition(source_id, target_id, nails_pos)
+        self.view.canvas.draw_transition(trans_id, source_id, target_id, nails_pos)
+        print(f"Transition créée de {source_id} à {target_id} avec {len(nails_pos)} clous (ID: {trans_id})")
 
     def handle_add_transition(self, checked=False):
         print(f"Bouton Transition cliqué (Actif: {checked})")
@@ -180,9 +158,8 @@ class MainController:
             available_clocks = self.model.data.get("clocks", [])
             self.view.properties_dock.show_node_props(node_id, node_data, available_clocks)
 
-    def handle_transition_selected(self, source_id, target_id):
-        print(f"Transition sélectionnée : {source_id} -> {target_id}")
-        trans_index = self._get_active_transition_index(source_id, target_id)
+    def handle_transition_selected(self, trans_id):
+        print(f"Transition sélectionnée : {trans_id}")
         # Réinitialiser le mode d'édition si on change de sélection
         self.editing_constraint_index = None
         if self.view and hasattr(self.view, 'properties_dock') and hasattr(self.view.properties_dock, 'btn_add_guard'):
@@ -190,8 +167,10 @@ class MainController:
             
         if self.view and hasattr(self.view, 'properties_dock'):
             # Trouver les données de la transition
-            matching = [t for t in self.model.data["transitions"] if t["source"] == source_id and t["target"] == target_id]
-            trans_data = matching[trans_index] if trans_index < len(matching) else {}
+            trans_data = self.model.get_transition(trans_id)
+            if not trans_data: return
+            source_id = trans_data["source"]
+            target_id = trans_data["target"]
             available_actions = self.model.data.get("actions", [])
             available_clocks = self.model.data.get("clocks", [])
             available_locations = list(self.model.data["locations"].keys())
@@ -211,13 +190,12 @@ class MainController:
                 cb.blockSignals(False)
                 
                 # Connexion à l'étape 2 pour que le modèle soit mis à jour instantanément au clic
-                cb.stateChanged.connect(lambda state, s=source_id, t=target_id: self.update_transition_resets(s, t))
+                cb.stateChanged.connect(lambda state, tid=trans_id: self.update_transition_resets(tid))
                 
-            self.view.properties_dock.show_transition_props(source_id, target_id, trans_data, available_actions, available_clocks, available_locations)
+            self.view.properties_dock.show_transition_props(trans_id, source_id, target_id, trans_data, available_actions, available_clocks, available_locations)
 
     # 2. Étape 2 : Méthode appelée lors de la validation/sauvegarde de la transition (ou instantanément)
-    def update_transition_resets(self, source_id, target_id):
-        trans_index = self._get_active_transition_index(source_id, target_id)
+    def update_transition_resets(self, trans_id):
         # Initialisation de la liste vide
         selected_resets = []
         
@@ -228,23 +206,21 @@ class MainController:
                 if cb.isChecked():
                     selected_resets.append(cb.text())
                     
-        matching = [t for t in self.model.data["transitions"] if t["source"] == source_id and t["target"] == target_id]
-        if trans_index < len(matching):
-            matching[trans_index]["resets"] = selected_resets
+        t = self.model.get_transition(trans_id)
+        if t:
+            t["resets"] = selected_resets
 
-    def update_transition_action(self, source_id, target_id, new_action):
-        print(f"Action {new_action} assignée à la transition {source_id}->{target_id}")
-        trans_index = self._get_active_transition_index(source_id, target_id)
-        self.model.update_transition_action(source_id, target_id, new_action, trans_index)
+    def update_transition_action(self, trans_id, new_action):
+        print(f"Action {new_action} assignée à la transition {trans_id}")
+        self.model.update_transition_action(trans_id, new_action)
 
     def update_node_position(self, node_id, x, y):
         print(f"Localité {node_id} déplacée en ({x}, {y})")
         self.model.update_node_position(node_id, x, y)
 
-    def update_nail_position(self, source_id, target_id, nail_index, x, y):
-        print(f"Clou n°{nail_index} de {source_id}->{target_id} déplacé en ({x}, {y})")
-        trans_index = self._get_active_transition_index(source_id, target_id)
-        self.model.update_nail_position(source_id, target_id, nail_index, x, y, trans_index)
+    def update_nail_position(self, trans_id, nail_index, x, y):
+        print(f"Clou n°{nail_index} de {trans_id} déplacé en ({x}, {y})")
+        self.model.update_nail_position(trans_id, nail_index, x, y)
 
     @staticmethod
     def is_constraint_equivalent(new_c, existing_c):
@@ -303,14 +279,12 @@ class MainController:
         # Rafraîchir la vue en simulant une nouvelle sélection
         self.handle_node_selected(node_id)
 
-    def add_transition_guard(self, source_id, target_id, clock, operator, target_type, target_value, offset=0):
-        trans_index = self._get_active_transition_index(source_id, target_id)
-        print(f"Ajout de la garde {clock} {operator} {target_value} ({target_type}, offset={offset}) à la transition {source_id}->{target_id}")
+    def add_transition_guard(self, trans_id, clock, operator, target_type, target_value, offset=0):
+        print(f"Ajout de la garde {clock} {operator} {target_value} ({target_type}, offset={offset}) à la transition {trans_id}")
         
         # --- Validation anti-doublon logique ---
         new_c = {'clock': clock, 'operator': operator, 'type': target_type, 'value': target_value, 'offset': offset}
-        matching = [t for t in self.model.data["transitions"] if t["source"] == source_id and t["target"] == target_id]
-        trans_data = matching[trans_index] if trans_index < len(matching) else {}
+        trans_data = self.model.get_transition(trans_id) or {}
         existing_guards = trans_data.get("guards", [])
         
         for i, existing_c in enumerate(existing_guards):
@@ -323,21 +297,20 @@ class MainController:
 
         # Si on est en mode édition, on supprime l'ancienne contrainte d'abord
         if self.editing_constraint_index is not None:
-            self.model.remove_transition_guard(source_id, target_id, self.editing_constraint_index, trans_index)
+            self.model.remove_transition_guard(trans_id, self.editing_constraint_index)
             self.editing_constraint_index = None
             if hasattr(self.view.properties_dock, 'btn_add_guard'):
                 self.view.properties_dock.btn_add_guard.setText("+")
                 
-        self.model.add_transition_guard(source_id, target_id, clock, operator, target_type, target_value, offset, trans_index)
+        self.model.add_transition_guard(trans_id, clock, operator, target_type, target_value, offset)
         # Rafraîchir la vue en simulant une nouvelle sélection de la flèche
-        self.handle_transition_selected(source_id, target_id)
+        self.handle_transition_selected(trans_id)
 
-    def remove_transition_guard(self, source_id, target_id, index):
-        print(f"[Controller] Suppression de la garde index {index} pour la transition {source_id}->{target_id}")
-        trans_index = self._get_active_transition_index(source_id, target_id)
-        self.model.remove_transition_guard(source_id, target_id, index, trans_index)
+    def remove_transition_guard(self, trans_id, index):
+        print(f"[Controller] Suppression de la garde index {index} pour la transition {trans_id}")
+        self.model.remove_transition_guard(trans_id, index)
         # Rafraîchir la vue en simulant une nouvelle sélection
-        self.handle_transition_selected(source_id, target_id)
+        self.handle_transition_selected(trans_id)
         
     def handle_constraint_double_click(self, item):
         """Gère le double-clic sur une contrainte dans le Dock pour la réinjecter et l'éditer."""
@@ -362,10 +335,8 @@ class MainController:
         elif is_trans:
             idx = dock.guard_list_widget.currentRow()
             if idx >= 0:
-                src, tgt = dock.current_trans_source, dock.current_trans_target
-                trans_index = self._get_active_transition_index(src, tgt)
-                matching = [t for t in self.model.data["transitions"] if t["source"] == src and t["target"] == tgt]
-                trans_data = matching[trans_index] if trans_index < len(matching) else {}
+                trans_id = dock.current_trans_id
+                trans_data = self.model.get_transition(trans_id) or {}
                 guards = trans_data.get("guards", [])
                 if idx < len(guards):
                     constraint_data = guards[idx]
@@ -400,23 +371,22 @@ class MainController:
         elif is_trans and hasattr(dock, 'btn_add_guard'):
             dock.btn_add_guard.setText("Modif")
 
-    def handle_delete_transition(self, source_id, target_id):
-        trans_index = self._get_active_transition_index(source_id, target_id)
-        print(f"Demande de suppression de la transition {source_id}->{target_id}")
-        self.model.remove_transition(source_id, target_id, trans_index)
+    def handle_delete_transition(self, trans_id):
+        print(f"Demande de suppression de la transition {trans_id}")
+        self.model.remove_transition(trans_id)
         if self.view:
-            self.view.canvas.remove_transition_visual(source_id, target_id, trans_index)
+            self.view.canvas.remove_transition_visual(trans_id)
             self.handle_selection_cleared()
 
     def handle_delete_node(self, node_id):
         print(f"Demande de suppression de la localité {node_id} (Cascade activée)")
         # 1. Identifier et supprimer en cascade les transitions liées
         transitions_to_delete = [
-            (t["source"], t["target"]) for t in self.model.data["transitions"]
+            t["id"] for t in self.model.data["transitions"]
             if t["source"] == node_id or t["target"] == node_id
         ]
-        for src, tgt in transitions_to_delete:
-            self.handle_delete_transition(src, tgt)
+        for tid in transitions_to_delete:
+            self.handle_delete_transition(tid)
 
         # 2. Supprimer le nœud lui-même
         self.model.remove_node(node_id)
@@ -424,17 +394,16 @@ class MainController:
             self.view.canvas.remove_node_visual(node_id)
             self.handle_selection_cleared()
 
-    def change_transition_endpoint(self, old_source, old_target, new_source, new_target):
-        trans_index = self._get_active_transition_index(old_source, old_target)
-        print(f"Modification de la transition: {old_source}->{old_target} vers {new_source}->{new_target}")
+    def change_transition_endpoint(self, trans_id, new_source, new_target):
+        print(f"Modification de la transition {trans_id} vers {new_source}->{new_target}")
         
         # 1. Update Model
-        self.model.change_transition_endpoint(old_source, old_target, new_source, new_target, trans_index)
+        self.model.change_transition_endpoint(trans_id, new_source, new_target)
 
         # 2. Update View (Canvas)
         if self.view:
-            self.view.canvas.change_transition_endpoints_visual(old_source, old_target, trans_index, new_source, new_target)
-            self.handle_transition_selected(new_source, new_target)
+            self.view.canvas.change_transition_endpoints_visual(trans_id, new_source, new_target)
+            self.handle_transition_selected(trans_id)
 
     def handle_edit_inv(self,node_id):
         print(f"demande de modification d'un invariant de {node_id}")
@@ -479,9 +448,9 @@ class MainController:
                 return
             item = selected_items[0]
             
-            if hasattr(item, 'id'):
-                self.handle_node_selected(item.id)
-            elif hasattr(item, 'source') and hasattr(item, 'target'):
-                self.handle_transition_selected(item.source.id, item.target.id)
+            if hasattr(item, 'source') and hasattr(item, 'target'): # TransitionItem
+                self.handle_transition_selected(item.id)
             elif hasattr(item, 'transition'):
-                self.handle_transition_selected(item.transition.source.id, item.transition.target.id)
+                self.handle_transition_selected(item.transition.id)
+            elif hasattr(item, 'id'): # NodeItem
+                self.handle_node_selected(item.id)

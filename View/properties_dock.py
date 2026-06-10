@@ -6,6 +6,7 @@ class PropertiesDock(QDockWidget):
     def __init__(self, controller):
         super().__init__("Propriétés de l'élément")
         self.controller = controller
+        self.current_trans_id = None
         self.current_trans_source = None
         self.current_trans_target = None
         self.setAllowedAreas(Qt.RightDockWidgetArea)
@@ -239,7 +240,8 @@ class PropertiesDock(QDockWidget):
         self.stacked_widget.setCurrentWidget(self.node_panel)
         self.show()
 
-    def show_transition_props(self, source_id, target_id, data, available_actions, available_clocks, available_locations):
+    def show_transition_props(self, trans_id, source_id, target_id, data, available_actions, available_clocks, available_locations):
+        self.current_trans_id = trans_id
         self.current_trans_source = source_id
         self.current_trans_target = target_id
 
@@ -348,23 +350,17 @@ class PropertiesDock(QDockWidget):
 
     def _on_source_changed(self, index):
         new_source = self.trans_source_combo.currentText()
-        old_source = self.current_trans_source
-        target = self.current_trans_target
-        if new_source != old_source and new_source:
-            self.controller.change_transition_endpoint(old_source, target, new_source, target)
+        if new_source != self.current_trans_source and new_source:
+            self.controller.change_transition_endpoint(self.current_trans_id, new_source, self.current_trans_target)
 
     def _on_target_changed(self, index):
         new_target = self.trans_target_combo.currentText()
-        source = self.current_trans_source
-        old_target = self.current_trans_target
-        if new_target != old_target and new_target:
-            self.controller.change_transition_endpoint(source, old_target, source, new_target)
+        if new_target != self.current_trans_target and new_target:
+            self.controller.change_transition_endpoint(self.current_trans_id, self.current_trans_source, new_target)
 
     def _on_action_changed(self, new_action):
-        source_id = self.current_trans_source
-        target_id = self.current_trans_target
-        if source_id and target_id:
-            self.controller.update_transition_action(source_id, target_id, new_action)
+        if self.current_trans_id:
+            self.controller.update_transition_action(self.current_trans_id, new_action)
 
 
     def _on_add_invariant(self, *args):
@@ -393,16 +389,14 @@ class PropertiesDock(QDockWidget):
         self.controller.add_node_invariant(node_id, clock1, op, t_type, t_val, offset)
 
     def _on_add_guard(self, *args):
-        source_id = self.current_trans_source
-        target_id = self.current_trans_target
+        if not self.current_trans_id or self.trans_guard_clock.currentText() == "Aucune":
+            return
+            
         clock1 = self.trans_guard_clock.currentText()
         op = self.trans_guard_op.currentText()
         clock2 = self.trans_guard_clock_target.currentText()
         val_text = self.trans_guard_value.text().strip()
         
-        if not source_id or not target_id or clock1 == "Aucune":
-            return
-            
         offset_val = int(val_text) if val_text else 0
         
         if clock2 == "---":
@@ -416,15 +410,13 @@ class PropertiesDock(QDockWidget):
             t_val = clock2
             offset = offset_val
             
-        self.controller.add_transition_guard(source_id, target_id, clock1, op, t_type, t_val, offset)
+        self.controller.add_transition_guard(self.current_trans_id, clock1, op, t_type, t_val, offset)
 
     def _on_remove_guard(self, *args):
-        source_id = self.current_trans_source
-        target_id = self.current_trans_target
         current_row = self.guard_list_widget.currentRow()
         
-        if source_id and target_id and current_row >= 0:
-            self.controller.remove_transition_guard(source_id, target_id, current_row)
+        if self.current_trans_id and current_row >= 0:
+            self.controller.remove_transition_guard(self.current_trans_id, current_row)
 
     def _on_remove_invariant(self, *args):
         node_id = self.node_id_field.text()
@@ -439,10 +431,8 @@ class PropertiesDock(QDockWidget):
             self.controller.handle_delete_node(node_id)
 
     def _on_delete_trans(self, *args):
-        source_id = self.current_trans_source
-        target_id = self.current_trans_target
-        if source_id and target_id:
-            self.controller.handle_delete_transition(source_id, target_id)
+        if self.current_trans_id:
+            self.controller.handle_delete_transition(self.current_trans_id)
    
 
     def _on_edit_invariant(self, item):

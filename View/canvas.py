@@ -12,15 +12,15 @@ class AutomataView(QGraphicsView):
     # Signaux pour le Dock de propriétés
     selection_cleared = Signal()
     node_selected = Signal(str)
-    transition_selected = Signal(str, str)
+    transition_selected = Signal(str)
     
     # Signaux pour le déplacement (mise à jour du modèle)
     node_moved = Signal(str, float, float) # node_id, x, y
-    nail_moved = Signal(str, str, int, float, float) # source_id, target_id, nail_index, x, y
+    nail_moved = Signal(str, int, float, float) # trans_id, nail_index, x, y
     
     # Signaux pour les requêtes de suppression
     node_delete_requested = Signal(str)
-    transition_delete_requested = Signal(str, str)
+    transition_delete_requested = Signal(str)
 
     # Signal émis lorsque le mode de création est annulé
     mode_cleared = Signal()
@@ -85,35 +85,39 @@ class AutomataView(QGraphicsView):
             if node in self.scene.items():
                 self.scene.removeItem(node)
 
-    def remove_transition_visual(self, source_id, target_id, trans_index=0):
+    def remove_transition_visual(self, trans_id):
         """Supprime visuellement la transition de la scène."""
-        source_node = self.nodes.get(source_id)
-        if source_node:
-            same_dir = [t for t in source_node.transitions if t.target.id == target_id]
-            if trans_index < len(same_dir):
-                t = same_dir[trans_index]
-                # Détache des références
-                t.source.transitions.remove(t)
-                t.target.transitions.remove(t)
-                # Retire les clous visuels
-                for nail in t.nails:
-                    if nail in self.scene.items():
-                        self.scene.removeItem(nail)
-                # Retire la ligne
-                if t in self.scene.items():
-                    self.scene.removeItem(t)
-                    
-                # Mettre à jour les autres transitions pour qu'elles se resserrent
-                same_dir.remove(t)
-                for other_t in same_dir:
-                    other_t.update_position()
+        t = None
+        for node in self.nodes.values():
+            for trans in node.transitions:
+                if trans.id == trans_id:
+                    t = trans
+                    break
+            if t: break
+            
+        if t:
+            # Détache des références
+            t.source.transitions.remove(t)
+            t.target.transitions.remove(t)
+            # Retire les clous visuels
+            for nail in t.nails:
+                if nail.scene() == self.scene:
+                    self.scene.removeItem(nail)
+            # Retire la ligne
+            if t.scene() == self.scene:
+                self.scene.removeItem(t)
+                
+            # Mettre à jour les autres transitions pour qu'elles se resserrent
+            same_dir = [tr for tr in t.source.transitions if tr.target == t.target]
+            for other_t in same_dir:
+                other_t.update_position()
 
-    def draw_transition(self, source_id, target_id, nails_pos=None):
+    def draw_transition(self, trans_id, source_id, target_id, nails_pos=None):
         """Crée visuellement une flèche entre deux noeuds existants"""
         source_node = self.nodes.get(source_id)
         target_node = self.nodes.get(target_id)
         if source_node and target_node:
-            transition = TransitionItem(source_node, target_node, nails_pos)
+            transition = TransitionItem(trans_id, source_node, target_node, nails_pos)
             self.scene.addItem(transition)
             for nail in transition.nails:
                 self.scene.addItem(nail)
@@ -123,20 +127,24 @@ class AutomataView(QGraphicsView):
             for t in same_dir:
                 t.update_position()
 
-    def change_transition_endpoints_visual(self, old_source_id, old_target_id, trans_index, new_source_id, new_target_id):
+    def change_transition_endpoints_visual(self, trans_id, new_source_id, new_target_id):
         """Change visuellement les extrémités d'une transition existante."""
-        source_node = self.nodes.get(old_source_id)
-        if not source_node: return
-
-        same_dir = [t for t in source_node.transitions if t.target.id == old_target_id]
-        if trans_index >= len(same_dir): return
-        t = same_dir[trans_index]
+        t = None
+        for node in self.nodes.values():
+            for trans in node.transitions:
+                if trans.id == trans_id:
+                    t = trans
+                    break
+            if t: break
+            
+        if not t: return
 
         new_source_node = self.nodes.get(new_source_id)
         new_target_node = self.nodes.get(new_target_id)
         if not new_source_node or not new_target_node: return
 
         old_target_node = t.target
+        source_node = t.source
 
         # 1. Détacher la transition des anciens nœuds
         while t in source_node.transitions:
@@ -190,7 +198,7 @@ class AutomataView(QGraphicsView):
                         self.scene.clearSelection()
                         curr.setSelected(True)
                         # On émet explicitement le signal pour ouvrir le panneau d'édition
-                        self.transition_selected.emit(curr.source.id, curr.target.id)
+                        self.transition_selected.emit(curr.id)
                         return
                     curr = curr.parentItem()
                 # Si aucun mode de création n'est actif, on laisse passer le clic droit vers les objets.

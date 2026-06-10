@@ -171,7 +171,7 @@ class MainWindow(QMainWindow):
         menu_fichier.addAction(action_save)
         
         menu_fichier.addSeparator()
-        #menu_fichier.addAction(action_debug)
+        menu_fichier.addAction(action_debug)
         menu_fichier.addSeparator()
         action_quit = QAction("Quitter", self)
         action_quit.setShortcut(QKeySequence.Quit)
@@ -345,6 +345,7 @@ class MainWindow(QMainWindow):
         # 3. Dessin des Transitions
         transitions = data.get("transitions", [])
         for t in transitions:
+            trans_id = t.get("id")
             source_id = t.get("source")
             target_id = t.get("target")
             nails_pos = t.get("nails", [])
@@ -361,7 +362,7 @@ class MainWindow(QMainWindow):
                         pass
 
             # Déléguer la création à la logique MVC existante du Canvas
-            self.canvas.draw_transition(source_id, target_id, clean_nails)
+            self.canvas.draw_transition(trans_id, source_id, target_id, clean_nails)
 
     def open_data_editor(self):
         """Instancie et affiche la fenêtre de l'éditeur de données."""

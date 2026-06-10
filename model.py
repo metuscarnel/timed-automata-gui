@@ -46,6 +46,7 @@ class AutomatonModel:
             }
         }
         self.loc_counter = 0
+        self.trans_counter = 0
 
     def add_location(self, x, y):
         """Crée l'entrée dans le buffer et retourne l'ID"""
@@ -64,18 +65,27 @@ class AutomatonModel:
 
     def add_transition(self, source_id, target_id, nails_pos=None):
         """Ajoute une transition dans le modèle"""
+        trans_id = f"t{self.trans_counter}"
+        self.trans_counter += 1
         transition = {
+            "id": trans_id,
             "source": source_id,
             "target": target_id,
             "nails": nails_pos or [],
         }
         self.data["transitions"].append(transition)
+        return trans_id
 
-    def change_transition_endpoint(self, old_source, old_target, new_source, new_target, trans_index=0):
+    def get_transition(self, trans_id):
+        for t in self.data["transitions"]:
+            if t.get("id") == trans_id:
+                return t
+        return None
+
+    def change_transition_endpoint(self, trans_id, new_source, new_target):
         """Modifie les points de départ ou d'arrivée d'une transition."""
-        matching = [t for t in self.data["transitions"] if t["source"] == old_source and t["target"] == old_target]
-        if trans_index < len(matching):
-            t = matching[trans_index]
+        t = self.get_transition(trans_id)
+        if t:
             t["source"] = new_source
             t["target"] = new_target
 
@@ -89,22 +99,21 @@ class AutomatonModel:
         if clock_name and clock_name not in self.data["clocks"]:
             self.data["clocks"].append(clock_name)
 
-    def update_transition_action(self, source_id, target_id, action_name, trans_index=0):
+    def update_transition_action(self, trans_id, action_name):
         """Met à jour l'action associée à une transition."""
-        matching = [t for t in self.data["transitions"] if t["source"] == source_id and t["target"] == target_id]
-        if trans_index < len(matching):
-            matching[trans_index]["action"] = action_name if action_name != "Aucune" else ""
+        t = self.get_transition(trans_id)
+        if t:
+            t["action"] = action_name if action_name != "Aucune" else ""
 
     def update_node_position(self, node_id, x, y):
         """Met à jour les coordonnées d'une localité après un déplacement."""
         if node_id in self.data["locations"]:
             self.data["locations"][node_id]["node_pos"] = {"x": x, "y": y}
 
-    def update_nail_position(self, source_id, target_id, nail_index, x, y, trans_index=0):
+    def update_nail_position(self, trans_id, nail_index, x, y):
         """Met à jour les coordonnées d'un clou spécifique sur une transition après déplacement."""
-        matching = [t for t in self.data["transitions"] if t["source"] == source_id and t["target"] == target_id]
-        if trans_index < len(matching):
-            t = matching[trans_index]
+        t = self.get_transition(trans_id)
+        if t:
             if 0 <= nail_index < len(t["nails"]):
                 t["nails"][nail_index] = (x, y)
 
@@ -138,18 +147,16 @@ class AutomatonModel:
 
     def add_transition_guard(
         self,
-        source_id,
-        target_id,
+        trans_id,
         clock,
         operator,
         target_type="value",
         target_value="0",
-        offset=0, trans_index=0
+        offset=0
     ):
         """Ajoute une condition de garde pour une horloge sur une transition."""
-        matching = [t for t in self.data["transitions"] if t["source"] == source_id and t["target"] == target_id]
-        if trans_index < len(matching):
-            t = matching[trans_index]
+        t = self.get_transition(trans_id)
+        if t:
             if "guards" not in t: t["guards"] = []
             new_guard = {
                 "clock": clock,
@@ -160,19 +167,18 @@ class AutomatonModel:
             if target_type == "clock": new_guard["offset"] = offset
             t["guards"].append(new_guard)
 
-    def remove_transition_guard(self, source_id, target_id, index, trans_index=0):
+    def remove_transition_guard(self, trans_id, index):
         """Supprime une garde spécifique d'une transition via son index."""
-        matching = [t for t in self.data["transitions"] if t["source"] == source_id and t["target"] == target_id]
-        if trans_index < len(matching):
-            t = matching[trans_index]
+        t = self.get_transition(trans_id)
+        if t:
             if "guards" in t and 0 <= index < len(t["guards"]):
                 t["guards"].pop(index)
 
-    def remove_transition(self, source_id, target_id, trans_index=0):
+    def remove_transition(self, trans_id):
         """Supprime une transition de la liste du modèle."""
-        matching = [t for t in self.data["transitions"] if t["source"] == source_id and t["target"] == target_id]
-        if trans_index < len(matching):
-            self.data["transitions"].remove(matching[trans_index])
+        t = self.get_transition(trans_id)
+        if t:
+            self.data["transitions"].remove(t)
 
     def set_initial_state(self, loc_id):
         """Définit la localité initiale si elle existe."""
@@ -223,6 +229,7 @@ class AutomatonModel:
         Élimine toutes les matrices DBM pour ne conserver que les dictionnaires UI.
         """
         # 1. Initialisation de la structure pure attendue par l'UI et le Contrôleur
+        self.trans_counter = 0
         self.data = {
             "actions": json_data.get("actions", []),
             "clocks": json_data.get("clocks", []),
@@ -307,7 +314,10 @@ class AutomatonModel:
                                 pass
 
                     # Reconstruction de la transition selon la structure exacte du modèle
+                    trans_id = f"t{self.trans_counter}"
+                    self.trans_counter += 1
                     transition_dict = {
+                        "id": trans_id,
                         "guards": gardes_textuelles,
                         "nails": clean_nails,
                         "resets": t[2] if t[2] else [],
@@ -330,11 +340,10 @@ class AutomatonModel:
         pprint.pprint({"data": self.data, "loc_counter": self.loc_counter}, sort_dicts=False)
         print("=" * 60 + "\n")
     
-    def add_reset(self, clock, source_id, target_id, trans_index=0):
+    def add_reset(self, clock, trans_id):
        #ajout d'un reset
-        matching = [t for t in self.data["transitions"] if t["source"] == source_id and t["target"] == target_id]
-        if trans_index < len(matching):
-            t = matching[trans_index]
+        t = self.get_transition(trans_id)
+        if t:
             if "resets" not in t: t["resets"] = []
             if clock not in t["resets"]: t["resets"].append(clock)
 

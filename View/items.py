@@ -110,7 +110,7 @@ class NailItem(QGraphicsEllipseItem):
             if self.transition and self.scene() and self.scene().views():
                 view = self.scene().views()[0]
                 if hasattr(view, 'transition_selected'):
-                    view.transition_selected.emit(self.transition.source.id, self.transition.target.id)
+                    view.transition_selected.emit(self.transition.id)
         super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
@@ -121,13 +121,14 @@ class NailItem(QGraphicsEllipseItem):
                 nail_index = self.transition.nails.index(self)
                 view = self.scene().views()[0]
                 if hasattr(view, 'nail_moved'):
-                    view.nail_moved.emit(self.transition.source.id, self.transition.target.id, nail_index, self.scenePos().x(), self.scenePos().y())
+                    view.nail_moved.emit(self.transition.id, nail_index, self.scenePos().x(), self.scenePos().y())
             except ValueError:
                 pass
 
 class TransitionItem(QGraphicsPathItem):
-    def __init__(self, source_node, target_node, nails_pos=None):
+    def __init__(self, trans_id, source_node, target_node, nails_pos=None):
         super().__init__()
+        self.id = trans_id
         self.source = source_node
         self.target = target_node
         self.nails = []
@@ -268,7 +269,7 @@ class TransitionItem(QGraphicsPathItem):
             if self.scene() and self.scene().views():
                 view = self.scene().views()[0]
                 if hasattr(view, 'transition_selected'):
-                    view.transition_selected.emit(self.source.id, self.target.id)
+                    view.transition_selected.emit(self.id)
         super().mousePressEvent(event)
 
     def paint(self, painter, option, widget=None):
