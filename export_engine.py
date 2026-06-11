@@ -77,8 +77,6 @@ def generate_and_save_engine_json(instance, output_filepath="model_compiled.json
     """
     Parcourt le modèle entier, génère toutes les DBM, affiche les contraintes et sauvegarde le JSON.
     """
-    print("\n--- DÉBUT DE LA COMPILATION DES CONTRAINTES ---")
-    
     omit_ui_data = instance.get("omit_ui_data", False)
     clocks = instance.get('clocks', [])
     clock_map = {name: i + 1 for i, name in enumerate(clocks)}
@@ -114,10 +112,6 @@ def generate_and_save_engine_json(instance, output_filepath="model_compiled.json
         inv_raw = loc_data.get('invariants', [])
         inv_strings = parse_to_string_constraints(inv_raw)
         
-        # Affichage Console
-        if inv_strings:
-            print(f"📍 [Localité {loc_id}] Invariants normalisés : {inv_strings}")
-            
         inv_matrix = build_dbm_from_constraints(inv_strings, clock_map)
         
         for r in range(len(inv_matrix)):
@@ -134,10 +128,6 @@ def generate_and_save_engine_json(instance, output_filepath="model_compiled.json
                 guard_raw = t.get('guards', [])
                 guard_strings = parse_to_string_constraints(guard_raw)
                 
-                # Affichage Console
-                if guard_strings:
-                    print(f"   ↳[Transition {loc_id} -> {t['target']}] Gardes normalisées : {guard_strings}")
-                    
                 guard_matrix = build_dbm_from_constraints(guard_strings, clock_map)
                 
                 for r in range(len(guard_matrix)):

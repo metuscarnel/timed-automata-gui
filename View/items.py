@@ -5,7 +5,7 @@ import math
 
 class NodeItem(QGraphicsEllipseItem):
     def __init__(self, node_id, x, y, is_initial=False):
-        # Un cercle de rayon 20 (donc -20, -20 pour centrer, taille 40x40)
+        # Cercle de rayon 20 (centré en -20, -20)
         super().__init__(-20, -20, 40, 40)
         self.id = node_id
         
@@ -13,21 +13,21 @@ class NodeItem(QGraphicsEllipseItem):
         self.setBrush(QBrush(Qt.white))
         self.setPen(QPen(Qt.black, 1)) # Bordure noire de 1px
         
-        # --- NOUVEAU : Rendre le noeud déplaçable et sélectionnable ---
+        # Rendre le noeud déplaçable et sélectionnable
         self.setFlag(QGraphicsEllipseItem.ItemIsMovable)
         self.setFlag(QGraphicsEllipseItem.ItemIsSelectable)
         
-        # --- NOUVEAU : Activer les notifications de mouvement pour les flèches ---
+        # Activer les notifications de mouvement pour les flèches
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
         self.transitions = [] # Liste des flèches connectées
         
-        # --- NOUVEAU : Ajouter un cercle intérieur si c'est l'état initial ---
+        # Ajouter un cercle intérieur pour l'état initial
         if is_initial:
             # Cercle légèrement plus petit, centré
             inner_circle = QGraphicsEllipseItem(-16, -16, 32, 32, self)
             inner_circle.setPen(QPen(Qt.black, 1))
 
-        # --- NOUVEAU : Ajouter le texte (ID) centré ---
+        # Ajouter le texte (ID) centré
         self.text = QGraphicsTextItem(self.id, self)
         self.text.setFont(QFont("IBM Plex Mono", 12, italic=True))
         self.text.setDefaultTextColor(Qt.black)
@@ -41,7 +41,7 @@ class NodeItem(QGraphicsEllipseItem):
         self.transitions.append(transition)
 
     def paint(self, painter, option, widget=None):
-        # --- NOUVEAU : Supprimer le cadre pointillé par défaut de Qt ---
+        # Supprimer le cadre pointillé par défaut de Qt
         option.state &= ~QStyle.State_Selected
         super().paint(painter, option, widget)
 
@@ -59,9 +59,9 @@ class NodeItem(QGraphicsEllipseItem):
                         item.update_position()
                         
         elif change == QGraphicsItem.ItemSelectedHasChanged:
-            # --- NOUVEAU : Changement de couleur de la bordure ---
+            # Changement de couleur de la bordure
             if value:
-                self.setPen(QPen(QColor("#0D99FF"), 2)) # Bleu électrique pour la sélection
+                self.setPen(QPen(QColor("#0D99FF"), 2)) # Couleur de sélection
             else:
                 self.setPen(QPen(Qt.black, 1)) # Retour à la normale
         return super().itemChange(change, value)
@@ -145,7 +145,7 @@ class TransitionItem(QGraphicsPathItem):
         self.setPen(QPen(Qt.black, 1))
         self.setZValue(-1) # Dessiner la ligne DERRIÈRE les noeuds
         
-        # --- NOUVEAU : Rendre la flèche cliquable/sélectionnable ---
+        # Rendre la flèche cliquable et sélectionnable
         self.setFlag(QGraphicsItem.ItemIsSelectable)
         
         self.ctrl_x = 0 # Position X du point de courbure
@@ -182,14 +182,14 @@ class TransitionItem(QGraphicsPathItem):
             self.ctrl_y = last_nail_pos.y()
             return
             
-        # --- NOUVEAU : Gestion des flèches multiples (multi-edges) ---
+        # Gestion des flèches multiples
         same_dir = [t for t in self.source.transitions if t.target == self.target]
         try:
             idx = same_dir.index(self)
         except ValueError:
             idx = len(same_dir)
             
-        # --- NOUVEAU : Gestion de l'auto-boucle (self-loop) ---
+        # Gestion de l'auto-boucle
         if self.source == self.target:
             offset_x = 40 + (idx * 20)
             offset_y = 80 + (idx * 30)
@@ -254,10 +254,10 @@ class TransitionItem(QGraphicsPathItem):
         self.setPath(path)
 
     def itemChange(self, change, value):
-        # --- NOUVEAU : Changement de couleur de la flèche ---
+        # Changement de couleur de la flèche
         if change == QGraphicsItem.ItemSelectedHasChanged:
             if value:
-                self.setPen(QPen(QColor("#0D99FF"), 2)) # Bleu électrique pour la sélection
+                self.setPen(QPen(QColor("#0D99FF"), 2)) # Couleur de sélection
             else:
                 self.setPen(QPen(Qt.black, 1)) # Retour à la normale
         return super().itemChange(change, value)
@@ -274,7 +274,7 @@ class TransitionItem(QGraphicsPathItem):
 
     def paint(self, painter, option, widget=None):
         """Surcharge du dessin pour la pointe de flèche orientée selon la courbe"""
-        # --- NOUVEAU : Supprimer le cadre pointillé par défaut de Qt ---
+        # Supprimer le cadre pointillé par défaut de Qt
         option.state &= ~QStyle.State_Selected
         super().paint(painter, option, widget)
         

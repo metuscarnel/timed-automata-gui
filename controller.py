@@ -17,7 +17,6 @@ class MainController:
             self.view.canvas.transition_delete_requested.connect(self.handle_delete_transition)
 
     def handle_add_location(self, checked=False):
-        print(f"Bouton Localité cliqué (Actif: {checked})")
         if self.view:
             if checked:
                 self.view.canvas.set_creation_mode("location")
@@ -27,11 +26,10 @@ class MainController:
     def handle_canvas_click(self, x, y):
         """Gère le clic sur le canvas selon le mode de création actif."""
         if self.view and self.view.canvas.creation_mode == "location":
-            # 1. Enregistrer dans le Buffer/Model (génère un ID genre "L1")
+            # 1. Enregistrer dans le modèle
             loc_id = self.model.add_location(x, y)
             is_initial = (self.model.data.get("init") == loc_id)
-            print(f"Création de la localité {loc_id} en ({x}, {y})")
-            # 2. Ordonner à la Vue de dessiner la localité
+            # 2. Mettre à jour la vue
             self.view.canvas.draw_node(loc_id, x, y, is_initial)
             # 3. Mettre à jour la liste des états initiaux dans la barre d'outils
             self.view.update_locations_list(list(self.model.data["locations"].keys()), self.model.data.get("init"))
@@ -40,10 +38,8 @@ class MainController:
         """Gère la création effective d'une transition après validation par la Vue."""
         trans_id = self.model.add_transition(source_id, target_id, nails_pos)
         self.view.canvas.draw_transition(trans_id, source_id, target_id, nails_pos)
-        print(f"Transition créée de {source_id} à {target_id} avec {len(nails_pos)} clous (ID: {trans_id})")
 
     def handle_add_transition(self, checked=False):
-        print(f"Bouton Transition cliqué (Actif: {checked})")
         if self.view:
             if checked:
                 self.view.canvas.set_creation_mode("transition")
@@ -51,35 +47,30 @@ class MainController:
                 self.view.canvas.set_creation_mode(None)
 
     def submit_action(self, action_name):
-        print(f"Réception de l'action : {action_name}")
         self.model.add_action(action_name)
-        # --- NOUVEAU : Rafraîchir la vue ---
+        # Rafraîchir la vue
         if self.view:
             self.view.update_actions_display(self.model.data["actions"])
 
     def submit_clock(self, clock_name):
-        print(f"Réception de l'horloge : {clock_name}")
         self.model.add_clock(clock_name)
-        # --- NOUVEAU : Rafraîchir la vue ---
+        # Rafraîchir la vue
         if self.view:
             self.view.update_clocks_display(self.model.data["clocks"])
 
     def handle_initial_state_changed(self, new_init_state):
         """Gère le changement d'état initial depuis la barre d'outils."""
         if new_init_state:
-            print(f"Changement de l'état initial vers : {new_init_state}")
             self.model.set_initial_state(new_init_state)
             if self.view:
                 self.view.refresh_graph_display() # Rafraîchit pour appliquer la double bordure au bon endroit
 
     def update_variables_data(self, variables_data):
-        print("Mise à jour des variables de données depuis l'éditeur.")
         self.model.update_variables(variables_data)
 
-    # --- NOUVELLES MÉTHODES POUR LE MENU ---
+    # --- Méthodes du menu ---
 
     def handle_new_file(self):
-        print("Réinitialisation de buffer : Nouveau modèle vide créé.")
         self.model.clear()
         self.current_filepath = None
         if self.view:
@@ -87,7 +78,6 @@ class MainController:
             self.view.update_window_title(self.current_filepath)
 
     def trigger_open_dialog(self):
-        print("Ouverture de la boîte de dialogue.")
         if self.view:
             filepath, _ = QFileDialog.getOpenFileName(
                 self.view,
@@ -102,7 +92,6 @@ class MainController:
                     
                     # Reconstruction du modèle interne
                     self.model.load_from_json_data(loaded_data)
-                    print(f"-> Automate chargé avec succès depuis : {filepath}")
                     
                     # Rafraîchir la vue
                     self.view.refresh_graph_display()
@@ -116,7 +105,6 @@ class MainController:
                     )
 
     def trigger_save_dialog(self):
-        print("Fichier -> Sauvegarder : Ouverture de la boîte de dialogue.")
         if self.view:
             filepath, _ = QFileDialog.getSaveFileName(
                 self.view,
@@ -130,7 +118,6 @@ class MainController:
                     filepath += ".json"
                 
                 self.model.export_to_json(filepath)
-                print(f"-> Automate sauvegardé avec succès dans : {filepath}")
                 self.current_filepath = filepath
                 self.view.update_window_title(self.current_filepath)
 
@@ -140,14 +127,13 @@ class MainController:
         pprint.pprint(self.model.__dict__)
         print("---------------------------------------")
 
-    # --- GESTION DE LA SÉLECTION ET DES PROPRIÉTÉS ---
+    # --- Gestion de la sélection et des propriétés ---
 
     def handle_selection_cleared(self):
         if self.view and hasattr(self.view, 'properties_dock'):
             self.view.properties_dock.hide()
 
     def handle_node_selected(self, node_id):
-        print(f"Nœud sélectionné : {node_id}")
         # Réinitialiser le mode d'édition si on change de sélection
         self.editing_constraint_index = None
         if self.view and hasattr(self.view, 'properties_dock') and hasattr(self.view.properties_dock, 'btn_add_inv'):
@@ -159,7 +145,6 @@ class MainController:
             self.view.properties_dock.show_node_props(node_id, node_data, available_clocks)
 
     def handle_transition_selected(self, trans_id):
-        print(f"Transition sélectionnée : {trans_id}")
         # Réinitialiser le mode d'édition si on change de sélection
         self.editing_constraint_index = None
         if self.view and hasattr(self.view, 'properties_dock') and hasattr(self.view.properties_dock, 'btn_add_guard'):
@@ -175,10 +160,10 @@ class MainController:
             available_clocks = self.model.data.get("clocks", [])
             available_locations = list(self.model.data["locations"].keys())
             
-            # (Étape 1 & 3) Mise à jour dynamique des cases à cocher pour les resets
+            # Mise à jour dynamique des cases à cocher pour les resets
             self.view.properties_dock.update_resets_list(available_clocks)
             
-            # 3. Étape 3 : Récupération des resets et remplissage des cases
+            # Récupération des resets et remplissage des cases
             active_resets = trans_data.get('resets', [])
             for cb in self.view.properties_dock.checkboxes_resets:
                 # Désactivation temporaire du signal pour ne pas déclencher la sauvegarde
@@ -189,12 +174,12 @@ class MainController:
                     cb.setChecked(False)
                 cb.blockSignals(False)
                 
-                # Connexion à l'étape 2 pour que le modèle soit mis à jour instantanément au clic
+                # Connexion pour que le modèle soit mis à jour instantanément au clic
                 cb.stateChanged.connect(lambda state, tid=trans_id: self.update_transition_resets(tid))
                 
             self.view.properties_dock.show_transition_props(trans_id, source_id, target_id, trans_data, available_actions, available_clocks, available_locations)
 
-    # 2. Étape 2 : Méthode appelée lors de la validation/sauvegarde de la transition (ou instantanément)
+    # Mise à jour lors de la validation ou sauvegarde de la transition
     def update_transition_resets(self, trans_id):
         # Initialisation de la liste vide
         selected_resets = []
@@ -211,15 +196,12 @@ class MainController:
             t["resets"] = selected_resets
 
     def update_transition_action(self, trans_id, new_action):
-        print(f"Action {new_action} assignée à la transition {trans_id}")
         self.model.update_transition_action(trans_id, new_action)
 
     def update_node_position(self, node_id, x, y):
-        print(f"Localité {node_id} déplacée en ({x}, {y})")
         self.model.update_node_position(node_id, x, y)
 
     def update_nail_position(self, trans_id, nail_index, x, y):
-        print(f"Clou n°{nail_index} de {trans_id} déplacé en ({x}, {y})")
         self.model.update_nail_position(trans_id, nail_index, x, y)
 
     @staticmethod
@@ -247,9 +229,7 @@ class MainController:
         return False
 
     def add_node_invariant(self, node_id, clock, operator, target_type, target_value, offset=0):
-        print(f"Ajout de l'invariant {clock} {operator} {target_value} ({target_type}, offset={offset}) à {node_id}")
-        
-        # --- Validation anti-doublon logique ---
+        # Validation anti-doublon
         new_c = {'clock': clock, 'operator': operator, 'type': target_type, 'value': target_value, 'offset': offset}
         node_data = self.model.data["locations"].get(node_id, {})
         existing_invariants = node_data.get("invariants", [])
@@ -258,7 +238,6 @@ class MainController:
             if self.editing_constraint_index == i:
                 continue # On ignore la comparaison avec la contrainte en cours d'édition
             if self.is_constraint_equivalent(new_c, existing_c):
-                print("⚠️ La contrainte existe déjà ou est mathématiquement équivalente. Ajout ignoré.")
                 return # On bloque l'ajout
         # ----------------------------------------
 
@@ -274,15 +253,12 @@ class MainController:
         self.handle_node_selected(node_id)
 
     def remove_node_invariant(self, node_id, index):
-        print(f"Suppression de l'invariant index {index} pour {node_id}")
         self.model.remove_node_invariant(node_id, index)
         # Rafraîchir la vue en simulant une nouvelle sélection
         self.handle_node_selected(node_id)
 
     def add_transition_guard(self, trans_id, clock, operator, target_type, target_value, offset=0):
-        print(f"Ajout de la garde {clock} {operator} {target_value} ({target_type}, offset={offset}) à la transition {trans_id}")
-        
-        # --- Validation anti-doublon logique ---
+        # Validation anti-doublon
         new_c = {'clock': clock, 'operator': operator, 'type': target_type, 'value': target_value, 'offset': offset}
         trans_data = self.model.get_transition(trans_id) or {}
         existing_guards = trans_data.get("guards", [])
@@ -291,7 +267,6 @@ class MainController:
             if self.editing_constraint_index == i:
                 continue # On ignore la comparaison avec la garde en cours d'édition
             if self.is_constraint_equivalent(new_c, existing_c):
-                print("⚠️ La garde existe déjà ou est mathématiquement équivalente. Ajout ignoré.")
                 return # On bloque l'ajout
         # ----------------------------------------
 
@@ -307,7 +282,6 @@ class MainController:
         self.handle_transition_selected(trans_id)
 
     def remove_transition_guard(self, trans_id, index):
-        print(f"[Controller] Suppression de la garde index {index} pour la transition {trans_id}")
         self.model.remove_transition_guard(trans_id, index)
         # Rafraîchir la vue en simulant une nouvelle sélection
         self.handle_transition_selected(trans_id)
@@ -372,14 +346,12 @@ class MainController:
             dock.btn_add_guard.setText("Modif")
 
     def handle_delete_transition(self, trans_id):
-        print(f"Demande de suppression de la transition {trans_id}")
         self.model.remove_transition(trans_id)
         if self.view:
             self.view.canvas.remove_transition_visual(trans_id)
             self.handle_selection_cleared()
 
     def handle_delete_node(self, node_id):
-        print(f"Demande de suppression de la localité {node_id} (Cascade activée)")
         # 1. Identifier et supprimer en cascade les transitions liées
         transitions_to_delete = [
             t["id"] for t in self.model.data["transitions"]
@@ -395,8 +367,6 @@ class MainController:
             self.handle_selection_cleared()
 
     def change_transition_endpoint(self, trans_id, new_source, new_target):
-        print(f"Modification de la transition {trans_id} vers {new_source}->{new_target}")
-        
         # 1. Update Model
         self.model.change_transition_endpoint(trans_id, new_source, new_target)
 
@@ -406,35 +376,31 @@ class MainController:
             self.handle_transition_selected(trans_id)
 
     def handle_edit_inv(self,node_id):
-        print(f"demande de modification d'un invariant de {node_id}")
+        pass
     
     def get_available_clocks(self):
         """Retourne la liste des horloges disponibles dans le modèle."""
         return self.model.data.get("clocks", [])
 
     def handle_modify_clock(self, old_name, new_name):
-        print(f"Modification horloge : {old_name} -> {new_name}")
         self.model.modify_clock(old_name, new_name)
         if self.view:
             self.view.update_clocks_display(self.model.data["clocks"])
             self._refresh_properties_dock()
 
     def handle_delete_clock(self, clock_name):
-        print(f"Suppression horloge : {clock_name}")
         self.model.delete_clock(clock_name)
         if self.view:
             self.view.update_clocks_display(self.model.data["clocks"])
             self._refresh_properties_dock()
 
     def handle_modify_action(self, old_name, new_name):
-        print(f"Modification action : {old_name} -> {new_name}")
         self.model.modify_action(old_name, new_name)
         if self.view:
             self.view.update_actions_display(self.model.data["actions"])
             self._refresh_properties_dock()
 
     def handle_delete_action(self, action_name):
-        print(f"Suppression action : {action_name}")
         self.model.delete_action(action_name)
         if self.view:
             self.view.update_actions_display(self.model.data["actions"])

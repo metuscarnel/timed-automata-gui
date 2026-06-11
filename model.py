@@ -245,7 +245,7 @@ class AutomatonModel:
                 "constraints": {}
             })
         }
-        # ajout des données 
+        # Ajout des données 
         # Génération de la map des horloges (indexation décalée de 1 car index 0 = x0)
         clock_map = {name: i + 1 for i, name in enumerate(self.data["clocks"])}
 
@@ -303,7 +303,7 @@ class AutomatonModel:
                             try:
                                 if isinstance(n, dict): # Format Cosmos
                                     clean_nails.append([float(n.get("x", 0.0)), float(n.get("y", 0.0))])
-                                elif isinstance(n, (list, tuple)) and len(n) >= 2: # Format Array strict
+                                elif isinstance(n, (list, tuple)) and len(n) >= 2: # Format liste strict
                                     clean_nails.append([float(n[0]), float(n[1])])
                             except (ValueError, TypeError):
                                 pass
@@ -341,13 +341,6 @@ class AutomatonModel:
                         "y": round(center_y + radius * math.sin(angle), 2)
                     }
                     
-        # 4. Affichage de contrôle (Déclenché lors du chargement ou via Cmd + D)
-        print("\n" + "=" * 60)
-        print(" 📋 [Cmd + D] ÉTAT INTERNE DU MODÈLE MVC RECONSTRUIT")
-        print("=" * 60)
-        pprint.pprint({"data": self.data, "loc_counter": self.loc_counter}, sort_dicts=False)
-        print("=" * 60 + "\n")
-    
     def add_reset(self, clock, trans_id):
        #ajout d'un reset
         t = self.get_transition(trans_id)

@@ -30,9 +30,9 @@ class AutomataView(QGraphicsView):
         self.scene = QGraphicsScene()
         
         self.setScene(self.scene)
-        self.setMouseTracking(True) # OBLIGATOIRE pour suivre la souris sans clic !
+        self.setMouseTracking(True) # Nécessaire pour le suivi de la souris sans clic
         
-        # --- NOUVEAU : Fixer l'alignement pour éviter les sauts visuels ---
+        # Fixer l'alignement pour éviter les sauts visuels
         self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         
         self.creation_mode = None # Ex: "location", "transition", etc.
@@ -192,7 +192,7 @@ class AutomataView(QGraphicsView):
                 self.set_creation_mode(None)
                 return
             else:
-                # --- NOUVEAU : Focus d'édition des transitions sur Clic Droit ---
+                # Focus d'édition des transitions sur clic droit
                 clicked_item = self.itemAt(event.pos())
                 curr = clicked_item
                 while curr:
@@ -205,7 +205,7 @@ class AutomataView(QGraphicsView):
                     curr = curr.parentItem()
                 # Si aucun mode de création n'est actif, on laisse passer le clic droit vers les objets.
 
-        # --- NOUVEAU : Ignorer le clic gauche sur les transitions (sauf les clous) ---
+        # Ignorer le clic gauche sur les transitions (sauf les clous)
         if event.button() == Qt.LeftButton and self.creation_mode is None:
             clicked_item = self.itemAt(event.pos())
             curr = clicked_item

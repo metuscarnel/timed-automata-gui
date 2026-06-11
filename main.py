@@ -14,7 +14,7 @@ def main():
     
     # Forcer l'affichage en noir sur blanc avec la police Verdana pour toute l'application
     app.setStyleSheet("""
-        /* Style global : blanc un peu terne et noir pas très foncé */
+        /* Style global */
         QWidget {
             font-family: 'IBM Plex Mono';
             background-color: #FAFAFA;
@@ -24,7 +24,7 @@ def main():
         /* Barre de menu */
         QMenuBar {
             background-color: #FAFAFA;
-            border-bottom: 1px solid #E5E5E5; /* bordure très fine */
+            border-bottom: 1px solid #E5E5E5;
         }
         QMenuBar::item {
             background-color: transparent;
@@ -97,35 +97,35 @@ def main():
             border: 1px solid #AAAAAA;
         }
         QComboBox:focus {
-            border: 1px solid #0D99FF; /* Bordure bleu électrique au focus */
+            border: 1px solid #0D99FF;
         }
         QComboBox::drop-down {
             subcontrol-origin: padding;
             subcontrol-position: top right;
             width: 24px;
-            border: none; /* Pas de bordure séparant le texte de la flèche */
+            border: none;
         }
         QComboBox::down-arrow {
-            /* La flèche native sera utilisée mais sans le bloc moche autour */
+            /* Flèche native sans contour extérieur */
         }
         QComboBox QAbstractItemView {
             background-color: #FFFFFF;
             color: #000000;
             border: 1px solid #CCCCCC;
             border-radius: 4px;
-            selection-background-color: #E5F3FF; /* Fond bleu doux au survol */
+            selection-background-color: #E5F3FF;
             selection-color: #000000;
-            outline: none; /* Enlève la ligne pointillée de sélection native Qt */
+            outline: none;
         }
     """)
     
-    # Instanciation de la mécanique (Le Buffer)
+    # Instanciation du modèle
     model = AutomatonModel()
     
-    # Instanciation de l'Arbitre (Le Contrôleur)
+    # Instanciation du contrôleur
     controller = MainController(model)
     
-    # Instanciation de l'Interface (La Fenêtre)
+    # Instanciation de la vue
     window = MainWindow(controller)
     
     # On lie la vue au contrôleur pour qu'il puisse lui donner des ordres (ex: ouvrir le dock)
@@ -133,7 +133,7 @@ def main():
     
     # Affichage
     window.show()
-    # fermteure via Ctrl+C dans le terminal
+    # Gestion de la fermeture via Ctrl+C
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     
     sys.exit(app.exec())

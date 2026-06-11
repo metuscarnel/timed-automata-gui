@@ -29,7 +29,7 @@ class DataEditorDialog(QDialog):
                 border: 1px solid #AAAAAA;
             }
             QTextEdit:focus, QListWidget:focus, QLineEdit:focus, QComboBox:focus {
-                border: 1px solid #0D99FF; /* Bordure bleu électrique au focus */
+                border: 1px solid #0D99FF;
             }
             QPushButton {
                 background-color: #EBEBEB;
@@ -236,7 +236,7 @@ class DataEditorDialog(QDialog):
         var_list = structure_data.get("Variable", [])
         self.content_variable.setText("\n".join(var_list) if isinstance(var_list, list) else str(var_list))
         
-        # Protection : utilise init_variables de votre JSON original dans la vue
+        # Chargement des variables d'initialisation
         init_list = data.get("init_variables", [])
         self.content_initialisation.setText("\n".join(init_list) if isinstance(init_list, list) else str(init_list))
         

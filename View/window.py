@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
         screen_geom = screen.availableGeometry()
         w = int(screen_geom.width() * 0.8)
         h = int(screen_geom.height() * 0.8)
-        x = int(screen_geom.x() + (screen_geom.width() - w) / 2) #au milieu de l'écran
+        x = int(screen_geom.x() + (screen_geom.width() - w) / 2)
         y = int(screen_geom.y() + (screen_geom.height() - h) / 2)
         self.setGeometry(x, y, w, h)
         
@@ -178,7 +178,7 @@ class MainWindow(QMainWindow):
         action_quit.triggered.connect(self.close)
         menu_fichier.addAction(action_quit)
         
-        # --- NOUVEAU : Menu Aide ---
+        # Menu Aide
         menu_aide = menubar.addMenu("Aide")
         
         action_about = QAction("À propos", self)

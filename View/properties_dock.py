@@ -28,7 +28,7 @@ class PropertiesDock(QDockWidget):
                 border: 1px solid #AAAAAA;
             }
             QLineEdit:focus {
-                border: 1px solid #0D99FF; /* Bordure bleu électrique au focus */
+                border: 1px solid #0D99FF;
             }
             QLineEdit:read-only {
                 background-color: #EBEBEB; /* Fond grisé pour signifier qu'on ne peut pas l'éditer */
@@ -75,7 +75,7 @@ class PropertiesDock(QDockWidget):
         self.node_id_field = QLineEdit()
         self.node_id_field.setReadOnly(True)
         
-        # --- NOUVEAU : Éditeur d'invariant (Horloge, Opérateur, Valeur) ---
+        # Éditeur d'invariant
         self.node_inv_layout = QHBoxLayout()
         self.node_inv_clock = QComboBox()
         self.node_inv_op = QComboBox()
@@ -117,7 +117,7 @@ class PropertiesDock(QDockWidget):
         self.trans_target_combo = QComboBox()
         self.trans_action_combo = QComboBox()
         
-        # --- NOUVEAU : Éditeur de garde (Horloge, Opérateur, Valeur) ---
+        # Éditeur de garde
         self.trans_guard_layout = QHBoxLayout()
         self.trans_guard_clock = QComboBox()
         self.trans_guard_op = QComboBox()
@@ -142,7 +142,7 @@ class PropertiesDock(QDockWidget):
         self.resets_layout = QVBoxLayout()
         self.reset_group.setLayout(self.resets_layout)
         
-        # 1. Étape 1 : Initialisation de la liste des cases à cocher
+        # Initialisation de la liste des cases à cocher
         self.checkboxes_resets = []
         
         self.btn_delete_trans = QPushButton("Supprimer la transition")
@@ -330,7 +330,6 @@ class PropertiesDock(QDockWidget):
         else:
             self.btn_add_guard.setEnabled(True)
 
-    # 1. Étape 1 : Création de la méthode update_resets_list
     def update_resets_list(self, all_clocks):
         # Boucle while pour vider totalement le QVBoxLayout
         while self.resets_layout.count():
@@ -442,7 +441,4 @@ class PropertiesDock(QDockWidget):
         self.controller.handle_constraint_double_click(item)
 
     def update_clock_list(self,clocks, source_id, target_id):
-        print("Mise à jour des listes de clocks dans les propriétés...")
-        print(self.controller.get_available_clocks())
-        
-        
+        pass
