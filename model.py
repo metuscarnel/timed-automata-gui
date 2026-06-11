@@ -341,13 +341,6 @@ class AutomatonModel:
                         "y": round(center_y + radius * math.sin(angle), 2)
                     }
                     
-    def add_reset(self, clock, trans_id):
-       #ajout d'un reset
-        t = self.get_transition(trans_id)
-        if t:
-            if "resets" not in t: t["resets"] = []
-            if clock not in t["resets"]: t["resets"].append(clock)
-
     def modify_clock(self, old_name, new_name):
         """Modifie le nom d'une horloge partout où elle est utilisée."""
         if old_name not in self.data["clocks"]: return

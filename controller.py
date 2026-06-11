@@ -165,7 +165,7 @@ class MainController:
                     QMessageBox.information(
                         self.view,
                         "Script lancé",
-                        f"Le script a été lancé en arrière-plan :\n{script_path}"
+                        f"Script lancé :\n{script_path}"
                     )
                 except Exception as e:
                     QMessageBox.critical(
@@ -427,13 +427,6 @@ class MainController:
         if self.view:
             self.view.canvas.change_transition_endpoints_visual(trans_id, new_source, new_target)
             self.handle_transition_selected(trans_id)
-
-    def handle_edit_inv(self,node_id):
-        pass
-    
-    def get_available_clocks(self):
-        """Retourne la liste des horloges disponibles dans le modèle."""
-        return self.model.data.get("clocks", [])
 
     def handle_modify_clock(self, old_name, new_name):
         self.model.modify_clock(old_name, new_name)

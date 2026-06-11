@@ -74,21 +74,3 @@ def dbm_to_string_constraints(dbm, clock_map):
                 })
                 
     return raw_constraints
-if __name__ == "__main__":
-    # 1. Données de test
-    clocks = ["x", "y", "z", "t"]
-    clock_map = {name: i + 1 for i, name in enumerate(clocks)}
-
-    # Exemple de DBM 5x5 brute (0 pour x0, 1 pour x, 2 pour y, 3 pour z, 4 pour t)
-    dbm_json = [
-    [0,      "inf", -3,    "inf", "inf"], # Ligne x0 : x0 - y <= -3 (donc y >= 3)
-    [5,      0,     "inf", "inf", "inf"], # Ligne x  : x - x0 <= 5  (donc x <= 5)
-    ["inf",  2,     0,     "inf", "inf"], # Ligne y  : y - x <= 2
-    ["inf",  "inf", "inf", 0,     "inf"], # Ligne z  : Aucune contrainte
-    ["inf",  "inf", "inf", "inf", 0    ]  # Ligne t  : Aucune contrainte
-    ]
-
-# 2. Appel de la fonction
-    resultat_strings = dbm_to_string_constraints(dbm_json, clock_map)
-
-# 3. Résultat
