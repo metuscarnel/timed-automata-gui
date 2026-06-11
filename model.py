@@ -1,5 +1,5 @@
-from export_engine import generate_and_save_engine_json
-from util import dbm_to_string_constraints as convert_dbm_to_constraints
+from utils.dbm_engine import generate_and_save_engine_json
+from utils.dbm_engine import dbm_to_string_constraints as convert_dbm_to_constraints
 import pprint
 import re
 import math

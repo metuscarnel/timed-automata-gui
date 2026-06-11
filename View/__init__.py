@@ -1,0 +1,1 @@
+# Fichier requis pour faire du dossier "View" un module Python

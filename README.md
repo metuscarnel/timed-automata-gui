@@ -77,7 +77,7 @@ Le projet respecte scrupuleusement le patron de conception **MVC (Model-View-Con
 - **Controller** (`controller.py`) : Orchestre les événements entre la vue et le modèle.
 
 ### Format de Données (JSON & DBM)
-Les modèles sont exportés en JSON. Les contraintes saisies humainement (ex: `x <= 5`) sont compilées en matrices **DBM** (`serial.py`) pour une compatibilité directe avec les outils de vérification formelle. À l'ouverture d'un fichier, l'opération inverse est effectuée pour restaurer l'affichage textuel dans l'interface de manière transparente.
+Les modèles sont exportés en JSON. Les contraintes saisies humainement (ex: `x <= 5`) sont compilées en matrices **DBM** (via `utils/dbm_engine.py`) pour une compatibilité directe avec les outils de vérification formelle. À l'ouverture d'un fichier, l'opération inverse est effectuée pour restaurer l'affichage textuel dans l'interface de manière transparente.
 
 ## Raccourcis Clavier
 

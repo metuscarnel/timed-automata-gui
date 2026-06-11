@@ -1,23 +1,165 @@
 {
-    "actions": ["a", "b", "c"],
-    "clocks": ["x", "y"],
-    "locations": ["l1", "l0"],
+    "actions": [
+        "a",
+        "b",
+        "c"
+    ],
+    "clocks": [
+        "x",
+        "y"
+    ],
+    "locations": [
+        "l0",
+        "l1"
+    ],
+    "init": "l0",
     "l0": {
-        "invariant": [[0,0,0], [2,0,"infty"], [2,"infty",0]],
+        "invariant": [
+            [
+                0,
+                0,
+                0
+            ],
+            [
+                2,
+                0,
+                "infty"
+            ],
+            [
+                2,
+                "infty",
+                0
+            ]
+        ],
         "transitions": [
-            ["c", [[0,-1,0], ["infty",0,"infty"], ["infty","infty",0]], ["x"], "l0"],
-            ["a", [[0,0,-1], ["infty",0,"infty"], ["infty","infty",0]], [], "l1"]
+            [
+                "c",
+                [
+                    [
+                        0,
+                        -1,
+                        0
+                    ],
+                    [
+                        "infty",
+                        0,
+                        "infty"
+                    ],
+                    [
+                        "infty",
+                        "infty",
+                        0
+                    ]
+                ],
+                [
+                    "x"
+                ],
+                "l0"
+            ],
+            [
+                "a",
+                [
+                    [
+                        0,
+                        0,
+                        -1
+                    ],
+                    [
+                        "infty",
+                        0,
+                        "infty"
+                    ],
+                    [
+                        "infty",
+                        "infty",
+                        0
+                    ]
+                ],
+                [],
+                "l1"
+            ]
+        ],
+        "node_pos": {
+            "x": 550.0,
+            "y": 300.0
+        },
+        "name_pos": {
+            "x": 0.0,
+            "y": 0.0
+        },
+        "invariant_pos": {
+            "x": 0.0,
+            "y": 0.0
+        },
+        "transitions_layout": [
+            [],
+            []
         ]
     },
     "l1": {
-        "invariant": [[0,0,0], [2,0,"infty"], [2,"infty",0]],
-        "transitions": [["b", [[0,0,-1], ["infty",0,"infty"], ["infty","infty",0]], ["x", "y"], "l0"]]
+        "invariant": [
+            [
+                0,
+                0,
+                0
+            ],
+            [
+                2,
+                0,
+                "infty"
+            ],
+            [
+                2,
+                "infty",
+                0
+            ]
+        ],
+        "transitions": [
+            [
+                "b",
+                [
+                    [
+                        0,
+                        0,
+                        -1
+                    ],
+                    [
+                        "infty",
+                        0,
+                        "infty"
+                    ],
+                    [
+                        "infty",
+                        "infty",
+                        0
+                    ]
+                ],
+                [
+                    "x",
+                    "y"
+                ],
+                "l0"
+            ]
+        ],
+        "node_pos": {
+            "x": 250.0,
+            "y": 300.0
+        },
+        "name_pos": {
+            "x": 0.0,
+            "y": 0.0
+        },
+        "invariant_pos": {
+            "x": 0.0,
+            "y": 0.0
+        },
+        "transitions_layout": [
+            []
+        ]
     },
-    "init": "l0",
     "variables": {
-       
         "definition": {
-            "define" : [
+            "define": [
                 "#define TABLE_SIZE 3",
                 "#define NAME_SIZE 50"
             ],
