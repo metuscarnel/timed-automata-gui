@@ -1,5 +1,8 @@
 import pprint
 import json
+import subprocess
+import sys
+import platform
 from PySide6.QtWidgets import QFileDialog, QMessageBox
 
 class MainController:
@@ -120,6 +123,56 @@ class MainController:
                 self.model.export_to_json(filepath)
                 self.current_filepath = filepath
                 self.view.update_window_title(self.current_filepath)
+
+    def handle_run_script(self):
+        """Sauvegarde le modèle et lance un script tiers avec le chemin JSON en argument."""
+        if not self.current_filepath:
+            self.trigger_save_dialog()
+            if not self.current_filepath:
+                return # L'utilisateur a annulé la sauvegarde
+        else:
+            # Sauvegarde silencieuse pour s'assurer que le script travaille sur la toute dernière version
+            self.model.export_to_json(self.current_filepath)
+            
+        if self.view:
+            script_path, _ = QFileDialog.getOpenFileName(
+                self.view,
+                "Sélectionner un script à exécuter",
+                "",
+                "Tous les fichiers (*)"
+            )
+            if script_path:
+                try:
+                    # Lance avec l'interpréteur Python si c'est un .py, sinon le lance comme un binaire natif
+                    if script_path.endswith('.py'):
+                        script_cmd = f'"{sys.executable}" "{script_path}" "{self.current_filepath}"'
+                    else:
+                        script_cmd = f'"{script_path}" "{self.current_filepath}"'
+                    
+                    # Ouvre un terminal de manière multi-plateforme
+                    system = platform.system()
+                    if system == "Darwin":  # macOS
+                        script_cmd_escaped = script_cmd.replace('"', '\\"')
+                        apple_script = f'tell application "Terminal" to do script "{script_cmd_escaped}"'
+                        cmd = ['osascript', '-e', apple_script]
+                    elif system == "Windows":
+                        cmd = ['cmd.exe', '/c', 'start', '""', 'cmd.exe', '/k', script_cmd]
+                    else:  # Linux (utilise xterm par défaut)
+                        cmd = ['xterm', '-hold', '-e', script_cmd]
+                        
+                    subprocess.Popen(cmd)
+                    
+                    QMessageBox.information(
+                        self.view,
+                        "Script lancé",
+                        f"Le script a été lancé en arrière-plan :\n{script_path}"
+                    )
+                except Exception as e:
+                    QMessageBox.critical(
+                        self.view,
+                        "Erreur d'exécution",
+                        f"Impossible de lancer le script.\nErreur : {str(e)}"
+                    )
 
     def debug_print_model_instance(self):
         """Affiche les attributs de l'instance du modèle (loc_counter, data, etc.)"""

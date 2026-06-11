@@ -99,6 +99,16 @@ class MainWindow(QMainWindow):
         """)
         btn_data.clicked.connect(self.open_data_editor)
         toolbar.addWidget(btn_data)
+        
+        toolbar.addSeparator()
+        btn_run = QToolButton(self)
+        btn_run.setText("▶ Exécuter")
+        btn_run.setToolTip("Sélectionner et exécuter un script externe sur le JSON")
+        btn_run.setStyleSheet("""
+            font-family: 'IBM Plex Mono'; font-size: 14pt; font-weight: bold; color:  #2C2C2C;
+        """)
+        btn_run.clicked.connect(self.controller.handle_run_script)
+        toolbar.addWidget(btn_run)
 
     def clear_toolbar_modes(self):
         """Décoche le bouton actif dans la toolbar quand le canvas quitte un mode."""

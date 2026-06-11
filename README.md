@@ -86,7 +86,6 @@ Les modèles sont exportés en JSON. Les contraintes saisies humainement (ex: `x
 | `Cmd+N` / `Ctrl+N` | Créer un nouvel automate vierge |
 | `Cmd+O` / `Ctrl+O` | Ouvrir un fichier JSON existant |
 | `Cmd+S` / `Ctrl+S` | Sauvegarder l'automate courant |
-| `Cmd+D` / `Ctrl+D` | Afficher l'état interne du modèle dans la console (Mode Débogage) |
 | `Échap` | Annuler le mode de création en cours ou l'action en cours |
 | `Clic Droit` | Menu contextuel sur les labels ou forcer la sélection d'un élément graphique |
 
