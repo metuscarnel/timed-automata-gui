@@ -2,31 +2,16 @@ from export_engine import generate_and_save_engine_json
 from util import dbm_to_string_constraints as convert_dbm_to_constraints
 import pprint
 import re
+import math
+
 class AutomatonModel:
     def __init__(self): 
          self.clear()
-         self.data = {
-            "locations": {},
-            "init": "",
-            "transitions": [],
-            "actions": [],
-            "clocks": [],
-            "variables": {
-                "definition": {
-                    "define": [],
-                    "typedef": {
-                        "structure": {},
-                        "alias": {}
-                    }
-                },
-                "init_variables": [],
-                "update_functions": {},
-                "constraints": {}
-            }
-        }
+         
     def clear(self):
         """Réinitialise complètement le modèle à son état vide (nouveau fichier)."""
         self.data = {
+            "omit_ui_data": False,
             "locations": {},
             "init": "",
             "transitions": [],
@@ -230,7 +215,18 @@ class AutomatonModel:
         """
         # 1. Initialisation de la structure pure attendue par l'UI et le Contrôleur
         self.trans_counter = 0
+        
+        # Détection d'un fichier externe (sans attributs de position UI)
+        meta_keys = {"clocks", "actions", "init", "locations", "transitions", "variables"}
+        has_any_pos = False
+        for key, value in json_data.items():
+            if key not in meta_keys and isinstance(value, dict):
+                if "node_pos" in value:
+                    has_any_pos = True
+                    break
+                    
         self.data = {
+            "omit_ui_data": not has_any_pos,
             "actions": json_data.get("actions", []),
             "clocks": json_data.get("clocks", []),
             "init": json_data.get("init", ""),
@@ -252,7 +248,6 @@ class AutomatonModel:
         # ajout des données 
         # Génération de la map des horloges (indexation décalée de 1 car index 0 = x0)
         clock_map = {name: i + 1 for i, name in enumerate(self.data["clocks"])}
-        meta_keys = {"clocks", "actions", "init", "locations", "transitions", "variables"}
 
         def parse_to_dict(c_str):
             """Convertit une contrainte texte (DBM) en dictionnaire lisible par l'UI"""
@@ -331,9 +326,22 @@ class AutomatonModel:
         # 3. Synchronisation du compteur de localités du modèle
         self.loc_counter = len(self.data["locations"])
         
-
-        
-        # 4. Affichage de contrôle (Déclenché lors du chargement ou via ton Cmd + D)
+        # --- Disposition automatique (Disposition Circulaire) ---
+        # Assigne des positions temporaires si le fichier d'origine n'en contient pas
+        if self.data.get("omit_ui_data", False):
+            loc_keys = list(self.data["locations"].keys())
+            num_locs = len(loc_keys)
+            if num_locs > 0:
+                radius = max(150, num_locs * 50)
+                center_x, center_y = 400.0, 300.0
+                for i, loc_id in enumerate(loc_keys):
+                    angle = 2 * math.pi * i / num_locs
+                    self.data["locations"][loc_id]["node_pos"] = {
+                        "x": round(center_x + radius * math.cos(angle), 2),
+                        "y": round(center_y + radius * math.sin(angle), 2)
+                    }
+                    
+        # 4. Affichage de contrôle (Déclenché lors du chargement ou via Cmd + D)
         print("\n" + "=" * 60)
         print(" 📋 [Cmd + D] ÉTAT INTERNE DU MODÈLE MVC RECONSTRUIT")
         print("=" * 60)

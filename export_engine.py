@@ -79,6 +79,7 @@ def generate_and_save_engine_json(instance, output_filepath="model_compiled.json
     """
     print("\n--- DÉBUT DE LA COMPILATION DES CONTRAINTES ---")
     
+    omit_ui_data = instance.get("omit_ui_data", False)
     clocks = instance.get('clocks', [])
     clock_map = {name: i + 1 for i, name in enumerate(clocks)}
     
@@ -151,14 +152,18 @@ def generate_and_save_engine_json(instance, output_filepath="model_compiled.json
                 out_transitions.append([action, guard_matrix, resets, target])
                 transitions_layout.append(t.get('nails', []))
         
-        output[loc_id] = {
-            "node_pos": loc_data.get("node_pos", {"x": 0, "y": 0}),
-            "name_pos": loc_data.get("name_pos", {"x": 0, "y": 0}),
+        loc_dict = {
             "invariant": inv_matrix,
-            "invariant_pos": loc_data.get("invariant_pos", {"x": 0, "y": 0}),
-            "transitions": out_transitions,
-            "transitions_layout": transitions_layout
+            "transitions": out_transitions
         }
+        
+        if not omit_ui_data:
+            loc_dict["node_pos"] = loc_data.get("node_pos", {"x": 0, "y": 0})
+            loc_dict["name_pos"] = loc_data.get("name_pos", {"x": 0, "y": 0})
+            loc_dict["invariant_pos"] = loc_data.get("invariant_pos", {"x": 0, "y": 0})
+            loc_dict["transitions_layout"] = transitions_layout
+            
+        output[loc_id] = loc_dict
         
     with open(output_filepath, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=4, ensure_ascii=False)
