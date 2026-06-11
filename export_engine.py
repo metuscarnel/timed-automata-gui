@@ -147,11 +147,10 @@ def generate_and_save_engine_json(instance, output_filepath="model_compiled.json
             "transitions": out_transitions
         }
         
-        if not omit_ui_data:
-            loc_dict["node_pos"] = loc_data.get("node_pos", {"x": 0, "y": 0})
-            loc_dict["name_pos"] = loc_data.get("name_pos", {"x": 0, "y": 0})
-            loc_dict["invariant_pos"] = loc_data.get("invariant_pos", {"x": 0, "y": 0})
-            loc_dict["transitions_layout"] = transitions_layout
+        loc_dict["node_pos"] = loc_data.get("node_pos", {"x": 0, "y": 0})
+        loc_dict["name_pos"] = loc_data.get("name_pos", {"x": 0, "y": 0})
+        loc_dict["invariant_pos"] = loc_data.get("invariant_pos", {"x": 0, "y": 0})
+        loc_dict["transitions_layout"] = transitions_layout
             
         output[loc_id] = loc_dict
         
