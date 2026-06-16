@@ -456,12 +456,12 @@ class MainWindow(QMainWindow):
 
         <h3>3.3. Actions (Update functions & Contraintes)</h3>
         <p>L'onglet "Actions" crée automatiquement un sous-onglet pour chaque action du modèle. Vous pouvez y associer des fonctions de mise à jour spécifiques (Update functions) et écrire des contraintes.</p>
-        <p align="center"><img src="resources/images/data-actions.png" width="70%" alt="Actions Data Editor"></p>
+        <p align="center"><img src="resources/images/data-actions.png" alt="Actions Data Editor"></p>
 
         <h2>4. Menus et Raccourcis Clavier</h2>
         
         <h3>4.1. Menu Fichier</h3>
-        <p align="center"><img src="docs/menu-file.png" alt="Menu Fichier"></p>
+        <p align="center"><img src="resources/images/menu-file.png" alt="Menu Fichier"></p>
         
         <ul>
             <li><b>Nouveau (Ctrl+N / Cmd+N) :</b> Crée un nouveau modèle vierge.</li>
@@ -471,7 +471,7 @@ class MainWindow(QMainWindow):
         </ul>
 
         <h3>4.2. Menu Aide</h3>
-        <p align="center"><img src="docs/menu-help.png" alt="Menu Aide"></p>
+        <p align="center"><img src="resources/images/menu-help.png" alt="Menu Aide"></p>
 
         <ul>
             <li><b>À propos :</b> Affiche une brève description de l'outil.</li>
