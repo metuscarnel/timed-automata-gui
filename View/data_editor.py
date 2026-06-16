@@ -31,20 +31,6 @@ class DataEditorDialog(QDialog):
             QTextEdit:focus, QListWidget:focus, QLineEdit:focus, QComboBox:focus {
                 border: 1px solid #0D99FF;
             }
-            QPushButton {
-                background-color: #EBEBEB;
-                border: 1px solid #CCCCCC;
-                border-radius: 4px;
-                padding: 6px 16px;
-                color: #2C2C2C;
-            }
-            QPushButton:hover {
-                background-color: #E0E0E0;
-                border: 1px solid #AAAAAA;
-            }
-            QPushButton:pressed {
-                background-color: #D5D5D5;
-            }
             QTabWidget::pane {
                 border: 1px solid #CCCCCC;
                 border-radius: 4px;

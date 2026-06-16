@@ -3,6 +3,7 @@ import json
 import subprocess
 import sys
 import platform
+import shutil
 from PySide6.QtWidgets import QFileDialog, QMessageBox
 
 class MainController:
@@ -126,13 +127,38 @@ class MainController:
 
     def handle_run_script(self):
         """Sauvegarde le modèle et lance un script tiers avec le chemin JSON en argument."""
-        if not self.current_filepath:
-            self.trigger_save_dialog()
-            if not self.current_filepath:
-                return # L'utilisateur a annulé la sauvegarde
+        target_filepath = self.current_filepath
+        
+        # Vérifie s'il y a au moins une localité dans le modèle
+        if not self.model.data.get("locations"):
+            if self.view:
+                reply = QMessageBox.question(
+                    self.view,
+                    "Modèle vide",
+                    "Aucun modèle n'est en cours de dessin.\nVoulez-vous sélectionner un fichier JSON existant pour exécuter un script ?",
+                    QMessageBox.Yes | QMessageBox.No,
+                    QMessageBox.Yes
+                )
+                if reply == QMessageBox.Yes:
+                    target_filepath, _ = QFileDialog.getOpenFileName(
+                        self.view,
+                        "Sélectionner un fichier JSON",
+                        "",
+                        "Fichiers JSON (*.json)"
+                    )
+                    if not target_filepath:
+                        return
+                else:
+                    return
         else:
-            # Sauvegarde silencieuse pour s'assurer que le script travaille sur la toute dernière version
-            self.model.export_to_json(self.current_filepath)
+            if not self.current_filepath:
+                self.trigger_save_dialog()
+                if not self.current_filepath:
+                    return # L'utilisateur a annulé la sauvegarde
+                target_filepath = self.current_filepath
+            else:
+                # Sauvegarde silencieuse pour s'assurer que le script travaille sur la toute dernière version
+                self.model.export_to_json(self.current_filepath)
             
         if self.view:
             script_path, _ = QFileDialog.getOpenFileName(
@@ -145,23 +171,47 @@ class MainController:
                 try:
                     # Lance avec l'interpréteur Python si c'est un .py, sinon le lance comme un binaire natif
                     if script_path.endswith('.py'):
-                        script_cmd = f'"{sys.executable}" "{script_path}" "{self.current_filepath}"'
+                        script_cmd = f'"{sys.executable}" "{script_path}" "{target_filepath}"'
                     else:
-                        script_cmd = f'"{script_path}" "{self.current_filepath}"'
+                        script_cmd = f'"{script_path}" "{target_filepath}"'
                     
                     # Ouvre un terminal de manière multi-plateforme
                     system = platform.system()
+            
                     if system == "Darwin":  # macOS
                         script_cmd_escaped = script_cmd.replace('"', '\\"')
                         apple_script = f'tell application "Terminal" to do script "{script_cmd_escaped}"'
                         cmd = ['osascript', '-e', apple_script]
+            
                     elif system == "Windows":
-                        cmd = ['cmd.exe', '/c', 'start', '""', 'cmd.exe', '/k', script_cmd]
-                    else:  # Linux (utilise xterm par défaut)
-                        cmd = ['xterm', '-hold', '-e', script_cmd]
-                        
+                        if shutil.which("wt"):
+                            cmd = ['wt', 'cmd.exe', '/k', script_cmd]
+                        else:
+                            cmd = ['cmd.exe', '/c', 'start', '""', 'cmd.exe', '/k', script_cmd]
+            
+                    else:  # Linux / Unix
+                        terminals = [
+                            ['x-terminal-emulator', '-e', script_cmd],
+                            ['gnome-terminal', '--', 'bash', '-lc', f'{script_cmd}; exec bash'],
+                            ['konsole', '-e', 'bash', '-lc', f'{script_cmd}; exec bash'],
+                            ['xfce4-terminal', '-e', f'bash -lc "{script_cmd}; exec bash"'],
+                            ['mate-terminal', '--', 'bash', '-lc', f'{script_cmd}; exec bash'],
+                            ['alacritty', '-e', 'bash', '-lc', f'{script_cmd}; exec bash'],
+                            ['kitty', 'bash', '-lc', f'{script_cmd}; exec bash'],
+                            ['xterm', '-hold', '-e', script_cmd],
+                        ]
+            
+                        cmd = None
+            
+                        for terminal in terminals:
+                            if shutil.which(terminal[0]):
+                                cmd = terminal
+                                break
+            
+                        if cmd is None:
+                            cmd = ['sh', '-c', script_cmd]
+                            
                     subprocess.Popen(cmd)
-                    
                     QMessageBox.information(
                         self.view,
                         "Script lancé",

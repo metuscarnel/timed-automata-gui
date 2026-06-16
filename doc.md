@@ -1,35 +1,60 @@
-# Documentation Technique
+# Documentation Technique & Architecture Détaillée
 
-L'application repose sur le pattern de conception **MVC (Modèle-Vue-Contrôleur)** implémenté en Python.
+L'outil est développé en **Python** et utilise le framework **PySide6** (Qt) pour l'interface graphique.
 
+Il repose sur une séparation stricte des responsabilités grâce au pattern de conception **MVC (Modèle-Vue-Contrôleur)**.
 
 ---
 
-## Structure du Projet
+## 1. Architecture Logicielle (MVC)
 
-Pour faciliter la navigation dans le code, voici l'arborescence complète du code de l'outil :
+L'architecture est découpée en trois couches distinctes.
+
+### 1.1. Le Modèle (`model.py`)
+Le **Modèle** (`AutomatonModel`) est le cœur de l'application. Il est totalement agnostique de l'interface graphique (il n'importe aucun module PySide6).
+*   **État Interne (`self.data`)** : Il stocke l'intégralité des données de l'automate (localités, transitions, variables C/C++, horloges, actions, état initial) sous forme d'un dictionnaire Python standard.
+*   **Logique Métier (CRUD)** : Il expose des méthodes pour Créer, Lire, Mettre à jour et Supprimer des éléments (ex: `add_location`, `add_transition_guard`, `delete_action`).
+*   **Intégrité** : Il est garant de la cohérence des données (ex: supprimer une horloge la retire de toutes les contraintes existantes).
+*   **Persistance** : Il gère le chargement et l'exportation au format JSON, en déléguant la conversion mathématique au moteur DBM.
+
+### 1.2. La Vue (`View/`)
+La **Vue** gère exclusivement l'affichage et l'interaction avec l'utilisateur. Elle ne modifie **jamais** le modèle directement.
+*   **Composants Indépendants** : L'interface est découpée en plusieurs fichiers selon les éléments graphiques (Fenêtre principale, Canvas de dessin, Popups, Éditeur de données).
+*   **Signaux (Signals)** : La Vue communique avec le monde extérieur (le Contrôleur) en émettant des événements via le mécanisme de signaux de Qt (ex: `canvas_clicked`, `node_selected`).
+
+### 1.3. Le Contrôleur (`controller.py`)
+Le **Contrôleur** (`MainController`) est le chef d'orchestre. Il fait le pont entre la Vue et le Modèle.
+*   **Abonnement aux Signaux** : Au démarrage, il connecte les signaux émis par la Vue à ses propres méthodes (les *slots*).
+*   **Orchestration** : Lorsqu'un événement survient (ex: l'utilisateur valide l'ajout d'une garde), le contrôleur reçoit l'information, appelle la méthode appropriée du Modèle pour sauvegarder la donnée, puis donne l'ordre à la Vue de se rafraîchir pour afficher le changement.
+
+---
+
+## 2. Structure du Projet
 
 ```text
 timed-automata-gui/
-├── main.py                # Point d'entrée de l'application
-├── model.py               # Modèle de données (AutomatonModel)
-├── controller.py          # Logique métier et orchestration (MainController)
-├── doc.md                 # Ce fichier (Documentation technique architecturale)
-├── README.md              # Manuel d'utilisation et présentation globale
-├── script-draft.py        # Exemple de script pour tester l'exécution externe
+├── main.py                # Point d'entrée, initialisation MVC, style CSS/QSS global
+├── model.py               # Le Modèle (AutomatonModel)
+├── controller.py          # Le Contrôleur (MainController) 
+├── doc.md                 # Cette documentation
+├── README.md              # Manuel d'utilisation
 │
-├── View/                  # Interface Graphique (Vue)
+├── View/                  # La Couche Visuelle (Vue)
 │   ├── __init__.py
-│   ├── window.py          # Fenêtre principale et menus (MainWindow)
-│   ├── canvas.py          # Espace de dessin interactif (AutomataView)
-│   ├── items.py           # Éléments graphiques natifs (NodeItem, TransitionItem...)
-│   ├── properties_dock.py # Panneau latéral d'édition (Invariants, Gardes, Actions)
-│   ├── data_editor.py     # Fenêtre d'édition des variables C/C++ étendues
+│   ├── window.py          # Fenêtre principale (MainWindow), barre d'outils, menus
+│   ├── canvas.py          # Espace de dessin interactif (AutomataView / QGraphicsView)
+│   ├── items.py           # Objets graphiques natifs (NodeItem, TransitionItem, NailItem) 
+│   ├── properties_dock.py # Panneau latéral dynamique (Invariants, Gardes, Actions)
+│   ├── data_editor.py     # Fenêtre d'édition avancée (Variables C/C++, #define, structs)
 │   └── popups.py          # Fenêtres contextuelles rapides
 │
-└── utils/                 # Utilitaires et Moteurs de conversion
+├── utils/                 # Sous-outils transverses
     ├── __init__.py
-    └── dbm_engine.py      # Conversion mathématique bidirectionnelle (UI <-> DBM)
+    └── dbm_engine.py      # Couche de traduction bidirectionnelle (Dictionnaires UI <-> Matrices DBM) 
+│
+└── resources/             # Ressources statiques de l'application
+    ├── images/            # Captures d'écran pour le manuel d'utilisation
+    └── icons.py           # Dictionnaire d'icônes
 ```
 
 ---

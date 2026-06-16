@@ -45,6 +45,8 @@ class MainWindow(QMainWindow):
         self.properties_dock.hide()
         self._setup_menubar()
         toolbar = QToolBar()
+        # Empêche l'apparition du menu natif Qt listant les panneaux (docks)
+        toolbar.setContextMenuPolicy(Qt.PreventContextMenu)
         self.addToolBar(toolbar)
         self.action_group = QActionGroup(self)
         self.action_group.setExclusionPolicy(QActionGroup.ExclusionPolicy.ExclusiveOptional)
@@ -181,7 +183,7 @@ class MainWindow(QMainWindow):
         menu_fichier.addAction(action_save)
         
         menu_fichier.addSeparator()
-        menu_fichier.addAction(action_debug)
+        #menu_fichier.addAction(action_debug)
         menu_fichier.addSeparator()
         action_quit = QAction("Quitter", self)
         action_quit.setShortcut(QKeySequence.Quit)
@@ -247,46 +249,12 @@ class MainWindow(QMainWindow):
         mod_action = menu.addAction("Modifier")
         del_action = menu.addAction("Supprimer")
         action = menu.exec(label.mapToGlobal(pos))
-        popup_style = """
-            QDialog, QMessageBox, QInputDialog {
-                background-color: #FAFAFA;
-            }
-            QLabel {
-                color: #2C2C2C;
-                font-family: 'IBM Plex Mono';
-                font-size: 12pt;
-            }
-            QLineEdit {
-                background-color: #FFFFFF;
-                color: #000000;
-                border: 1px solid #CCCCCC;
-                border-radius: 4px;
-                padding: 6px;
-                font-family: 'IBM Plex Mono';
-                font-size: 12pt;
-            }
-            QLineEdit:focus {
-                border: 1px solid #0D99FF;
-            }
-            QPushButton {
-                background-color: #EBEBEB;
-                border: 1px solid #CCCCCC;
-                border-radius: 4px;
-                padding: 6px 16px;
-                color: #2C2C2C;
-                font-family: 'IBM Plex Mono';
-            }
-            QPushButton:hover {
-                background-color: #E0E0E0;
-            }
-        """
         
         if action == mod_action:
             dialog = QInputDialog(self)
             dialog.setWindowTitle(f"Modifier {item_type}")
             dialog.setLabelText("Nouveau nom :")
             dialog.setTextValue(label.text())
-            dialog.setStyleSheet(popup_style)
             
             ok = dialog.exec()
             new_name = dialog.textValue()
@@ -302,7 +270,6 @@ class MainWindow(QMainWindow):
             msg_box.setText(f"Voulez-vous vraiment supprimer '{label.text()}' (et toutes les contraintes associées) ?")
             msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
             msg_box.setDefaultButton(QMessageBox.No)
-            msg_box.setStyleSheet(popup_style)
             
             reply = msg_box.exec()
             
@@ -419,18 +386,6 @@ class MainWindow(QMainWindow):
                 border-radius: 4px;
                 padding: 10px;
             }
-            QPushButton {
-                background-color: #EBEBEB;
-                border: 1px solid #CCCCCC;
-                border-radius: 4px;
-                padding: 6px 16px;
-                color: #2C2C2C;
-                font-family: 'IBM Plex Mono';
-            }
-            QPushButton:hover {
-                background-color: #E0E0E0;
-                border: 1px solid #AAAAAA;
-            }
         """)
         
         layout = QVBoxLayout(dialog)
@@ -455,7 +410,7 @@ class MainWindow(QMainWindow):
         <h1>Guide d'Utilisation</h1>
         <p>Bienvenue dans l'éditeur graphique d'automates temporisés étendus par la donnée.</p>
         
-        <p align="center"><img src="docs/main-window.png"></p>
+        <p align="center"><img src="resources/images/main-window.png"></p>
 
         <h2>1. Modélisation Graphique & Propriétés</h2>
         
@@ -466,7 +421,7 @@ class MainWindow(QMainWindow):
             <li><b>Invariants :</b> Faites un <b>clic droit</b> sur la localité pour ouvrir le panneau latéral de propriétés. Choisissez l'horloge, l'opérateur (<=, >=, ==), une horloge et/ou une valeur constante. Cliquez sur le bouton <b>+</b> pour valider. Double-cliquez sur un invariant existant pour le modifier.</li>
             <li><b>Déplacement & Suppression :</b> Cliquez et glissez pour déplacer. Pour supprimer, faites un clic droit (qui ouvre le panneau latéral) puis cliquez sur le bouton rouge <b>Supprimer la localité</b>.</li>
         </ul>
-        <p align="center"><img src="docs/node.png" alt="Localité et Invariants"></p>
+        <p align="center"><img src="resources/images/node.png" alt="Localité et Invariants"></p>
 
         <h3>1.2. Les Transitions, Gardes et Actions</h3>
         <ul>
@@ -476,19 +431,19 @@ class MainWindow(QMainWindow):
             <li><b>Modification :</b> Réassignez facilement la source ou la cible via les menus déroulants en haut du panneau de propriétés.</li>
             <li><b>Annulation :</b> Appuyez sur la touche <b>Échap</b> pendant la création pour annuler.</li>
         </ul>
-        <p align="center"><img src="docs/transition.png" alt="Transition et Propriétés"></p>
+        <p align="center"><img src="resources/images/transition.png" alt="Transition et Propriétés"></p>
 
         <h2>2. Déclarations Globales (Barre d'outils)</h2>
         <p>Dans la barre d'outils, cliquez sur le petit bouton <b>+</b> à côté de l'icône Horloge ou Action pour afficher la popup de saisie. Renseignez le nom et appuyez sur Entrée. Un <b>clic droit</b> sur le nom déclaré permet de le renommer ou de le supprimer.</p>
-        <p align="center"><img src="docs/add-action.png" alt="Barre d'outils (Horloges et Actions)"></p>
-        <p align="center"><img src="docs/delete-action.png"  alt="Barre d'outils (Horloges et Actions)"></p>
+        <p align="center"><img src="resources/images/add-action.png" alt="Barre d'outils (Horloges et Actions)"></p>
+        <p align="center"><img src="resources/images/delete-action.png"  alt="Barre d'outils (Horloges et Actions)"></p>
 
         <h2>3. L'Éditeur de Données (Bouton "Data")</h2>
         <p>Cliquez sur le bouton <b>Data</b> pour ouvrir la fenêtre</p>
         
         <h3>3.1. Variable et Initialisation</h3>
         <p>Dans le premier onglet, tapez librement vos déclarations de variables globales (ex: <i>int timer;</i>) et l'initialisation de ces variables (ex: <i>timer = 0;</i>).</p>
-        <p align="center"><img src="docs/data-variable.png"  alt="Éditeur de données"></p>
+        <p align="center"><img src="resources/images/data-variable.png"  alt="Éditeur de données"></p>
 
         <h3>3.2. Données Additionnelles (Define, Alias & Structures)</h3>
         <p>Cet onglet centralise les définitions de types et macros C/C++</p>
@@ -497,11 +452,11 @@ class MainWindow(QMainWindow):
             <li><b>Alias :</b> Cliquez sur le bouton <b>+</b> de la ligne Alias pour ajouter un nouvel alias. Entrez le nom (ex: <i>uint8</i>) puis sa définition dans le champ apparu.</li>
             <li><b>Structures :</b> Cliquez sur le <b>+</b> pour nommer et générer un nouveau bloc de définition de structure de structure (<code>struct</code>). Vous pouvez ensuite y taper le code C/C++ correspondant.</li>
         </ul>
-        <p align="center"><img src="docs/data-addi.png" alt="Éditeur de données additionnelles"></p>
+        <p align="center"><img src="resources/images/data-addi.png" alt="Éditeur de données additionnelles"></p>
 
         <h3>3.3. Actions (Update functions & Contraintes)</h3>
         <p>L'onglet "Actions" crée automatiquement un sous-onglet pour chaque action du modèle. Vous pouvez y associer des fonctions de mise à jour spécifiques (Update functions) et écrire des contraintes.</p>
-        <p align="center"><img src="docs/data-actions.png" width="70%" alt="Actions Data Editor"></p>
+        <p align="center"><img src="resources/images/data-actions.png" width="70%" alt="Actions Data Editor"></p>
 
         <h2>4. Menus et Raccourcis Clavier</h2>
         

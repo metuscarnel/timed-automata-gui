@@ -1,1 +1,0 @@
-pyinstaller --name "ta-gui" --windowed --add-data "resources:resources" --add-data "docs:docs" main.py

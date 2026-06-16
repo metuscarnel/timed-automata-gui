@@ -17,6 +17,7 @@ def main():
         /* Style global */
         QWidget {
             font-family: 'IBM Plex Mono';
+            font-size: 13pt;
             background-color: #FAFAFA;
             color: #2C2C2C;
         }
@@ -116,6 +117,46 @@ def main():
             selection-background-color: #E5F3FF;
             selection-color: #000000;
             outline: none;
+        }
+
+        /* --- Dialogs & Popups (QMessageBox, QInputDialog, etc.) --- */
+        QDialog QLabel {
+            background-color: transparent; /* Les labels dans les dialogs doivent être transparents */
+        }
+
+        /* Boutons dans les boîtes de dialogue */
+        QDialogButtonBox QPushButton, QDialog QPushButton {
+            background-color: #EBEBEB;
+            border: 1px solid #CCCCCC;
+            border-radius: 4px;
+            padding: 6px 16px;
+            color: #2C2C2C;
+            min-width: 80px;
+        }
+        QDialogButtonBox QPushButton:hover, QDialog QPushButton:hover {
+            background-color: #E0E0E0;
+            border: 1px solid #AAAAAA;
+        }
+        QDialogButtonBox QPushButton:pressed, QDialog QPushButton:pressed {
+            background-color: #D5D5D5;
+        }
+        /* Style pour le bouton par défaut (ex: 'Ok', 'Yes') */
+        QDialogButtonBox QPushButton:default, QDialog QPushButton:default {
+            font-weight: bold;
+            background-color: #E0E8F0;
+            border: 1px solid #A9C2D9;
+        }
+
+        /* Champs de saisie dans les boîtes de dialogue */
+        QDialog QLineEdit {
+            background-color: #FFFFFF;
+            color: #000000;
+            border: 1px solid #CCCCCC;
+            border-radius: 4px;
+            padding: 6px;
+        }
+        QDialog QLineEdit:focus {
+            border: 1px solid #0D99FF;
         }
     """)
     
