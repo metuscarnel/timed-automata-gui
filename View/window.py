@@ -1,3 +1,5 @@
+import sys
+import os
 from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QLabel, QToolButton, QHBoxLayout, QComboBox, QMenu, QInputDialog, QMessageBox, QDialog, QVBoxLayout, QTextBrowser, QPushButton
 from PySide6.QtGui import QAction, QKeySequence, QActionGroup, QIcon, QGuiApplication
 from PySide6.QtCore import Qt, QPoint, QFileInfo
@@ -393,6 +395,15 @@ class MainWindow(QMainWindow):
         text_browser = QTextBrowser(dialog)
         text_browser.setOpenExternalLinks(True)
         
+        # Calcul du chemin absolu dynamique pour la compatibilité avec PyInstaller (--onefile)
+        if hasattr(sys, '_MEIPASS'):
+            base_path = sys._MEIPASS
+        else:
+            base_path = os.path.abspath(".")
+            
+        # Indique au navigateur web interne où chercher le dossier "resources/images/"
+        text_browser.setSearchPaths([base_path.replace('\\', '/')])
+
         html_content = """
         <style>
             body { font-family: 'IBM Plex Mono', monospace; font-size: 11pt; }

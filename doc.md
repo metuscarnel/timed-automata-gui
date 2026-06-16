@@ -81,3 +81,4 @@ Voici le cheminement d'une action de l'utilisateur à l'interface :
 2. **Contrôleur** : `MainController.handle_canvas_click` reçoit le signal.
 3. **Modèle** : Le contrôleur appelle `model.add_location(x, y)` qui crée l'ID et stocke la donnée dans `self.data`.
 4. **Mise à jour Vue** : Le contrôleur appelle `view.canvas.draw_node(...)` pour faire apparaître le cercle à l'écran.
+
