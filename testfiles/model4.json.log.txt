@@ -1,8 +1,0 @@
---- Rapport d'exécution du 2026-06-16 11:16:44.188926 ---
-Fichier reçu et analysé : /Users/metusgbogbohoundada/Documents/CILS 2025/COSMO/Stage/timed-automata-gui/testfiles/model4.json
-
-Nombre d'actions : 3
-Nombre d'horloges : 2
-Nombre de localités : 2
-
-Bravo, le script tiers s'est exécuté avec succès depuis l'interface !
