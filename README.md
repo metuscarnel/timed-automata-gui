@@ -17,29 +17,52 @@ Cet outil s'adresse principalement à la modélisation pour la vérification for
 
 ## Démarrage Rapide
 
-### Prérequis
-- Python 3.10 ou supérieur
-- Unix
-### Installation
+### Option 1 : Utiliser la version portable (Recommandé)
 
+1.  Décompressez l'archive `.zip` disponible dans `share/linux`.
+2.  Double-cliquez sur l'exécutable `ta-gui` pour lancer l'application.
+
+---
+
+### Option 2 : Exécuter depuis le code source
+
+#### Prérequis
+-   Python 3.10 ou supérieur
+
+#### Installation
 
 1. **Créer un environnement virtuel** :
    ```bash
-   python3 -m venv venv
+   python -m venv venv
    source venv/bin/activate  
    ```
+
 2. **Installer les dépendances** :
    ```bash
    pip install -r requirements.txt
    ```
 
-### Lancer l'Application
+#### Lancer l'Application
 
 ```bash
 python main.py
 ```
 L'interface graphique s'ouvrira, vous présentant une zone de travail vierge prête à l'emploi.
+## Compiler l'Application (Build)
 
+Si vous souhaitez générer un exécutable portable pour votre système d'exploitation,
+
+1. Assurez-vous d'avoir installé PyInstaller dans votre environnement :
+   ```bash
+   pip install pyinstaller
+   ```
+2. Lancez la commande de compilation depuis la racine du projet :
+   ```bash
+   pyinstaller --noconsole --onefile --add-data "resources:resources" --name "nom_souhaité_pour_votre_exe" main.py
+   ```
+   
+3. Une fois terminé, l'exécutable final se trouvera dans le dossier **`dist/`**.
+*(Note: sous macOS, utilisez `--windowed` à la place de `--noconsole` et partagez le `.app` compressé en zip).*
 ## Fonctionnalités
 
 ### Édition Graphique Interactive
@@ -78,6 +101,21 @@ Le projet respecte scrupuleusement le patron de conception **MVC (Model-View-Con
 
 ### Format de Données (JSON & DBM)
 Les modèles sont exportés en JSON. Les contraintes saisies humainement (ex: `x <= 5`) sont compilées en matrices **DBM** (via `utils/dbm_engine.py`) pour une compatibilité directe avec les outils de vérification formelle. À l'ouverture d'un fichier, l'opération inverse est effectuée pour restaurer l'affichage textuel dans l'interface de manière transparente.
+
+## Compiler l'Application (Build)
+
+Si vous souhaitez générer un exécutable portable autonome pour votre système d'exploitation, l'outil utilise **PyInstaller**.
+
+1. Assurez-vous d'avoir installé PyInstaller dans votre environnement :
+   ```bash
+   pip install pyinstaller
+   ```
+2. Lancez la commande de compilation depuis la racine du projet :
+   ```bash
+   pyinstaller --noconsole --onefile --add-data "resources:resources" --name "nomdeexe" main.py
+   ```
+3. Une fois terminé, l'exécutable final se trouvera dans le dossier **`dist/`**.
+*(Note: sous macOS, utilisez `--windowed` à la place de `--noconsole` et partagez le `.app` compressé en zip).*
 
 ## Raccourcis Clavier
 
