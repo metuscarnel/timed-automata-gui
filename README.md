@@ -87,10 +87,10 @@ Si vous souhaitez générer un exécutable portable pour votre système d'exploi
 1. **Ajouter un état** : Cliquez le petit cercle sur la barre d'outils **"Nouvelle Localité"** puis cliquez sur le canvas. Le premier état créé est automatiquement défini comme état initial (double bordure).
 2. **Ajouter une transition** : Cliquez sur **"➔ Nouvelle Transition"**, puis reliez un état source à un état cible.
 3. **Définir des horloges** : Utilisez l'icône 🕒 dans la barre d'outils pour ajouter de nouvelles horloges (ex: `x`, `y`).
-4. **Éditer les contraintes** : Sélectionnez une localité ou une transition avec le clic  droit. Le **panneau de droite** s'ouvre pour vous permettre d'ajouter des invariants, des gardes, ou des actions.
+4. **Éditer les contraintes** : Sélectionnez une localité ou une transition avec le **clic gauche**. Le **panneau de droite** s'ouvre pour vous permettre d'ajouter des invariants, des gardes, ou des actions.
 5. **Sauvegarder** : Allez dans **Fichier > Sauvegarder** ou faite " Ctrl + S" pour sauvegarder modèle sous JSON.
 
-*💡 Astuce : Vous pouvez annuler l'outil en cours d'utilisation en appuyant sur la touche `Échap`.*
+*💡 Astuce : Vous pouvez annuler l'outil en cours d'utilisation en appuyant sur la touche `Échap` ou avec un `clic droit` sur le canevas.*
 
 ## Architecture et Formats
 
@@ -125,7 +125,8 @@ Si vous souhaitez générer un exécutable portable autonome pour votre système
 | `Cmd+O` / `Ctrl+O` | Ouvrir un fichier JSON existant |
 | `Cmd+S` / `Ctrl+S` | Sauvegarder l'automate courant |
 | `Échap` | Annuler le mode de création en cours ou l'action en cours |
-| `Clic Droit` | Menu contextuel sur les labels ou forcer la sélection d'un élément graphique |
+| `Clic Gauche` | Ouvrir le panneau de propriétés (nœuds/transitions) ou le menu d'édition (horloges/actions) |
+| `Clic Droit` | Annuler le mode de création en cours sur le canevas |
 
 ## Dépannage
 

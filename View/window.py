@@ -242,8 +242,12 @@ class MainWindow(QMainWindow):
         lbl = QLabel(text)
         lbl.setStyleSheet("color: #0D99FF; font-family: 'IBM Plex Mono'; font-size: 12pt; font-style: italic;")
         lbl.setCursor(Qt.PointingHandCursor)
-        lbl.setContextMenuPolicy(Qt.CustomContextMenu)
-        lbl.customContextMenuRequested.connect(lambda pos, label=lbl, t=item_type: self._show_item_context_menu(label, pos, t))
+        
+        # Remplacer le clic droit par un clic gauche pour le menu
+        def show_menu_on_left_click(event, label=lbl, item_type=item_type):
+            if event.button() == Qt.LeftButton:
+                self._show_item_context_menu(label, event.pos(), item_type)
+        lbl.mousePressEvent = show_menu_on_left_click
         return lbl
 
     def _show_item_context_menu(self, label, pos, item_type):
@@ -429,15 +433,15 @@ class MainWindow(QMainWindow):
         <ul>
             <li><b>Création :</b> Activez l'outil <b>Nouvelle Localité</b> dans la barre d'outils, puis cliquez n'importe où sur l'espace de travail.</li>
             <li><b>État Initial :</b> La première localité créée est automatiquement définie comme état initial (double bordure). Vous pouvez modifier l'état initial via le menu déroulant <b>Init :</b> situé dans la barre d'outils.</li>
-            <li><b>Invariants :</b> Faites un <b>clic droit</b> sur la localité pour ouvrir le panneau latéral de propriétés. Choisissez l'horloge, l'opérateur (<=, >=, ==), une horloge et/ou une valeur constante. Cliquez sur le bouton <b>+</b> pour valider. Double-cliquez sur un invariant existant pour le modifier.</li>
-            <li><b>Déplacement & Suppression :</b> Cliquez et glissez pour déplacer. Pour supprimer, faites un clic droit (qui ouvre le panneau latéral) puis cliquez sur le bouton rouge <b>Supprimer la localité</b>.</li>
+            <li><b>Invariants :</b> Faites un <b>clic gauche</b> sur la localité pour ouvrir le panneau latéral de propriétés. Choisissez l'horloge, l'opérateur (<=, >=, ==), une horloge et/ou une valeur constante. Cliquez sur le bouton <b>+</b> pour valider. Double-cliquez sur un invariant existant pour le modifier.</li>
+            <li><b>Déplacement & Suppression :</b> Cliquez et glissez pour déplacer. Pour supprimer, faites un clic gauche (qui ouvre le panneau latéral) puis cliquez sur le bouton rouge <b>Supprimer la localité</b>.</li>
         </ul>
         <p align="center"><img src="resources/images/node.png" alt="Localité et Invariants"></p>
 
         <h3>1.2. Les Transitions, Gardes et Actions</h3>
         <ul>
             <li><b>Création :</b> Activez l'outil <b>Nouvelle Transition</b>. Cliquez sur la source, ajoutez des points de courbure (clous) en cliquant dans le vide si besoin, puis cliquez sur la cible.</li>
-            <li><b>Gardes :</b> Faites un <b>clic droit</b> sur la flèche pour ouvrir le panneau de propriétés. Ajoutez des conditions de franchissement (gardes) de la même manière que les invariants.</li>
+            <li><b>Gardes :</b> Faites un <b>clic gauche</b> sur la flèche pour ouvrir le panneau de propriétés. Ajoutez des conditions de franchissement (gardes) de la même manière que les invariants.</li>
             <li><b>Actions & Resets :</b> Toujours dans les propriétés, associez une <b>Action</b> déclarée via le menu déroulant, et cochez les horloges à remettre à zéro (<b>Resets</b>) lors du franchissement.</li>
             <li><b>Modification :</b> Réassignez facilement la source ou la cible via les menus déroulants en haut du panneau de propriétés.</li>
             <li><b>Annulation :</b> Appuyez sur la touche <b>Échap</b> pendant la création pour annuler.</li>
@@ -445,7 +449,7 @@ class MainWindow(QMainWindow):
         <p align="center"><img src="resources/images/transition.png" alt="Transition et Propriétés"></p>
 
         <h2>2. Déclarations Globales (Barre d'outils)</h2>
-        <p>Dans la barre d'outils, cliquez sur le petit bouton <b>+</b> à côté de l'icône Horloge ou Action pour afficher la popup de saisie. Renseignez le nom et appuyez sur Entrée. Un <b>clic droit</b> sur le nom déclaré permet de le renommer ou de le supprimer.</p>
+        <p>Dans la barre d'outils, cliquez sur le petit bouton <b>+</b> à côté de l'icône Horloge ou Action pour afficher la popup de saisie. Renseignez le nom et appuyez sur Entrée. Un <b>clic gauche</b> sur le nom déclaré permet de le renommer ou de le supprimer.</p>
         <p align="center"><img src="resources/images/add-action.png" alt="Barre d'outils (Horloges et Actions)"></p>
         <p align="center"><img src="resources/images/delete-action.png"  alt="Barre d'outils (Horloges et Actions)"></p>
 
@@ -468,10 +472,15 @@ class MainWindow(QMainWindow):
         <h3>3.3. Actions (Update functions & Contraintes)</h3>
         <p>L'onglet "Actions" crée automatiquement un sous-onglet pour chaque action du modèle. Vous pouvez y associer des fonctions de mise à jour spécifiques (Update functions) et écrire des contraintes.</p>
         <p align="center"><img src="resources/images/data-actions.png" alt="Actions Data Editor"></p>
+        <h2>4. Exécution</h2>
+        <p align="center"><img src="resources/images/script-run.png" alt="Exécution de Script"></p>
+        <ul>
+            <li><b>Exécuter :</b> Permet de sélectionner un script externeet de l'exécuter sur le fichier JSON du modèle actuel (sauvegarde en arrière-plan de la dernière version), et si le modèle est vierge, propose d'en sélectionner un et d'exécuter ensuite le script sélectionné juste après.</li>
+        </ul>
 
-        <h2>4. Menus et Raccourcis Clavier</h2>
+        <h2>5. Menus et Raccourcis Clavier</h2>
         
-        <h3>4.1. Menu Fichier</h3>
+        <h3>5.1. Menu Fichier</h3>
         <p align="center"><img src="resources/images/menu-file.png" alt="Menu Fichier"></p>
         
         <ul>
@@ -481,18 +490,18 @@ class MainWindow(QMainWindow):
             <li><b>Quitter (Ctrl+Q / Cmd+Q) :</b> Ferme l'application.</li>
         </ul>
 
-        <h3>4.2. Menu Aide</h3>
+        <h3>5.2. Menu Aide</h3>
         <p align="center"><img src="resources/images/menu-help.png" alt="Menu Aide"></p>
 
         <ul>
             <li><b>À propos :</b> Affiche une brève description de l'outil.</li>
             <li><b>Manuel d'utilisation :</b> Ouvre ce guide d'utilisation.</li>
         </ul>
-
-            <h3>4.3. Autres Actions</h3>
+        
+        
+        <h3>5.3. Autres Actions</h3>
             <ul>
                 <li><b>Échap :</b> Annule le mode de création en cours (utile si vous avez commencé à tracer une transition et souhaitez l'annuler).</li>
-                <li><b>Clic Droit :</b> Ouvre le panneau des propriétés de l'élément survolé (Localité ou Transition) ou annule l'outil de création en cours.</li>
             </ul>
 
         """

@@ -191,19 +191,7 @@ class AutomataView(QGraphicsView):
             elif self.creation_mode is not None:
                 self.set_creation_mode(None)
                 return
-            else:
-                # Focus d'édition des transitions sur clic droit
-                clicked_item = self.itemAt(event.pos())
-                curr = clicked_item
-                while curr:
-                    if isinstance(curr, TransitionItem):
-                        self.scene.clearSelection()
-                        curr.setSelected(True)
-                        # On émet explicitement le signal pour ouvrir le panneau d'édition
-                        self.transition_selected.emit(curr.id)
-                        return
-                    curr = curr.parentItem()
-                # Si aucun mode de création n'est actif, on laisse passer le clic droit vers les objets.
+            # Le clic droit n'ouvre plus le dock, il ne sert qu'à annuler.
 
         # Ignorer le clic gauche sur les transitions (sauf les clous)
         if event.button() == Qt.LeftButton and self.creation_mode is None:

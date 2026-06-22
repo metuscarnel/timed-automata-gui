@@ -67,8 +67,8 @@ class NodeItem(QGraphicsEllipseItem):
         return super().itemChange(change, value)
         
     def mousePressEvent(self, event):
-        """Ouvre le Dock de propriétés uniquement au clic droit pour les noeuds."""
-        if event.button() == Qt.RightButton:
+        """Ouvre le Dock de propriétés au clic gauche sur le noeud."""
+        if event.button() == Qt.LeftButton:
             self.setSelected(True)
             if self.scene() and self.scene().views():
                 view = self.scene().views()[0]
@@ -105,7 +105,7 @@ class NailItem(QGraphicsEllipseItem):
         
     def mousePressEvent(self, event):
         """Ouvre le Dock de propriétés de la transition au clic sur un clou."""
-        if event.button() in (Qt.LeftButton, Qt.RightButton):
+        if event.button() == Qt.LeftButton:
             self.setSelected(True)
             if self.transition and self.scene() and self.scene().views():
                 view = self.scene().views()[0]
@@ -264,7 +264,7 @@ class TransitionItem(QGraphicsPathItem):
 
     def mousePressEvent(self, event):
         """Ouvre le Dock de propriétés au clic."""
-        if event.button() in (Qt.LeftButton, Qt.RightButton):
+        if event.button() == Qt.LeftButton:
             self.setSelected(True) # Force la sélection visuelle (bordure bleue)
             if self.scene() and self.scene().views():
                 view = self.scene().views()[0]

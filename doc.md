@@ -16,6 +16,7 @@ timed-automata-gui/
 ├── controller.py          # Logique métier et orchestration (MainController)
 ├── doc.md                 # Ce fichier (Documentation technique architecturale)
 ├── README.md              # Manuel d'utilisation et présentation globale
+├── requirements.txt.      # ensemble des dépendances nécessaires au fonctionnement de l'outil
 │
 ├── View/                  # Interface Graphique (Vue)
 │   ├── __init__.py
