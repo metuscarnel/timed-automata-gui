@@ -193,15 +193,6 @@ class AutomataView(QGraphicsView):
                 return
             # Le clic droit n'ouvre plus le dock, il ne sert qu'à annuler.
 
-        # Ignorer le clic gauche sur les transitions (sauf les clous)
-        if event.button() == Qt.LeftButton and self.creation_mode is None:
-            clicked_item = self.itemAt(event.pos())
-            curr = clicked_item
-            while curr:
-                if isinstance(curr, TransitionItem) and not isinstance(clicked_item, NailItem):
-                    return # On bloque la sélection par défaut avec le clic gauche
-                curr = curr.parentItem()
-
         item = None
         # On parcourt tous les items sous le clic pour ignorer la ligne temporaire (qui bloque le clic)
         for it in self.items(event.pos()):
@@ -215,7 +206,7 @@ class AutomataView(QGraphicsView):
         if self.creation_mode == "transition":
             if not self.drag_source_id:
                 # 1. Début de la transition
-                if item and hasattr(item, 'id'):
+                if isinstance(item, NodeItem):
                     self.drag_source_id = item.id
                     self.transition_nails_pos = []
                     self.temp_lines = []
@@ -231,7 +222,7 @@ class AutomataView(QGraphicsView):
                     return
             else:
                 # 2. En cours de dessin
-                if item and hasattr(item, 'id'):
+                if isinstance(item, NodeItem):
                     # Fin : Clic sur une cible
                     target_id = item.id
                     self.transition_created.emit(self.drag_source_id, target_id, self.transition_nails_pos)

@@ -69,8 +69,12 @@ class NodeItem(QGraphicsEllipseItem):
     def mousePressEvent(self, event):
         """Ouvre le Dock de propriétés au clic gauche sur le noeud."""
         if event.button() == Qt.LeftButton:
-            self.setSelected(True)
             if self.scene() and self.scene().views():
+                # Forcer la sélection unique en désélectionnant tout le reste d'abord
+                for item in self.scene().selectedItems():
+                    item.setSelected(False)
+                self.setSelected(True)
+
                 view = self.scene().views()[0]
                 if hasattr(view, 'node_selected'):
                     view.node_selected.emit(self.id)
@@ -106,8 +110,12 @@ class NailItem(QGraphicsEllipseItem):
     def mousePressEvent(self, event):
         """Ouvre le Dock de propriétés de la transition au clic sur un clou."""
         if event.button() == Qt.LeftButton:
-            self.setSelected(True)
             if self.transition and self.scene() and self.scene().views():
+                # Forcer la sélection unique en désélectionnant tout le reste d'abord
+                for item in self.scene().selectedItems():
+                    item.setSelected(False)
+                self.setSelected(True)
+
                 view = self.scene().views()[0]
                 if hasattr(view, 'transition_selected'):
                     view.transition_selected.emit(self.transition.id)
@@ -265,8 +273,12 @@ class TransitionItem(QGraphicsPathItem):
     def mousePressEvent(self, event):
         """Ouvre le Dock de propriétés au clic."""
         if event.button() == Qt.LeftButton:
-            self.setSelected(True) # Force la sélection visuelle (bordure bleue)
             if self.scene() and self.scene().views():
+                # Forcer la sélection unique en désélectionnant tout le reste d'abord
+                for item in self.scene().selectedItems():
+                    item.setSelected(False)
+                self.setSelected(True) # Force la sélection visuelle (bordure bleue)
+
                 view = self.scene().views()[0]
                 if hasattr(view, 'transition_selected'):
                     view.transition_selected.emit(self.id)
